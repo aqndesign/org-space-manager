@@ -1,65 +1,237 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Box,
+  Button,
+  Card,
+  Flex,
+  Grid,
+  Heading,
+  SegmentedControl,
+  Separator,
+  Text,
+} from "@radix-ui/themes";
+import { getPlansByAA, getPlansByLocation } from "@/lib/mock-data";
+import { Plan } from "@/lib/types";
+import { StatusBadge } from "@/components/StatusBadge";
+
+function PlanCard({ plan }: { plan: Plan }) {
+  const withPct =
+    plan.employeesWithDesks + plan.employeesWithoutDesks > 0
+      ? Math.round(
+          (plan.employeesWithDesks /
+            (plan.employeesWithDesks + plan.employeesWithoutDesks)) *
+            100
+        )
+      : null;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <Link href={`/plans/${plan.id}`} style={{ textDecoration: "none" }}>
+      <Card
+        variant="surface"
+        style={{
+          cursor: "pointer",
+          transition: "box-shadow 200ms ease",
+          height: "100%",
+        }}
+        className="plan-card"
+      >
+        <Flex direction="column" gap="3">
+          <Flex justify="between" align="start">
+            <Flex direction="column" gap="1">
+              <Text size="2" weight="medium" color="gray">
+                {plan.workLocation}
+              </Text>
+              <Heading size="3">{plan.allocationArea}</Heading>
+            </Flex>
+            <StatusBadge status={plan.status} />
+          </Flex>
+
+          <Text size="1" color="gray">
+            {plan.fiscalYear} · {plan.quarter} · Updated{" "}
+            {new Date(plan.updatedAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
+          </Text>
+
+          {plan.status !== "Plan draft" && (
+            <>
+              <Separator size="4" />
+              <Grid columns="2" gap="2">
+                <Flex direction="column" gap="1">
+                  <Text size="1" color="gray">
+                    With desk
+                  </Text>
+                  <Text size="2" weight="medium" color="blue">
+                    {plan.employeesWithDesks}
+                    {withPct !== null ? ` (${withPct}%)` : ""}
+                  </Text>
+                </Flex>
+                <Flex direction="column" gap="1">
+                  <Text size="1" color="gray">
+                    Without desk
+                  </Text>
+                  <Text size="2" weight="medium" color="blue">
+                    {plan.employeesWithoutDesks}
+                    {withPct !== null ? ` (${100 - withPct}%)` : ""}
+                  </Text>
+                </Flex>
+                <Flex direction="column" gap="1">
+                  <Text size="1" color="gray">
+                    Allocated spaces
+                  </Text>
+                  <Text size="2" weight="medium">
+                    {plan.totalAllocatedSpaces || "—"}
+                  </Text>
+                </Flex>
+                <Flex direction="column" gap="1">
+                  <Text size="1" color="gray">
+                    Future headcount
+                  </Text>
+                  <Text size="2" weight="medium">
+                    {plan.futureHeadcount || "—"}
+                  </Text>
+                </Flex>
+              </Grid>
+            </>
+          )}
+        </Flex>
+      </Card>
+    </Link>
+  );
+}
+
+function GroupSection({ title, plans }: { title: string; plans: Plan[] }) {
+  return (
+    <Flex direction="column" gap="3">
+      <Flex align="center" gap="3">
+        <Heading size="4">{title}</Heading>
+        <Text size="2" color="gray">
+          {plans.length} {plans.length === 1 ? "plan" : "plans"}
+        </Text>
+      </Flex>
+      <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
+        {plans.map((p) => (
+          <PlanCard key={p.id} plan={p} />
+        ))}
+      </Grid>
+    </Flex>
+  );
+}
+
+export default function LandingPage() {
+  const [view, setView] = useState<"location" | "aa">("location");
+
+  const byLocation = getPlansByLocation();
+  const byAA = getPlansByAA();
+
+  const locationOrder = [
+    "Menlo Park",
+    "Burlingame",
+    "San Francisco",
+    "Sunnyvale",
+    "Fremont",
+    "New York",
+    "Austin",
+    "Singapore",
+    "Tokyo",
+  ];
+  const aaOrder = [
+    "Enterprise Products",
+    "Facebook",
+    "Messenger",
+    "Instagram",
+    "Enterprise Solution",
+    "Whatsapp",
+  ];
+
+  return (
+    <Box style={{ minHeight: "100vh", background: "var(--gray-2)" }}>
+      {/* Header */}
+      <Box
+        style={{
+          background: "white",
+          borderBottom: "1px solid var(--gray-4)",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+        }}
+      >
+        <Flex
+          align="center"
+          justify="between"
+          px="6"
+          py="4"
+          style={{ maxWidth: 1400, margin: "0 auto" }}
+        >
+          <Flex direction="column" gap="0">
+            <Heading size="5">Org Space Manager</Heading>
+            <Text size="2" color="gray">
+              FY26 Q2 · Desk Assignment Policy
+            </Text>
+          </Flex>
+          <Flex align="center" gap="3">
+            <Button variant="soft" size="2">
+              + New plan
+            </Button>
+          </Flex>
+        </Flex>
+      </Box>
+
+      {/* Content */}
+      <Box px="6" py="6" style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <Flex direction="column" gap="6">
+          {/* View toggle */}
+          <Flex align="center" justify="between">
+            <Flex direction="column" gap="1">
+              <Heading size="4">Policy plans</Heading>
+              <Text size="2" color="gray">
+                {view === "location"
+                  ? "Viewing by work location"
+                  : "Viewing by allocation area"}
+              </Text>
+            </Flex>
+            <SegmentedControl.Root
+              value={view}
+              onValueChange={(v) => setView(v as "location" | "aa")}
+              size="2"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+              <SegmentedControl.Item value="location">
+                Work location
+              </SegmentedControl.Item>
+              <SegmentedControl.Item value="aa">
+                Allocation area
+              </SegmentedControl.Item>
+            </SegmentedControl.Root>
+          </Flex>
+
+          {/* Groups */}
+          <Flex direction="column" gap="8">
+            {view === "location"
+              ? locationOrder
+                  .filter((loc) => byLocation.has(loc))
+                  .map((loc) => (
+                    <GroupSection
+                      key={loc}
+                      title={loc}
+                      plans={byLocation.get(loc)!}
+                    />
+                  ))
+              : aaOrder
+                  .filter((aa) => byAA.has(aa))
+                  .map((aa) => (
+                    <GroupSection
+                      key={aa}
+                      title={aa}
+                      plans={byAA.get(aa)!}
+                    />
+                  ))}
+          </Flex>
+        </Flex>
+      </Box>
+    </Box>
   );
 }

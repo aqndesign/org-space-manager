@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-geist);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist), system-ui, sans-serif;
+  background: var(--color-background);
 }
+
+/* ─── Custom Visual Layer ───────────────────────────── */
+
+.rt-Button,
+.rt-reset.rt-Button {
+  border-radius: 9999px !important;
+}
+
+.rt-DialogContent,
+.rt-AlertDialogContent {
+  transition: opacity 350ms ease-in-out, transform 350ms ease-in-out;
+}
+.rt-DialogContent[data-state="open"],
+.rt-AlertDialogContent[data-state="open"] {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.rt-DialogContent[data-state="closed"],
+.rt-AlertDialogContent[data-state="closed"] {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
+}
+
+.rt-PopoverContent {
+  transition: opacity 350ms ease-in-out, transform 350ms ease-in-out;
+}
+.rt-PopoverContent[data-state="open"] {
+  opacity: 1;
+  transform: scale(1);
+}
+.rt-PopoverContent[data-state="closed"] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.rt-DialogOverlay,
+.rt-AlertDialogOverlay {
+  transition: opacity 350ms ease-in-out;
+}
+.rt-DialogOverlay[data-state="open"],
+.rt-AlertDialogOverlay[data-state="open"] { opacity: 1; }
+.rt-DialogOverlay[data-state="closed"],
+.rt-AlertDialogOverlay[data-state="closed"] { opacity: 0; }
