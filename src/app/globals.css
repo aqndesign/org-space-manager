@@ -2,11 +2,26 @@
 
 :root {
   --font-sans: var(--font-geist);
+  --color-primary: #1C2024;
+  --color-secondary: #60646C;
+
+  /* Brand gradient: indigo → violet → deep teal */
+  --brand-gradient: linear-gradient(to right, #3300FC, #95008A, #3C5CDD);
+  --brand-gradient-hover: linear-gradient(to right, #2800e0, #7e0075, #3050c8);
 }
 
 body {
   font-family: var(--font-geist), system-ui, sans-serif;
   background: var(--color-background);
+  color: var(--color-primary);
+}
+
+/* Override Radix gray tokens so all default text/icons use the brand palette */
+.radix-themes {
+  --gray-12: var(--color-primary);
+  --gray-11: var(--color-secondary);
+  --gray-a12: var(--color-primary);
+  --gray-a11: var(--color-secondary);
 }
 
 /* ─── Custom Visual Layer ───────────────────────────── */
@@ -16,14 +31,95 @@ body {
   border-radius: 9999px !important;
 }
 
-.grass-plan-button {
-  background-color: var(--grass-10) !important;
-  color: white !important;
-  transition: background-color 200ms ease, color 200ms ease;
+
+/* ─── Blob morph keyframes ───────────────────────────── */
+@keyframes blobMorph1 {
+  0%,100% { border-radius: 50%; transform: scale(1); }
+  30%     { border-radius: 44% 56% 62% 38% / 52% 48% 54% 46%; transform: scale(1.08); }
+  65%     { border-radius: 60% 40% 44% 56% / 40% 60% 48% 52%; transform: scale(0.94); }
 }
 
-.grass-plan-button:hover {
-  background-color: var(--grass-11) !important;
+@keyframes blobMorph2 {
+  0%,100% { border-radius: 50%; transform: scale(1); }
+  25%     { border-radius: 58% 42% 52% 48% / 46% 54% 40% 60%; transform: scale(1.12); }
+  60%     { border-radius: 40% 60% 58% 42% / 56% 44% 62% 38%; transform: scale(0.88); }
+}
+
+@keyframes blobMorph3 {
+  0%,100% { border-radius: 50%; transform: scale(1); }
+  20%     { border-radius: 62% 38% 46% 54% / 48% 52% 44% 56%; transform: scale(0.9); }
+  55%     { border-radius: 46% 54% 60% 40% / 60% 40% 52% 48%; transform: scale(1.15); }
+}
+
+/* ─── Plan card hover ───────────────────────────────── */
+.plan-card {
+  transition: box-shadow 250ms ease, transform 250ms ease, background-color 250ms ease !important;
+}
+
+.plan-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10) !important;
+  transform: translateY(-2px);
+  background-color: var(--gray-1) !important;
+}
+
+/* ─── Global interactive hover transitions ───────────── */
+.rt-Button,
+.rt-BaseButton {
+  transition: background-color 250ms ease, color 250ms ease, box-shadow 250ms ease, opacity 250ms ease !important;
+}
+
+.rt-Card {
+  transition: box-shadow 250ms ease, background-color 250ms ease !important;
+}
+
+.rt-Badge {
+  transition: background-color 250ms ease, color 250ms ease !important;
+}
+
+.rt-TextField-root,
+.rt-TextArea {
+  transition: box-shadow 250ms ease, border-color 250ms ease !important;
+}
+
+.rt-CheckboxButton,
+.rt-RadioGroupItem {
+  transition: background-color 250ms ease, border-color 250ms ease !important;
+}
+
+a {
+  transition: opacity 250ms ease, color 250ms ease;
+}
+
+/* ─── Cursor for clickable components ───────────────── */
+.rt-Button,
+.rt-BaseButton,
+.rt-CheckboxButton,
+.rt-RadioGroupItem,
+.rt-SegmentedControlItem,
+.rt-SelectTrigger,
+.rt-SliderThumb,
+.rt-SwitchButton,
+.rt-TabsTrigger,
+.rt-DropdownMenuTrigger,
+.rt-ContextMenuTrigger,
+.rt-MenubarTrigger,
+.rt-TooltipTrigger,
+.rt-PopoverTrigger,
+.rt-DialogTrigger,
+.rt-AlertDialogTrigger,
+.rt-HoverCardTrigger,
+.rt-AccordionTrigger,
+.plan-card,
+a,
+button,
+[role="button"],
+[role="tab"],
+[role="checkbox"],
+[role="radio"],
+[role="menuitem"],
+[role="option"],
+label {
+  cursor: pointer;
 }
 
 .rt-DialogContent,
