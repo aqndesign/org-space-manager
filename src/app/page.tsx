@@ -174,7 +174,7 @@ export default function LandingPage() {
             </Text>
           </Flex>
           <Flex align="center" gap="3">
-            <Button variant="soft" size="2">
+            <Button variant="soft" size="2" className="grass-plan-button">
               + New plan
             </Button>
           </Flex>

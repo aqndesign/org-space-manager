@@ -16,6 +16,16 @@ body {
   border-radius: 9999px !important;
 }
 
+.grass-plan-button {
+  background-color: var(--grass-10) !important;
+  color: white !important;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.grass-plan-button:hover {
+  background-color: var(--grass-11) !important;
+}
+
 .rt-DialogContent,
 .rt-AlertDialogContent {
   transition: opacity 350ms ease-in-out, transform 350ms ease-in-out;
