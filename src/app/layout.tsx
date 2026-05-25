@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Source_Sans_3 } from "next/font/google";
 import "@radix-ui/themes/styles.css";
+import "@carbon/charts-react/styles.css";
 import "./globals.css";
 import { Theme } from "@radix-ui/themes";
 
