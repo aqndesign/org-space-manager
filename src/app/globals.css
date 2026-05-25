@@ -34,6 +34,21 @@ h1, h2 {
   --gray-a11: var(--color-secondary);
 }
 
+/* ─── Carbon Charts overrides ───────────────────────── */
+
+/* Apply Google fonts via Carbon's font token */
+:root {
+  --cds-charts-font-family: var(--font-source-sans-3), system-ui, sans-serif;
+  --cds-charts-font-family-condensed: var(--font-source-sans-3), system-ui, sans-serif;
+}
+
+/* 2px white gap between donut/pie segments */
+.cds--cc--pie path.slice,
+.cds--cc--donut path.slice {
+  stroke: white;
+  stroke-width: 2px;
+}
+
 /* ─── Custom Visual Layer ───────────────────────────── */
 
 .rt-Button,

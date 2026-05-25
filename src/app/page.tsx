@@ -29,32 +29,18 @@ interface DonutSegment {
   label: string;
 }
 
-const AA_COLORS: Record<string, string> = {
-  "Enterprise Products": "#2657E8",
-  "Facebook": "#7C3AED",
-  "Messenger": "#10B981",
-  "Instagram": "#F59E0B",
-  "Enterprise Solution": "#EF4444",
-  "Whatsapp": "#0891B2",
-};
-
-const LOCATION_COLORS: Record<string, string> = {
-  "Menlo Park": "#2657E8",
-  "Burlingame": "#7C3AED",
-  "San Francisco": "#10B981",
-  "Sunnyvale": "#F59E0B",
-  "Fremont": "#EF4444",
-  "New York": "#0891B2",
-  "Austin": "#F97316",
-  "Singapore": "#BE185D",
-  "Tokyo": "#65A30D",
-};
-
-const WORKSPACE_COLORS = {
-  assigned: "#2657E8",
-  available: "#10B981",
-  coworking: "#F59E0B",
-};
+function purplePalette(n: number): string[] {
+  const start = { r: 0x64, g: 0x21, b: 0xca };
+  const end   = { r: 0xd4, g: 0xab, b: 0xff };
+  if (n === 1) return [`#${start.r.toString(16).padStart(2,"0")}${start.g.toString(16).padStart(2,"0")}${start.b.toString(16).padStart(2,"0")}`];
+  return Array.from({ length: n }, (_, i) => {
+    const t = i / (n - 1);
+    const r = Math.round(start.r + (end.r - start.r) * t);
+    const g = Math.round(start.g + (end.g - start.g) * t);
+    const b = Math.round(start.b + (end.b - start.b) * t);
+    return `rgb(${r},${g},${b})`;
+  });
+}
 
 function totalHeadcount(plan: Plan) {
   const ea = plan.employeeAssessment;
@@ -128,20 +114,30 @@ function GroupCard({
   );
   const totalWorkspaces = totalAssigned + totalAvailable + totalCoworking;
 
-  const employeeSegments: DonutSegment[] = plans.map((p) => ({
+  const empPalette = purplePalette(plans.length);
+  const employeeSegments: DonutSegment[] = plans.map((p, i) => ({
     value: totalHeadcount(p),
-    color:
-      view === "location"
-        ? (AA_COLORS[p.allocationArea] ?? "#888")
-        : (LOCATION_COLORS[p.workLocation] ?? "#888"),
+    color: empPalette[i],
     label: view === "location" ? p.allocationArea : p.workLocation,
   }));
 
+  const wsPalette = purplePalette(3);
   const workspaceSegments: DonutSegment[] = [
-    { value: totalAssigned, color: WORKSPACE_COLORS.assigned, label: "Assigned" },
-    { value: totalAvailable, color: WORKSPACE_COLORS.available, label: "Available" },
-    { value: totalCoworking, color: WORKSPACE_COLORS.coworking, label: "Coworking" },
+    { value: totalAssigned,  color: wsPalette[0], label: "Assigned" },
+    { value: totalAvailable, color: wsPalette[1], label: "Available" },
+    { value: totalCoworking, color: wsPalette[2], label: "Coworking" },
   ];
+
+  const donutOptions = (segments: DonutSegment[], centerLabel: string) => ({
+    resizable: false,
+    width: "320px",
+    height: "200px",
+    pie: { labels: { enabled: false } },
+    legend: { enabled: true, position: "right", orientation: "vertical" },
+    color: { scale: Object.fromEntries(segments.map((s) => [s.label, s.color])) },
+    donut: { center: { label: centerLabel } },
+    toolbar: { enabled: false },
+  });
 
   return (
     <Box
@@ -152,70 +148,36 @@ function GroupCard({
         overflow: "hidden",
       }}
     >
-      {/* Card header */}
-      <Box px="5" pt="5" pb="4">
-        <Flex justify="between" align="start" gap="6">
-          {/* Left: title + aggregate stats */}
-          <Flex direction="column" gap="4" style={{ minWidth: 0, flex: 1 }}>
-            <Flex align="baseline" gap="3">
-              <Heading as="h2" size="5">{title}</Heading>
-              <Text size="2" color="gray">
-                {plans.length} {plans.length === 1 ? "plan" : "plans"}
-              </Text>
-            </Flex>
-
-            <Grid columns="2" gap="4">
-              <Flex direction="column" gap="1">
-                <Text size="1" color="gray" weight="medium">Employees</Text>
-                <Text size="4" weight="medium">{totalEmployees.toLocaleString()}</Text>
-              </Flex>
-              <Flex direction="column" gap="1">
-                <Text size="1" color="gray" weight="medium">Workspaces</Text>
-                <Text size="4" weight="medium">{totalWorkspaces.toLocaleString()}</Text>
-                <Text size="1" color="gray">
-                  {totalAssigned} assigned · {totalAvailable} available · {totalCoworking} coworking
-                </Text>
-              </Flex>
-            </Grid>
+      {/* Card header — title + metadata only */}
+      <Box px="5" pt="5" pb="3">
+        <Flex direction="column" gap="1">
+          <Flex align="baseline" gap="3">
+            <Heading as="h2" size="5">{title}</Heading>
+            <Text size="2" color="gray">
+              {plans.length} {plans.length === 1 ? "plan" : "plans"}
+            </Text>
           </Flex>
+          <Text size="2" color="gray">
+            {totalEmployees.toLocaleString()} employees · {totalWorkspaces.toLocaleString()} workspaces · {totalAssigned} assigned · {totalAvailable} available · {totalCoworking} coworking
+          </Text>
+        </Flex>
+      </Box>
 
-          {/* Right: donut charts */}
-          <Flex gap="4" align="start" style={{ flexShrink: 0 }}>
-            <Box style={{ width: 220 }}>
-              <DonutChart
-                data={employeeSegments.map((s) => ({ group: s.label, value: s.value }))}
-                options={{
-                  title: "Employees",
-                  resizable: false,
-                  width: "220px",
-                  height: "220px",
-                  legend: { enabled: true },
-                  color: {
-                    scale: Object.fromEntries(employeeSegments.map((s) => [s.label, s.color])),
-                  },
-                  donut: { center: { label: "employees" } },
-                  toolbar: { enabled: false },
-                }}
-              />
-            </Box>
-            <Box style={{ width: 220 }}>
-              <DonutChart
-                data={workspaceSegments.map((s) => ({ group: s.label, value: s.value }))}
-                options={{
-                  title: "Workspaces",
-                  resizable: false,
-                  width: "220px",
-                  height: "220px",
-                  legend: { enabled: true },
-                  color: {
-                    scale: Object.fromEntries(workspaceSegments.map((s) => [s.label, s.color])),
-                  },
-                  donut: { center: { label: "workspaces" } },
-                  toolbar: { enabled: false },
-                }}
-              />
-            </Box>
-          </Flex>
+      {/* Donut charts row */}
+      <Box px="5" pb="4">
+        <Flex gap="2">
+          <Box style={{ width: 320 }}>
+            <DonutChart
+              data={employeeSegments.map((s) => ({ group: s.label, value: s.value }))}
+              options={donutOptions(employeeSegments, "employees")}
+            />
+          </Box>
+          <Box style={{ width: 320 }}>
+            <DonutChart
+              data={workspaceSegments.map((s) => ({ group: s.label, value: s.value }))}
+              options={donutOptions(workspaceSegments, "workspaces")}
+            />
+          </Box>
         </Flex>
       </Box>
 
