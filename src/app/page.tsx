@@ -29,15 +29,20 @@ interface DonutSegment {
   label: string;
 }
 
-function purplePalette(n: number): string[] {
-  const start = { r: 0x64, g: 0x21, b: 0xca };
-  const end   = { r: 0xd4, g: 0xab, b: 0xff };
-  if (n === 1) return [`#${start.r.toString(16).padStart(2,"0")}${start.g.toString(16).padStart(2,"0")}${start.b.toString(16).padStart(2,"0")}`];
+function hexPalette(n: number, startHex: string, endHex: string): string[] {
+  const parse = (h: string) => ({
+    r: parseInt(h.slice(1, 3), 16),
+    g: parseInt(h.slice(3, 5), 16),
+    b: parseInt(h.slice(5, 7), 16),
+  });
+  const s = parse(startHex);
+  const e = parse(endHex);
+  if (n === 1) return [startHex];
   return Array.from({ length: n }, (_, i) => {
     const t = i / (n - 1);
-    const r = Math.round(start.r + (end.r - start.r) * t);
-    const g = Math.round(start.g + (end.g - start.g) * t);
-    const b = Math.round(start.b + (end.b - start.b) * t);
+    const r = Math.round(s.r + (e.r - s.r) * t);
+    const g = Math.round(s.g + (e.g - s.g) * t);
+    const b = Math.round(s.b + (e.b - s.b) * t);
     return `rgb(${r},${g},${b})`;
   });
 }
@@ -114,14 +119,14 @@ function GroupCard({
   );
   const totalWorkspaces = totalAssigned + totalAvailable + totalCoworking;
 
-  const empPalette = purplePalette(plans.length);
+  const empPalette = hexPalette(plans.length, "#2657E8", "#AFC8FF");
   const employeeSegments: DonutSegment[] = plans.map((p, i) => ({
     value: totalHeadcount(p),
     color: empPalette[i],
     label: view === "location" ? p.allocationArea : p.workLocation,
   }));
 
-  const wsPalette = purplePalette(3);
+  const wsPalette = hexPalette(3, "#6421CA", "#D4ABFF");
   const workspaceSegments: DonutSegment[] = [
     { value: totalAssigned,  color: wsPalette[0], label: "Assigned" },
     { value: totalAvailable, color: wsPalette[1], label: "Available" },
@@ -130,10 +135,10 @@ function GroupCard({
 
   const donutOptions = (segments: DonutSegment[], centerLabel: string) => ({
     resizable: false,
-    width: "320px",
-    height: "200px",
+    width: "130px",
+    height: "130px",
     pie: { labels: { enabled: false } },
-    legend: { enabled: true, position: "right", orientation: "vertical" },
+    legend: { enabled: false },
     color: { scale: Object.fromEntries(segments.map((s) => [s.label, s.color])) },
     donut: { center: { label: centerLabel } },
     toolbar: { enabled: false },
@@ -149,7 +154,7 @@ function GroupCard({
       }}
     >
       {/* Card header — title + metadata only */}
-      <Box px="5" pt="5" pb="3">
+      <Box px="5" pt="5" style={{ paddingBottom: 16 }}>
         <Flex direction="column" gap="1">
           <Flex align="baseline" gap="3">
             <Heading as="h2" size="5">{title}</Heading>
@@ -165,19 +170,46 @@ function GroupCard({
 
       {/* Donut charts row */}
       <Box px="5" pb="4">
-        <Flex gap="2">
-          <Box style={{ width: 320 }}>
-            <DonutChart
-              data={employeeSegments.map((s) => ({ group: s.label, value: s.value }))}
-              options={donutOptions(employeeSegments, "employees")}
-            />
-          </Box>
-          <Box style={{ width: 320 }}>
-            <DonutChart
-              data={workspaceSegments.map((s) => ({ group: s.label, value: s.value }))}
-              options={donutOptions(workspaceSegments, "workspaces")}
-            />
-          </Box>
+        <Flex style={{ gap: 32 }}>
+          {/* Employee donut + legend */}
+          <Flex align="center" style={{ gap: 16 }}>
+            <Box style={{ width: 130, flexShrink: 0 }}>
+              <DonutChart
+                data={employeeSegments.map((s) => ({ group: s.label, value: s.value }))}
+                options={donutOptions(employeeSegments, "employees")}
+              />
+            </Box>
+            <Flex direction="column" gap="1" style={{ justifyContent: "center" }}>
+              {[...employeeSegments]
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .map((s) => (
+                  <Flex key={s.label} align="center" gap="2">
+                    <Box style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
+                    <Text size="1">{s.label}</Text>
+                  </Flex>
+                ))}
+            </Flex>
+          </Flex>
+
+          {/* Workspace donut + legend */}
+          <Flex align="center" style={{ gap: 16 }}>
+            <Box style={{ width: 130, flexShrink: 0 }}>
+              <DonutChart
+                data={workspaceSegments.map((s) => ({ group: s.label, value: s.value }))}
+                options={donutOptions(workspaceSegments, "workspaces")}
+              />
+            </Box>
+            <Flex direction="column" gap="1" style={{ justifyContent: "center" }}>
+              {[...workspaceSegments]
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .map((s) => (
+                  <Flex key={s.label} align="center" gap="2">
+                    <Box style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
+                    <Text size="1">{s.label}</Text>
+                  </Flex>
+                ))}
+            </Flex>
+          </Flex>
         </Flex>
       </Box>
 
