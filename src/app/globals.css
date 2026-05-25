@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --font-sans: var(--font-geist);
+  --font-heading: var(--font-inter);
+  --font-body: var(--font-source-sans-3);
   --color-primary: #1C2024;
   --color-secondary: #60646C;
 
@@ -11,9 +12,14 @@
 }
 
 body {
-  font-family: var(--font-geist), system-ui, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
   background: var(--color-background);
   color: var(--color-primary);
+}
+
+h1, h2, h3, h4, h5, h6,
+.rt-Heading {
+  font-family: var(--font-heading), system-ui, sans-serif;
 }
 
 /* Override Radix gray tokens so all default text/icons use the brand palette */
