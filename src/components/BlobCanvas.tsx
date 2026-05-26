@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 export function BlobCanvas() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const blob1Ref = useRef<HTMLDivElement>(null);
   const blob2Ref = useRef<HTMLDivElement>(null);
   const blob3Ref = useRef<HTMLDivElement>(null);
@@ -14,7 +15,6 @@ export function BlobCanvas() {
 
     const mouse = { x: W / 2, y: H / 2 };
 
-    // Positions and lag speeds for each blob
     const blobs = [
       { x: W * 0.25, y: H * 0.3,  speed: 0.04,  ox: -200, oy: -150 },
       { x: W * 0.55, y: H * 0.5,  speed: 0.065, ox:  130, oy:  90  },
@@ -30,6 +30,10 @@ export function BlobCanvas() {
     window.addEventListener("mousemove", onMove);
 
     const tick = () => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      const offsetX = rect?.left ?? 0;
+      const offsetY = rect?.top ?? 0;
+
       blobs.forEach((blob, i) => {
         const tx = mouse.x + blob.ox;
         const ty = mouse.y + blob.oy;
@@ -38,8 +42,8 @@ export function BlobCanvas() {
 
         const el = refs[i].current;
         if (el) {
-          el.style.left = `${blob.x}px`;
-          el.style.top  = `${blob.y}px`;
+          el.style.left = `${blob.x - offsetX}px`;
+          el.style.top  = `${blob.y - offsetY}px`;
         }
       });
       rafRef.current = requestAnimationFrame(tick);
@@ -61,8 +65,9 @@ export function BlobCanvas() {
 
   return (
     <div
+      ref={containerRef}
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         pointerEvents: "none",
         zIndex: 0,

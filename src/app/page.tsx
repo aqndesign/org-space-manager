@@ -19,10 +19,9 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { Cross2Icon, PaperPlaneIcon } from "@radix-ui/react-icons";
-import Lottie from "lottie-react";
-import aiStarEffect from "../../asset/icons/ai-star-effect.json";
-import { getPlansByAA, getPlansByLocation } from "@/lib/mock-data";
+import { addPlan, getPlansByAA, getPlansByLocation, PLANS } from "@/lib/mock-data";
 import { BlobCanvas } from "@/components/BlobCanvas";
+import { NewPlanModal } from "@/components/NewPlanModal";
 import { Plan } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -49,7 +48,7 @@ function totalHeadcount(plan: Plan) {
   return ea.fullTime + ea.partTime + ea.interns + ea.contingent + ea.other;
 }
 
-function PlanCard({ plan, groupPlans, view }: { plan: Plan; groupPlans: Plan[]; view: "location" | "aa" }) {
+function PlanCard({ plan }: { plan: Plan }) {
   const employees = totalHeadcount(plan);
   const assigned = plan.workspaceAssessment.assignedDesks;
   const available = plan.workspaceAssessment.availableDesks;
@@ -135,7 +134,7 @@ function GroupCard({
         border: "0.5px solid rgba(255, 255, 255, 0.75)",
         borderRadius: 20,
         overflow: "hidden",
-        boxShadow: "0 2px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)",
+        boxShadow: "0 2px 23px rgba(0,0,0,0.054), inset 0 1px 0 rgba(255,255,255,0.9)",
       }}
     >
       {/* Card header — title + metadata only */}
@@ -200,7 +199,7 @@ function GroupCard({
       <Box p="5">
         <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
           {plans.map((p) => (
-            <PlanCard key={p.id} plan={p} groupPlans={plans} view={view} />
+            <PlanCard key={p.id} plan={p} />
           ))}
         </Grid>
       </Box>
@@ -240,6 +239,8 @@ export default function LandingPage() {
   const [agentOpen, setAgentOpen] = useState(true);
   const [agentInput, setAgentInput] = useState("");
   const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([]);
+  const [newPlanOpen, setNewPlanOpen] = useState(false);
+  const [plans, setPlans] = useState<Plan[]>([...PLANS]);
 
   function sendAgentMessage() {
     const content = agentInput.trim();
@@ -256,8 +257,13 @@ export default function LandingPage() {
     setAgentInput("");
   }
 
-  const byLocation = getPlansByLocation();
-  const byAA = getPlansByAA();
+  function handleCreatePlan(plan: Plan) {
+    addPlan(plan);
+    setPlans([...PLANS]);
+  }
+
+  const byLocation = getPlansByLocation(plans);
+  const byAA = getPlansByAA(plans);
 
   const locationOrder = [
     "Menlo Park",
@@ -278,31 +284,14 @@ export default function LandingPage() {
   ];
 
   return (
-    <Box style={{ minHeight: "100vh", background: "var(--gray-2)", position: "relative" }}>
-      <BlobCanvas />
-      {/* Header — liquid glass */}
+    <Box style={{ height: "100vh", display: "flex", flexDirection: "column", position: "relative", background: "#FCFCFD" }}>
+      {/* Header */}
       <Box
         style={{
-          position: "sticky",
-          top: 0,
+          flexShrink: 0,
           zIndex: 10,
-          background: "rgba(255, 255, 255, 0.45)",
-          backdropFilter: "blur(28px) saturate(1.8) brightness(1.06)",
-          WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.06)",
-          borderBottom: "0.5px solid rgba(0,0,0,0.1)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "inherit",
-            background: "linear-gradient(to bottom, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0) 60%)",
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        />
         <Flex
           align="center"
           justify="between"
@@ -348,7 +337,7 @@ export default function LandingPage() {
                 />
               </svg>
             </IconButton>
-            <Button size="2" className="btn-green" style={{ background: "var(--btn-green-bg)", color: "white" }}>
+            <Button size="2" className="btn-green" style={{ background: "var(--btn-green-bg)", color: "white" }} onClick={() => setNewPlanOpen(true)}>
               + New plan
             </Button>
           </Flex>
@@ -356,16 +345,17 @@ export default function LandingPage() {
       </Box>
 
       {/* Body */}
-      <Flex style={{ position: "relative", zIndex: 1 }}>
-        {/* Content */}
+      <Box style={{ flex: 1, overflow: "hidden", borderRadius: 24, position: "relative", zIndex: 1, background: "#F0F0F3" }}>
+        <BlobCanvas />
+        <Flex style={{ height: "100%" }}>
+          {/* Scrollable content */}
+          <Box style={{ flex: 1, overflowY: "auto", height: "100%" }}>
         <Box
           px="6"
           py="6"
           style={{
-            flex: 1,
-            maxWidth: agentOpen ? "calc(1400px - 392px)" : 1400,
+            maxWidth: 1400,
             margin: "0 auto",
-            transition: "max-width 300ms ease",
           }}
         >
           <Flex direction="column" gap="6">
@@ -409,33 +399,30 @@ export default function LandingPage() {
           </Flex>
         </Box>
 
-        {agentOpen && <Box style={{ width: 392, flexShrink: 0 }} />}
-      </Flex>
-
-      {/* Agent panel — fixed, never scrolls with page */}
-      {agentOpen && (
-        <Box
-          style={{
-            position: "fixed",
-            right: 16,
-            top: 73,
-            width: 360,
-            height: "calc(100vh - 89px)",
-            zIndex: 9,
-            background: "white",
-            display: "flex",
-            flexDirection: "column",
-            borderRadius: 12,
-            border: "1px solid var(--gray-4)",
-            overflow: "hidden",
-          }}
-        >
+          </Box>
+          {agentOpen && (
+            <Box
+              style={{
+                width: 360,
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                background: "rgba(255, 255, 255, 0.70)",
+                backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
+                WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
+                border: "0.5px solid rgba(255, 255, 255, 0.75)",
+                borderRadius: 20,
+                margin: "8px 8px 8px 0",
+                boxShadow: "0 2px 23px rgba(0,0,0,0.054), inset 0 1px 0 rgba(255,255,255,0.9)",
+                overflow: "hidden",
+              }}
+            >
             <Flex
               align="center"
               justify="between"
               px="4"
               py="3"
-              style={{ borderBottom: "1px solid var(--gray-4)", flexShrink: 0 }}
+              style={{ flexShrink: 0 }}
             >
               <Flex align="center" gap="2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" style={{ flexShrink: 0 }}>
@@ -457,6 +444,7 @@ export default function LandingPage() {
               </IconButton>
             </Flex>
 
+            <Box style={{ flex: 1, display: "flex", flexDirection: "column", background: "white", borderRadius: "16px 16px 0 0", overflow: "hidden", minHeight: 0, margin: "0 4px 4px" }}>
             <ScrollArea style={{ flex: 1 }}>
               <Flex direction="column" gap="3" p="4">
                 <Flex direction="column" align="center" gap="2" py="6">
@@ -496,7 +484,7 @@ export default function LandingPage() {
               </Flex>
             </ScrollArea>
 
-            <Box px="4" py="3" style={{ borderTop: "1px solid var(--gray-4)", flexShrink: 0 }}>
+            <Box px="4" py="3" style={{ borderTop: "0.5px solid rgba(0,0,0,0.1)", flexShrink: 0 }}>
               <Flex gap="2">
                 <TextArea
                   placeholder="Ask a question..."
@@ -517,8 +505,18 @@ export default function LandingPage() {
                 </Flex>
               </Flex>
             </Box>
-          </Box>
-        )}
+            </Box>
+            </Box>
+          )}
+        </Flex>
+      </Box>
+
+      <NewPlanModal
+        open={newPlanOpen}
+        onOpenChange={setNewPlanOpen}
+        existingPlans={plans}
+        onCreate={handleCreatePlan}
+      />
     </Box>
   );
 }

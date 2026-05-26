@@ -359,13 +359,17 @@ export const PLANS: Plan[] = [
   },
 ];
 
+export function addPlan(plan: Plan): void {
+  PLANS.push(plan);
+}
+
 export function getPlanById(id: string): Plan | undefined {
   return PLANS.find((p) => p.id === id);
 }
 
-export function getPlansByLocation() {
+export function getPlansByLocation(source: Plan[] = PLANS) {
   const map = new Map<string, Plan[]>();
-  for (const plan of PLANS) {
+  for (const plan of source) {
     const list = map.get(plan.workLocation) ?? [];
     list.push(plan);
     map.set(plan.workLocation, list);
@@ -373,9 +377,9 @@ export function getPlansByLocation() {
   return map;
 }
 
-export function getPlansByAA() {
+export function getPlansByAA(source: Plan[] = PLANS) {
   const map = new Map<string, Plan[]>();
-  for (const plan of PLANS) {
+  for (const plan of source) {
     const list = map.get(plan.allocationArea) ?? [];
     list.push(plan);
     map.set(plan.allocationArea, list);
