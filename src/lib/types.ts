@@ -17,12 +17,10 @@ export type WorkLocation =
   | "Tokyo";
 
 export type AllocationArea =
-  | "MDS Foundations"
-  | "Facebook"
-  | "Messenger"
-  | "Instagram"
-  | "Enterprise Solution"
-  | "Whatsapp";
+  | "Enterprise Products"
+  | "Enterprise Solutions"
+  | "Enterprise Ticketing"
+  | "Enterprise Analytics";
 
 export interface EmployeeAssessment {
   fullTime: number;
@@ -59,6 +57,12 @@ export interface IPTPolicy {
   };
 }
 
+export interface PlanSnapshot {
+  month: string;
+  employees: number;
+  workspaces: number;
+}
+
 export interface Plan {
   id: string;
   workLocation: WorkLocation;
@@ -76,4 +80,5 @@ export interface Plan {
   employeesWithoutDesks: number;
   totalAllocatedSpaces: number;
   futureHeadcount: number;
+  history: PlanSnapshot[];
 }

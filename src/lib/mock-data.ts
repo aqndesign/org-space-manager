@@ -1,10 +1,15 @@
-import { Plan } from "./types";
+import { Plan, PlanSnapshot } from "./types";
+
+const MONTHS = ["Apr '25", "May '25", "Jun '25", "Jul '25", "Aug '25", "Sep '25"];
+function hist(e: number[], w: number[]): PlanSnapshot[] {
+  return MONTHS.map((month, i) => ({ month, employees: e[i], workspaces: w[i] }));
+}
 
 export const PLANS: Plan[] = [
   {
     id: "mp-ep",
     workLocation: "Menlo Park",
-    allocationArea: "MDS Foundations",
+    allocationArea: "Enterprise Products",
     status: "Live",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -13,6 +18,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 32,
     totalAllocatedSpaces: 272,
     futureHeadcount: 8,
+    history: hist([240,255,268,278,285,292],[240,248,258,265,270,272]),
     employeeAssessment: { fullTime: 260, partTime: 14, interns: 10, contingent: 6, other: 2 },
     workspaceAssessment: { assignedDesks: 51, availableDesks: 18, dropIn: 120, reservable: 83 },
     deskPolicy: {
@@ -30,7 +36,7 @@ export const PLANS: Plan[] = [
   {
     id: "mp-fb",
     workLocation: "Menlo Park",
-    allocationArea: "Facebook",
+    allocationArea: "Enterprise Solutions",
     status: "Approved",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -39,6 +45,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 45,
     totalAllocatedSpaces: 580,
     futureHeadcount: 15,
+    history: hist([580,590,600,608,615,620],[560,562,568,572,576,580]),
     employeeAssessment: { fullTime: 590, partTime: 16, interns: 8, contingent: 6, other: 0 },
     workspaceAssessment: { assignedDesks: 120, availableDesks: 42, dropIn: 280, reservable: 138 },
     deskPolicy: {
@@ -56,7 +63,7 @@ export const PLANS: Plan[] = [
   {
     id: "mp-msg",
     workLocation: "Menlo Park",
-    allocationArea: "Messenger",
+    allocationArea: "Enterprise Ticketing",
     status: "Submitted",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -65,6 +72,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 22,
     totalAllocatedSpaces: 180,
     futureHeadcount: 5,
+    history: hist([220,215,208,200,195,193],[200,196,190,185,182,180]),
     employeeAssessment: { fullTime: 176, partTime: 8, interns: 5, contingent: 4, other: 0 },
     workspaceAssessment: { assignedDesks: 38, availableDesks: 12, dropIn: 85, reservable: 45 },
     deskPolicy: {
@@ -82,7 +90,7 @@ export const PLANS: Plan[] = [
   {
     id: "sf-ig",
     workLocation: "San Francisco",
-    allocationArea: "Instagram",
+    allocationArea: "Enterprise Analytics",
     status: "Policy draft",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -91,6 +99,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 41,
     totalAllocatedSpaces: 340,
     futureHeadcount: 12,
+    history: hist([310,330,320,340,358,365],[295,312,305,320,333,340]),
     employeeAssessment: { fullTime: 348, partTime: 9, interns: 5, contingent: 3, other: 0 },
     workspaceAssessment: { assignedDesks: 67, availableDesks: 25, dropIn: 160, reservable: 88 },
     deskPolicy: {
@@ -108,7 +117,7 @@ export const PLANS: Plan[] = [
   {
     id: "sf-wa",
     workLocation: "San Francisco",
-    allocationArea: "Whatsapp",
+    allocationArea: "Enterprise Products",
     status: "Plan draft",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -117,6 +126,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 0,
     totalAllocatedSpaces: 0,
     futureHeadcount: 0,
+    history: hist([100,108,118,130,142,150],[96,102,112,122,133,140]),
     employeeAssessment: { fullTime: 142, partTime: 4, interns: 2, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 0, availableDesks: 30, dropIn: 70, reservable: 40 },
     deskPolicy: {
@@ -134,7 +144,7 @@ export const PLANS: Plan[] = [
   {
     id: "sv-es",
     workLocation: "Sunnyvale",
-    allocationArea: "Enterprise Solution",
+    allocationArea: "Enterprise Solutions",
     status: "Live",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -143,6 +153,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 21,
     totalAllocatedSpaces: 410,
     futureHeadcount: 10,
+    history: hist([380,410,445,435,438,440],[355,382,415,408,410,410]),
     employeeAssessment: { fullTime: 422, partTime: 10, interns: 5, contingent: 3, other: 0 },
     workspaceAssessment: { assignedDesks: 89, availableDesks: 31, dropIn: 180, reservable: 110 },
     deskPolicy: {
@@ -160,7 +171,7 @@ export const PLANS: Plan[] = [
   {
     id: "sv-ep",
     workLocation: "Sunnyvale",
-    allocationArea: "MDS Foundations",
+    allocationArea: "Enterprise Ticketing",
     status: "Submitted",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -169,6 +180,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 17,
     totalAllocatedSpaces: 195,
     futureHeadcount: 6,
+    history: hist([185,190,195,200,206,210],[172,176,180,185,190,195]),
     employeeAssessment: { fullTime: 200, partTime: 5, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 33, availableDesks: 14, dropIn: 90, reservable: 58 },
     deskPolicy: {
@@ -186,7 +198,7 @@ export const PLANS: Plan[] = [
   {
     id: "bg-fb",
     workLocation: "Burlingame",
-    allocationArea: "Facebook",
+    allocationArea: "Enterprise Analytics",
     status: "Policy draft",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -195,6 +207,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 18,
     totalAllocatedSpaces: 155,
     futureHeadcount: 4,
+    history: hist([155,158,162,165,165,166],[145,148,152,154,155,155]),
     employeeAssessment: { fullTime: 158, partTime: 4, interns: 2, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 29, availableDesks: 10, dropIn: 70, reservable: 46 },
     deskPolicy: {
@@ -212,7 +225,7 @@ export const PLANS: Plan[] = [
   {
     id: "fr-wa",
     workLocation: "Fremont",
-    allocationArea: "Whatsapp",
+    allocationArea: "Enterprise Products",
     status: "Approved",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -221,6 +234,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 7,
     totalAllocatedSpaces: 90,
     futureHeadcount: 3,
+    history: hist([118,112,108,104,100,97],[108,104,100,96,92,90]),
     employeeAssessment: { fullTime: 88, partTime: 4, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 18, availableDesks: 8, dropIn: 40, reservable: 24 },
     deskPolicy: {
@@ -238,7 +252,7 @@ export const PLANS: Plan[] = [
   {
     id: "ny-ig",
     workLocation: "New York",
-    allocationArea: "Instagram",
+    allocationArea: "Enterprise Solutions",
     status: "Live",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -247,6 +261,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 28,
     totalAllocatedSpaces: 395,
     futureHeadcount: 9,
+    history: hist([340,360,378,395,410,423],[320,338,355,370,384,395]),
     employeeAssessment: { fullTime: 408, partTime: 8, interns: 5, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 74, availableDesks: 28, dropIn: 175, reservable: 118 },
     deskPolicy: {
@@ -264,7 +279,7 @@ export const PLANS: Plan[] = [
   {
     id: "au-msg",
     workLocation: "Austin",
-    allocationArea: "Messenger",
+    allocationArea: "Enterprise Ticketing",
     status: "Plan draft",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -273,6 +288,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 0,
     totalAllocatedSpaces: 0,
     futureHeadcount: 0,
+    history: hist([40,52,65,75,87,97],[36,48,60,70,81,90]),
     employeeAssessment: { fullTime: 88, partTime: 4, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 0, availableDesks: 20, dropIn: 45, reservable: 25 },
     deskPolicy: {
@@ -290,7 +306,7 @@ export const PLANS: Plan[] = [
   {
     id: "sg-es",
     workLocation: "Singapore",
-    allocationArea: "Enterprise Solution",
+    allocationArea: "Enterprise Analytics",
     status: "Approved",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -299,6 +315,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 16,
     totalAllocatedSpaces: 220,
     futureHeadcount: 7,
+    history: hist([210,225,218,228,232,236],[196,210,204,213,217,220]),
     employeeAssessment: { fullTime: 226, partTime: 5, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 42, availableDesks: 15, dropIn: 100, reservable: 63 },
     deskPolicy: {
@@ -316,7 +333,7 @@ export const PLANS: Plan[] = [
   {
     id: "tk-fb",
     workLocation: "Tokyo",
-    allocationArea: "Facebook",
+    allocationArea: "Enterprise Products",
     status: "Policy draft",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -325,6 +342,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 12,
     totalAllocatedSpaces: 115,
     futureHeadcount: 3,
+    history: hist([80,86,92,100,112,124],[75,80,86,93,104,115]),
     employeeAssessment: { fullTime: 118, partTime: 3, interns: 2, contingent: 1, other: 0 },
     workspaceAssessment: { assignedDesks: 21, availableDesks: 9, dropIn: 50, reservable: 35 },
     deskPolicy: {

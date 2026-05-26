@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Box,
@@ -24,13 +25,6 @@ import { getPlansByAA, getPlansByLocation } from "@/lib/mock-data";
 import { BlobCanvas } from "@/components/BlobCanvas";
 import { Plan } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DonutChart } from "@carbon/charts-react";
-
-interface DonutSegment {
-  value: number;
-  color: string;
-  label: string;
-}
 
 function hexPalette(n: number, startHex: string, endHex: string): string[] {
   const parse = (h: string) => ({
@@ -55,7 +49,7 @@ function totalHeadcount(plan: Plan) {
   return ea.fullTime + ea.partTime + ea.interns + ea.contingent + ea.other;
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({ plan, groupPlans, view }: { plan: Plan; groupPlans: Plan[]; view: "location" | "aa" }) {
   const employees = totalHeadcount(plan);
   const assigned = plan.workspaceAssessment.assignedDesks;
   const available = plan.workspaceAssessment.availableDesks;
@@ -67,22 +61,19 @@ function PlanCard({ plan }: { plan: Plan }) {
     <Link href={`/plans/${plan.id}`} style={{ textDecoration: "none" }}>
       <Card
         variant="surface"
-        style={{ cursor: "pointer", height: "100%" }}
+        style={{ cursor: "pointer", height: "100%", background: "white", borderRadius: 12 }}
         className="plan-card"
       >
         <Flex direction="column" gap="3">
-          <Flex justify="between" align="start">
-            <Heading as="h3" size="3">{plan.allocationArea}</Heading>
-            <StatusBadge status={plan.status} />
+          <Flex direction="column" gap="1">
+            <Flex justify="between" align="start">
+              <Heading as="h3" size="3">{plan.allocationArea}</Heading>
+              <StatusBadge status={plan.status} />
+            </Flex>
+            <Text size="1" color="gray">
+              {employees} employees · {totalWorkspaces} workspaces
+            </Text>
           </Flex>
-
-          <Text size="1" color="gray">
-            {plan.fiscalYear} · {plan.quarter} · Updated{" "}
-            {new Date(plan.updatedAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            })}
-          </Text>
 
           <Separator size="4" />
 
@@ -99,6 +90,7 @@ function PlanCard({ plan }: { plan: Plan }) {
           <Text size="1" color="gray">
             {assigned} assigned · {available} available · {coworking} coworking
           </Text>
+
         </Flex>
       </Card>
     </Link>
@@ -124,110 +116,121 @@ function GroupCard({
   );
   const totalWorkspaces = totalAssigned + totalAvailable + totalCoworking;
 
+  const [hoveredSegment, setHoveredSegment] = useState<{ group: string; value: number; color: string; rect: DOMRect } | null>(null);
+
   const empPalette = hexPalette(plans.length, "#2657E8", "#AFC8FF");
-  const employeeSegments: DonutSegment[] = plans.map((p, i) => ({
+  const employeeBarData = plans.map((p, i) => ({
+    group: view === "location" ? p.allocationArea : p.workLocation,
     value: totalHeadcount(p),
     color: empPalette[i],
-    label: view === "location" ? p.allocationArea : p.workLocation,
   }));
-
-  const wsPalette = hexPalette(3, "#6421CA", "#D4ABFF");
-  const workspaceSegments: DonutSegment[] = [
-    { value: totalAssigned,  color: wsPalette[0], label: "Assigned" },
-    { value: totalAvailable, color: wsPalette[1], label: "Available" },
-    { value: totalCoworking, color: wsPalette[2], label: "Coworking" },
-  ];
-
-  const donutOptions = (segments: DonutSegment[], centerLabel: string) => ({
-    resizable: false,
-    width: "130px",
-    height: "130px",
-    pie: { labels: { enabled: false } },
-    legend: { enabled: false },
-    color: { scale: Object.fromEntries(segments.map((s) => [s.label, s.color])) },
-    donut: { center: { label: centerLabel } },
-    toolbar: { enabled: false },
-  });
 
   return (
     <Box
       style={{
-        background: "white",
-        border: "0.5px solid #D9D9E0",
-        borderRadius: "var(--radius-4)",
+        position: "relative",
+        background: "rgba(255, 255, 255, 0.70)",
+        backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
+        WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
+        border: "0.5px solid rgba(255, 255, 255, 0.75)",
+        borderRadius: 20,
         overflow: "hidden",
+        boxShadow: "0 2px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)",
       }}
     >
       {/* Card header — title + metadata only */}
       <Box px="5" pt="5" style={{ paddingBottom: 16 }}>
         <Flex direction="column" gap="1">
           <Flex align="baseline" gap="3">
-            <Heading as="h2" size="5">{title}</Heading>
-            <Text size="2" color="gray">
+            <Heading as="h2" size="4" style={{ color: "var(--slate-12)" }}>{title}</Heading>
+            <Text size="2">
               {plans.length} {plans.length === 1 ? "plan" : "plans"}
             </Text>
           </Flex>
-          <Text size="2" color="gray">
+          <Text size="1">
             {totalEmployees.toLocaleString()} employees · {totalWorkspaces.toLocaleString()} workspaces · {totalAssigned} assigned · {totalAvailable} available · {totalCoworking} coworking
           </Text>
         </Flex>
       </Box>
 
-      {/* Donut charts row */}
-      <Box px="5" pb="4">
-        <Flex style={{ gap: 32 }}>
-          {/* Employee donut + legend */}
-          <Flex align="center" style={{ gap: 16 }}>
-            <Box style={{ width: 130, flexShrink: 0 }}>
-              <DonutChart
-                data={employeeSegments.map((s) => ({ group: s.label, value: s.value }))}
-                options={donutOptions(employeeSegments, "employees")}
-              />
-            </Box>
-            <Flex direction="column" gap="1" style={{ justifyContent: "center" }}>
-              {[...employeeSegments]
-                .sort((a, b) => a.label.localeCompare(b.label))
-                .map((s) => (
-                  <Flex key={s.label} align="center" gap="2">
-                    <Box style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-                    <Text size="1">{s.label}</Text>
-                  </Flex>
-                ))}
+      {/* Employee category bar */}
+      <Box px="5" pb="0">
+        <Flex style={{ width: "100%", height: 12, gap: 2 }}>
+          {employeeBarData.map((d, i) => {
+            const isOnly = employeeBarData.length === 1;
+            const isFirst = i === 0;
+            const isLast = i === employeeBarData.length - 1;
+            const borderRadius = isOnly ? 4 : isFirst ? "4px 0 0 4px" : isLast ? "0 4px 4px 0" : 0;
+            return (
+              <Box
+                key={d.group}
+                style={{ flex: d.value, height: 12 }}
+                onMouseEnter={(e) => {
+                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                  setHoveredSegment({ group: d.group, value: d.value, color: d.color, rect });
+                }}
+                onMouseLeave={() => setHoveredSegment(null)}
+              >
+                <Box
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    background: d.color,
+                    borderRadius,
+                    opacity: hoveredSegment !== null && hoveredSegment.group !== d.group ? 0.45 : 1,
+                    transition: "opacity 80ms ease",
+                    cursor: "default",
+                  }}
+                />
+              </Box>
+            );
+          })}
+        </Flex>
+        <Flex mt="2" style={{ gap: 16 }}>
+          {employeeBarData.map((d) => (
+            <Flex key={d.group} align="center" gap="1">
+              <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+              <Text size="1" color="gray">{d.group}</Text>
             </Flex>
-          </Flex>
-
-          {/* Workspace donut + legend */}
-          <Flex align="center" style={{ gap: 16 }}>
-            <Box style={{ width: 130, flexShrink: 0 }}>
-              <DonutChart
-                data={workspaceSegments.map((s) => ({ group: s.label, value: s.value }))}
-                options={donutOptions(workspaceSegments, "workspaces")}
-              />
-            </Box>
-            <Flex direction="column" gap="1" style={{ justifyContent: "center" }}>
-              {[...workspaceSegments]
-                .sort((a, b) => a.label.localeCompare(b.label))
-                .map((s) => (
-                  <Flex key={s.label} align="center" gap="2">
-                    <Box style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-                    <Text size="1">{s.label}</Text>
-                  </Flex>
-                ))}
-            </Flex>
-          </Flex>
+          ))}
         </Flex>
       </Box>
 
-      <Separator size="4" />
-
       {/* Plan cards grid */}
-      <Box px="5" py="4">
+      <Box p="5">
         <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
           {plans.map((p) => (
-            <PlanCard key={p.id} plan={p} />
+            <PlanCard key={p.id} plan={p} groupPlans={plans} view={view} />
           ))}
         </Grid>
       </Box>
+
+      {hoveredSegment && createPortal(
+        <Box
+          style={{
+            position: "fixed",
+            top: hoveredSegment.rect.top - 10,
+            left: hoveredSegment.rect.left + hoveredSegment.rect.width / 2,
+            transform: "translate(-50%, -100%)",
+            background: "white",
+            border: "1px solid var(--gray-4)",
+            borderRadius: "var(--radius-3)",
+            padding: "10px 14px",
+            whiteSpace: "nowrap",
+            zIndex: 9999,
+            pointerEvents: "none",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Flex align="center" gap="2" mb="2">
+            <Box style={{ width: 8, height: 8, borderRadius: 2, background: hoveredSegment.color, flexShrink: 0 }} />
+            <Text size="1" color="gray">{hoveredSegment.group}</Text>
+          </Flex>
+          <Text as="div" size="4" weight="medium">{hoveredSegment.value.toLocaleString()}</Text>
+          <Text as="div" size="1" color="gray">employees</Text>
+        </Box>,
+        document.body
+      )}
     </Box>
   );
 }
@@ -236,13 +239,7 @@ export default function LandingPage() {
   const [view, setView] = useState<"location" | "aa">("location");
   const [agentOpen, setAgentOpen] = useState(true);
   const [agentInput, setAgentInput] = useState("");
-  const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([
-    {
-      role: "agent",
-      content:
-        "Hi! I'm your space planning assistant. Ask me anything about your policy plans, desk utilization, or allocation areas.",
-    },
-  ]);
+  const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([]);
 
   function sendAgentMessage() {
     const content = agentInput.trim();
@@ -274,12 +271,10 @@ export default function LandingPage() {
     "Tokyo",
   ];
   const aaOrder = [
-    "MDS Foundations",
-    "Facebook",
-    "Messenger",
-    "Instagram",
-    "Enterprise Solution",
-    "Whatsapp",
+    "Enterprise Products",
+    "Enterprise Solutions",
+    "Enterprise Ticketing",
+    "Enterprise Analytics",
   ];
 
   return (
@@ -377,9 +372,9 @@ export default function LandingPage() {
             {/* View toggle */}
             <Flex align="center" justify="between">
               <Flex direction="column" gap="1">
-                <Heading size="4">Policy plans</Heading>
+                <Heading size="4">Desk policy plans</Heading>
                 <Text size="2" color="gray">
-                  {view === "location" ? "Viewing by work location" : "Viewing by allocation area"}
+                  {"Review the current space utilization and set desk policy for your org."}
                 </Text>
               </Flex>
               <SegmentedControl.Root
@@ -464,6 +459,21 @@ export default function LandingPage() {
 
             <ScrollArea style={{ flex: 1 }}>
               <Flex direction="column" gap="3" p="4">
+                <Flex direction="column" align="center" gap="2" py="6">
+                  <Text
+                    size="5"
+                    weight="bold"
+                    style={{
+                      background: "linear-gradient(135deg, #6025F5, #FF5555)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    Hi, I'm your Campus assistant!
+                  </Text>
+                  <Text size="1" color="gray" align="center">Ask me anything about your space plans, desk utilization, or allocation areas.</Text>
+                </Flex>
                 {agentMessages.map((msg, i) => (
                   <Flex key={i} direction="column" align={msg.role === "user" ? "end" : "start"}>
                     <Box
