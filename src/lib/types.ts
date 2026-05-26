@@ -17,7 +17,7 @@ export type WorkLocation =
   | "Tokyo";
 
 export type AllocationArea =
-  | "Enterprise Products"
+  | "MDS Foundations"
   | "Facebook"
   | "Messenger"
   | "Instagram"

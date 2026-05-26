@@ -4,7 +4,7 @@ export const PLANS: Plan[] = [
   {
     id: "mp-ep",
     workLocation: "Menlo Park",
-    allocationArea: "Enterprise Products",
+    allocationArea: "MDS Foundations",
     status: "Live",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -13,7 +13,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 32,
     totalAllocatedSpaces: 272,
     futureHeadcount: 8,
-    employeeAssessment: { fullTime: 74, partTime: 3, interns: 4, contingent: 2, other: 0 },
+    employeeAssessment: { fullTime: 260, partTime: 14, interns: 10, contingent: 6, other: 2 },
     workspaceAssessment: { assignedDesks: 51, availableDesks: 18, dropIn: 120, reservable: 83 },
     deskPolicy: {
       assignInboundEmbeds: false,
@@ -39,7 +39,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 45,
     totalAllocatedSpaces: 580,
     futureHeadcount: 15,
-    employeeAssessment: { fullTime: 148, partTime: 8, interns: 6, contingent: 3, other: 0 },
+    employeeAssessment: { fullTime: 590, partTime: 16, interns: 8, contingent: 6, other: 0 },
     workspaceAssessment: { assignedDesks: 120, availableDesks: 42, dropIn: 280, reservable: 138 },
     deskPolicy: {
       assignInboundEmbeds: true,
@@ -65,7 +65,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 22,
     totalAllocatedSpaces: 180,
     futureHeadcount: 5,
-    employeeAssessment: { fullTime: 55, partTime: 2, interns: 3, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 176, partTime: 8, interns: 5, contingent: 4, other: 0 },
     workspaceAssessment: { assignedDesks: 38, availableDesks: 12, dropIn: 85, reservable: 45 },
     deskPolicy: {
       assignInboundEmbeds: false,
@@ -91,7 +91,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 41,
     totalAllocatedSpaces: 340,
     futureHeadcount: 12,
-    employeeAssessment: { fullTime: 98, partTime: 5, interns: 5, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 348, partTime: 9, interns: 5, contingent: 3, other: 0 },
     workspaceAssessment: { assignedDesks: 67, availableDesks: 25, dropIn: 160, reservable: 88 },
     deskPolicy: {
       assignInboundEmbeds: null,
@@ -117,7 +117,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 0,
     totalAllocatedSpaces: 0,
     futureHeadcount: 0,
-    employeeAssessment: { fullTime: 44, partTime: 1, interns: 2, contingent: 1, other: 0 },
+    employeeAssessment: { fullTime: 142, partTime: 4, interns: 2, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 0, availableDesks: 30, dropIn: 70, reservable: 40 },
     deskPolicy: {
       assignInboundEmbeds: null,
@@ -143,7 +143,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 21,
     totalAllocatedSpaces: 410,
     futureHeadcount: 10,
-    employeeAssessment: { fullTime: 102, partTime: 4, interns: 4, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 422, partTime: 10, interns: 5, contingent: 3, other: 0 },
     workspaceAssessment: { assignedDesks: 89, availableDesks: 31, dropIn: 180, reservable: 110 },
     deskPolicy: {
       assignInboundEmbeds: false,
@@ -160,7 +160,7 @@ export const PLANS: Plan[] = [
   {
     id: "sv-ep",
     workLocation: "Sunnyvale",
-    allocationArea: "Enterprise Products",
+    allocationArea: "MDS Foundations",
     status: "Submitted",
     fiscalYear: "FY26",
     quarter: "Q2",
@@ -169,7 +169,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 17,
     totalAllocatedSpaces: 195,
     futureHeadcount: 6,
-    employeeAssessment: { fullTime: 45, partTime: 2, interns: 3, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 200, partTime: 5, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 33, availableDesks: 14, dropIn: 90, reservable: 58 },
     deskPolicy: {
       assignInboundEmbeds: false,
@@ -195,7 +195,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 18,
     totalAllocatedSpaces: 155,
     futureHeadcount: 4,
-    employeeAssessment: { fullTime: 42, partTime: 2, interns: 3, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 158, partTime: 4, interns: 2, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 29, availableDesks: 10, dropIn: 70, reservable: 46 },
     deskPolicy: {
       assignInboundEmbeds: null,
@@ -221,7 +221,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 7,
     totalAllocatedSpaces: 90,
     futureHeadcount: 3,
-    employeeAssessment: { fullTime: 22, partTime: 1, interns: 2, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 88, partTime: 4, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 18, availableDesks: 8, dropIn: 40, reservable: 24 },
     deskPolicy: {
       assignInboundEmbeds: true,
@@ -247,7 +247,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 28,
     totalAllocatedSpaces: 395,
     futureHeadcount: 9,
-    employeeAssessment: { fullTime: 92, partTime: 5, interns: 5, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 408, partTime: 8, interns: 5, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 74, availableDesks: 28, dropIn: 175, reservable: 118 },
     deskPolicy: {
       assignInboundEmbeds: false,
@@ -273,7 +273,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 0,
     totalAllocatedSpaces: 0,
     futureHeadcount: 0,
-    employeeAssessment: { fullTime: 28, partTime: 0, interns: 1, contingent: 2, other: 0 },
+    employeeAssessment: { fullTime: 88, partTime: 4, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 0, availableDesks: 20, dropIn: 45, reservable: 25 },
     deskPolicy: {
       assignInboundEmbeds: null,
@@ -299,7 +299,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 16,
     totalAllocatedSpaces: 220,
     futureHeadcount: 7,
-    employeeAssessment: { fullTime: 52, partTime: 2, interns: 4, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 226, partTime: 5, interns: 3, contingent: 2, other: 0 },
     workspaceAssessment: { assignedDesks: 42, availableDesks: 15, dropIn: 100, reservable: 63 },
     deskPolicy: {
       assignInboundEmbeds: false,
@@ -325,7 +325,7 @@ export const PLANS: Plan[] = [
     employeesWithoutDesks: 12,
     totalAllocatedSpaces: 115,
     futureHeadcount: 3,
-    employeeAssessment: { fullTime: 30, partTime: 1, interns: 2, contingent: 0, other: 0 },
+    employeeAssessment: { fullTime: 118, partTime: 3, interns: 2, contingent: 1, other: 0 },
     workspaceAssessment: { assignedDesks: 21, availableDesks: 9, dropIn: 50, reservable: 35 },
     deskPolicy: {
       assignInboundEmbeds: null,
