@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --font-heading: var(--font-inter);
+  --font-heading: var(--font-ibm-plex-sans);
   --font-body: var(--font-source-sans-3);
+  /* Override Radix heading token so .rt-Heading picks up Montserrat */
+  --heading-font-family: var(--font-ibm-plex-sans), system-ui, sans-serif;
   --color-primary: #1C2024;
   --color-secondary: #60646C;
 
@@ -22,8 +24,14 @@ h1, h2, h3, h4, h5, h6,
   font-family: var(--font-heading), system-ui, sans-serif;
 }
 
-h1, h2 {
+h1, h2, h3,
+h1.rt-Heading, h2.rt-Heading, h3.rt-Heading {
   font-weight: 600;
+}
+
+h4,
+h4.rt-Heading {
+  font-weight: 700;
 }
 
 /* Override Radix gray tokens so all default text/icons use the brand palette */
