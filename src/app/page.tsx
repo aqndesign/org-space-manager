@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   Card,
+  DropdownMenu,
   Flex,
   Grid,
   Heading,
@@ -18,12 +19,84 @@ import {
   TextArea,
   Tooltip,
 } from "@radix-ui/themes";
-import { Cross2Icon, PaperPlaneIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, Cross2Icon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { addPlan, getPlansByAA, getPlansByLocation, PLANS } from "@/lib/mock-data";
 import { BlobCanvas } from "@/components/BlobCanvas";
 import { NewPlanModal } from "@/components/NewPlanModal";
-import { Plan } from "@/lib/types";
+import { Plan, PlanStatus, WorkLocation, AllocationArea } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
+
+const GLASS_CARD_STYLE: React.CSSProperties = {
+  background: "rgba(255, 255, 255, 0.80)",
+  backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
+  WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
+  border: "0.5px solid rgba(255, 255, 255, 0.75)",
+  borderRadius: 20,
+  overflow: "hidden",
+  boxShadow: "0 2px 23px rgba(0,0,0,0.054), inset 0 1px 0 rgba(255,255,255,0.9)",
+};
+
+function toggleSet<T>(set: Set<T>, value: T): Set<T> {
+  const next = new Set(set);
+  if (next.has(value)) next.delete(value);
+  else next.add(value);
+  return next;
+}
+
+function pillStyle(active: boolean): React.CSSProperties {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "4px 10px 4px 12px",
+    borderRadius: 9999,
+    fontSize: "var(--font-size-1)",
+    fontWeight: 500,
+    cursor: "pointer",
+    border: "1px solid",
+    borderColor: active ? "var(--blue-8)" : "var(--gray-5)",
+    background: active ? "var(--blue-3)" : "transparent",
+    color: active ? "var(--blue-11)" : "var(--gray-11)",
+    transition: "all 120ms ease",
+    lineHeight: 1.5,
+    whiteSpace: "nowrap",
+  };
+}
+
+function FilterPill({
+  label,
+  options,
+  selected,
+  onToggle,
+}: {
+  label: string;
+  options: string[];
+  selected: Set<string>;
+  onToggle: (value: string) => void;
+}) {
+  const count = selected.size;
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger>
+        <button className="filter-pill" style={pillStyle(count > 0)}>
+          {count > 0 ? `${label} · ${count}` : label}
+          <ChevronDownIcon width={12} height={12} />
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content size="1">
+        {options.map(opt => (
+          <DropdownMenu.CheckboxItem
+            key={opt}
+            checked={selected.has(opt)}
+            onCheckedChange={() => onToggle(opt)}
+          >
+            {opt}
+          </DropdownMenu.CheckboxItem>
+        ))}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  );
+}
 
 function hexPalette(n: number, startHex: string, endHex: string): string[] {
   const parse = (h: string) => ({
@@ -133,18 +206,7 @@ function GroupCard({
   ];
 
   return (
-    <Box
-      style={{
-        position: "relative",
-        background: "rgba(255, 255, 255, 0.70)",
-        backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
-        WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
-        border: "0.5px solid rgba(255, 255, 255, 0.75)",
-        borderRadius: 20,
-        overflow: "hidden",
-        boxShadow: "0 2px 23px rgba(0,0,0,0.054), inset 0 1px 0 rgba(255,255,255,0.9)",
-      }}
-    >
+    <Box style={{ ...GLASS_CARD_STYLE, position: "relative" }}>
       {/* Card header — title + metadata only */}
       <Box px="5" pt="5" style={{ paddingBottom: 16 }}>
         <Flex align="baseline" gap="3">
@@ -206,9 +268,6 @@ function GroupCard({
               </Flex>
             </Box>
           </Box>
-
-          {/* Divider */}
-          <Box style={{ width: 1, background: "var(--gray-5)", alignSelf: "stretch", flexShrink: 0 }} />
 
           {/* Right column: workspaces */}
           <Box style={{ flex: 1, minWidth: 0 }}>
@@ -333,6 +392,9 @@ export default function LandingPage() {
   const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([]);
   const [newPlanOpen, setNewPlanOpen] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([...PLANS]);
+  const [statusFilter, setStatusFilter] = useState<Set<PlanStatus>>(new Set());
+  const [locationFilter, setLocationFilter] = useState<Set<WorkLocation>>(new Set());
+  const [aaFilter, setAAFilter] = useState<Set<AllocationArea>>(new Set());
 
   function sendAgentMessage() {
     const content = agentInput.trim();
@@ -354,9 +416,6 @@ export default function LandingPage() {
     setPlans([...PLANS]);
   }
 
-  const byLocation = getPlansByLocation(plans);
-  const byAA = getPlansByAA(plans);
-
   const locationOrder = [
     "Menlo Park",
     "Burlingame",
@@ -375,6 +434,18 @@ export default function LandingPage() {
     "Enterprise Analytics",
   ];
 
+  const filteredPlans = plans.filter(p =>
+    (statusFilter.size === 0 || statusFilter.has(p.status)) &&
+    (locationFilter.size === 0 || locationFilter.has(p.workLocation)) &&
+    (aaFilter.size === 0 || aaFilter.has(p.allocationArea))
+  );
+  const byLocation = getPlansByLocation(filteredPlans);
+  const byAA = getPlansByAA(filteredPlans);
+  const allByLocation = getPlansByLocation(plans);
+  const allByAA = getPlansByAA(plans);
+  const availableLocations = locationOrder.filter(loc => allByLocation.has(loc));
+  const availableAAs = aaOrder.filter(aa => allByAA.has(aa));
+
   return (
     <Box style={{ height: "100vh", display: "flex", flexDirection: "column", position: "relative", background: "#FCFCFD" }}>
       {/* Header */}
@@ -389,7 +460,7 @@ export default function LandingPage() {
           justify="between"
           px="6"
           py="3"
-          style={{ maxWidth: 1400, margin: "0 auto", position: "relative", zIndex: 1 }}
+          style={{ position: "relative", zIndex: 1 }}
         >
           <Flex align="center" gap="3">
             <Box
@@ -451,23 +522,64 @@ export default function LandingPage() {
           }}
         >
           <Flex direction="column" gap="6">
-            {/* View toggle */}
-            <Flex align="center" justify="between">
-              <Flex direction="column" gap="1">
-                <Heading size="4">Desk policy plans</Heading>
-                <Text size="2" color="gray">
-                  {"Review the current space utilization and set desk policy for your org."}
-                </Text>
+            {/* Header card */}
+            <Box style={GLASS_CARD_STYLE}>
+              {/* Title + toggle row */}
+              <Flex align="center" justify="between" px="5" pt="5" pb="4">
+                <Flex direction="column" gap="1">
+                  <Heading size="4">Desk policy plans</Heading>
+                  <Text size="2" color="gray">
+                    Review the current space utilization and set desk policy for your org.
+                  </Text>
+                </Flex>
+                <SegmentedControl.Root
+                  value={view}
+                  onValueChange={(v) => setView(v as "location" | "aa")}
+                  size="2"
+                >
+                  <SegmentedControl.Item value="location">
+                    <Flex align="center" gap="1">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" style={{ flexShrink: 0 }}>
+                        <path fill="currentColor" fillRule="evenodd" d="M3.75 3.5A2.25 2.25 0 0 1 6 1.25h6.5a2.25 2.25 0 0 1 2.25 2.25V6H18a2.25 2.25 0 0 1 2.25 2.25v13H22a.75.75 0 0 1 0 1.5H2a.75.75 0 0 1 0-1.5h1.75V3.5Zm11 17.75h4V18h-4v3.25Zm0-4.75h4v-3.75h-4v3.75Zm0-5.25h4v-3A.75.75 0 0 0 18 7.5h-3.25v3.75Zm-4.5 6.725a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 1 1-2 0v-.05a1 1 0 0 1 1-1Zm1-3a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 0 1-2 0v-.05a1 1 0 0 1 1-1Z" clipRule="evenodd" />
+                      </svg>
+                      Work location
+                    </Flex>
+                  </SegmentedControl.Item>
+                  <SegmentedControl.Item value="aa">
+                    <Flex align="center" gap="1">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" style={{ flexShrink: 0 }}>
+                        <path fill="currentColor" d="M8.25 7a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM11.925 13.25c-.526 0-1.05.083-1.55.246l-.08.026A4.685 4.685 0 0 0 7.24 16.69l-.105.366c-.09.315-.135.64-.135.969v.204c0 1.117.905 2.022 2.021 2.022h5.957A2.022 2.022 0 0 0 17 18.228v-.204a3.53 3.53 0 0 0-.136-.97l-.105-.365a4.684 4.684 0 0 0-3.054-3.167l-.082-.026a5.008 5.008 0 0 0-1.548-.246h-.15ZM15.902 10.512A5.23 5.23 0 0 0 17.25 7c0-.511-.073-1.005-.21-1.473a3.385 3.385 0 1 1-1.138 4.985ZM17.862 20.25c.402-.572.638-1.27.638-2.022v-.204c0-.468-.066-.932-.194-1.382l-.104-.365a6.184 6.184 0 0 0-.892-1.864 5.756 5.756 0 0 1 1.362-.163h.156c.48 0 .957.06 1.421.178l.384.098a3.845 3.845 0 0 1 2.717 2.564l.047.149c.068.214.103.438.103.662v.31a2.04 2.04 0 0 1-2.04 2.039h-3.598ZM2.54 20.25h3.597a3.506 3.506 0 0 1-.637-2.022v-.204c0-.468.065-.932.193-1.382l.104-.365a6.183 6.183 0 0 1 .892-1.864 5.762 5.762 0 0 0-1.36-.163h-.157c-.48 0-.957.06-1.421.178l-.384.098A3.847 3.847 0 0 0 .65 17.09l-.047.149a2.188 2.188 0 0 0-.103.662v.31a2.04 2.04 0 0 0 2.04 2.039ZM5.365 11.899a3.38 3.38 0 0 0 2.732-1.387A5.23 5.23 0 0 1 6.75 7c0-.511.073-1.005.21-1.473A3.385 3.385 0 1 0 5.365 11.9Z" />
+                      </svg>
+                      Allocation area
+                    </Flex>
+                  </SegmentedControl.Item>
+                </SegmentedControl.Root>
               </Flex>
-              <SegmentedControl.Root
-                value={view}
-                onValueChange={(v) => setView(v as "location" | "aa")}
-                size="2"
-              >
-                <SegmentedControl.Item value="location">Work location</SegmentedControl.Item>
-                <SegmentedControl.Item value="aa">Allocation area</SegmentedControl.Item>
-              </SegmentedControl.Root>
-            </Flex>
+
+              {/* Filter toolbar */}
+              <Box style={{ margin: "0 8px 8px", background: "white", borderRadius: 9999, padding: "6px 12px" }}>
+                <Flex gap="2" align="center">
+                  <FilterPill
+                    label="Status"
+                    options={["Plan draft", "Policy draft", "Submitted", "Approved", "Live"]}
+                    selected={statusFilter as Set<string>}
+                    onToggle={(v) => setStatusFilter(prev => toggleSet(prev, v as PlanStatus))}
+                  />
+                  <FilterPill
+                    label="Location"
+                    options={availableLocations}
+                    selected={locationFilter as Set<string>}
+                    onToggle={(v) => setLocationFilter(prev => toggleSet(prev, v as WorkLocation))}
+                  />
+                  <FilterPill
+                    label="Allocation area"
+                    options={availableAAs}
+                    selected={aaFilter as Set<string>}
+                    onToggle={(v) => setAAFilter(prev => toggleSet(prev, v as AllocationArea))}
+                  />
+                </Flex>
+              </Box>
+            </Box>
 
             {/* Groups */}
             <Flex direction="column" gap="5">
@@ -499,7 +611,7 @@ export default function LandingPage() {
                 flexShrink: 0,
                 display: "flex",
                 flexDirection: "column",
-                background: "rgba(255, 255, 255, 0.70)",
+                background: "rgba(255, 255, 255, 0.72)",
                 backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 border: "0.5px solid rgba(255, 255, 255, 0.75)",
