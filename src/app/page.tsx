@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
@@ -176,6 +176,8 @@ function GroupCard({
 
   const [hoveredSegment, setHoveredSegment] = useState<{ group: string; value: number; color: string; rect: DOMRect } | null>(null);
   const [hoveredWsSegment, setHoveredWsSegment] = useState<{ group: string; value: number; color: string; rect: DOMRect } | null>(null);
+  const empBarRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const wsBarRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const empPalette = hexPalette(plans.length, "#2657E8", "#AFC8FF");
   const employeeBarData = plans.map((p, i) => ({
@@ -215,40 +217,58 @@ function GroupCard({
               <Text as="div" size="1" color="gray" style={{ lineHeight: 1 }}>Employees</Text>
             </Flex>
             <Box mt="3">
-              <Flex style={{ width: "100%", height: 12, gap: 2 }}>
+              <Flex style={{ width: "100%", height: 8, gap: 2 }}>
                 {employeeBarData.map((d, i) => {
                   const isOnly = employeeBarData.length === 1;
                   const isFirst = i === 0;
                   const isLast = i === employeeBarData.length - 1;
-                  const borderRadius = isOnly ? 4 : isFirst ? "4px 0 0 4px" : isLast ? "0 4px 4px 0" : 0;
+                  const borderRadius = isOnly ? 9999 : isFirst ? "9999px 0 0 9999px" : isLast ? "0 9999px 9999px 0" : 0;
                   return (
+                  <Box
+                    key={d.group}
+                    ref={(el) => { if (el) empBarRefs.current.set(d.group, el as HTMLElement); else empBarRefs.current.delete(d.group); }}
+                    style={{ flex: d.value, height: 8 }}
+                    onMouseEnter={(e) => {
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      setHoveredSegment({ group: d.group, value: d.value, color: d.color, rect });
+                    }}
+                    onMouseLeave={() => setHoveredSegment(null)}
+                  >
                     <Box
-                      key={d.group}
-                      style={{ flex: d.value, height: 12 }}
-                      onMouseEnter={(e) => {
-                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                        setHoveredSegment({ group: d.group, value: d.value, color: d.color, rect });
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: d.color,
+                        borderRadius,
+                        opacity: hoveredSegment !== null && hoveredSegment.group !== d.group ? 0.35 : 1,
+                        transition: "opacity 120ms ease",
+                        cursor: "default",
                       }}
-                      onMouseLeave={() => setHoveredSegment(null)}
-                    >
-                      <Box
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: d.color,
-                          borderRadius,
-                          opacity: hoveredSegment !== null && hoveredSegment.group !== d.group ? 0.45 : 1,
-                          transition: "opacity 80ms ease",
-                          cursor: "default",
-                        }}
-                      />
-                    </Box>
+                    />
+                  </Box>
                   );
                 })}
               </Flex>
-              <Flex mt="2" style={{ gap: 12, flexWrap: "wrap" }}>
+              <Flex mt="2" style={{ gap: 2, flexWrap: "wrap" }}>
                 {employeeBarData.map((d) => (
-                  <Flex key={d.group} align="center" gap="1">
+                  <Flex
+                    key={d.group}
+                    align="center"
+                    gap="1"
+                    style={{
+                      padding: "2px 6px 2px 4px",
+                      borderRadius: 9999,
+                      cursor: "default",
+                      opacity: hoveredSegment !== null && hoveredSegment.group !== d.group ? 0.35 : 1,
+                      background: hoveredSegment?.group === d.group ? "var(--gray-a3)" : "transparent",
+                      transition: "opacity 120ms ease, background 120ms ease",
+                    }}
+                    onMouseEnter={() => {
+                      const el = empBarRefs.current.get(d.group);
+                      if (el) setHoveredSegment({ group: d.group, value: d.value, color: d.color, rect: el.getBoundingClientRect() });
+                    }}
+                    onMouseLeave={() => setHoveredSegment(null)}
+                  >
                     <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
                     <Text size="1" color="gray">{d.group}</Text>
                   </Flex>
@@ -266,40 +286,58 @@ function GroupCard({
               <Text as="div" size="1" color="gray" style={{ lineHeight: 1 }}>Workspaces</Text>
             </Flex>
             <Box mt="3">
-              <Flex style={{ width: "100%", height: 12, gap: 2 }}>
+              <Flex style={{ width: "100%", height: 8, gap: 2 }}>
                 {workspaceBarData.map((d, i) => {
                   const isOnly = workspaceBarData.length === 1;
                   const isFirst = i === 0;
                   const isLast = i === workspaceBarData.length - 1;
-                  const borderRadius = isOnly ? 4 : isFirst ? "4px 0 0 4px" : isLast ? "0 4px 4px 0" : 0;
+                  const borderRadius = isOnly ? 9999 : isFirst ? "9999px 0 0 9999px" : isLast ? "0 9999px 9999px 0" : 0;
                   return (
+                  <Box
+                    key={d.group}
+                    ref={(el) => { if (el) wsBarRefs.current.set(d.group, el as HTMLElement); else wsBarRefs.current.delete(d.group); }}
+                    style={{ flex: d.value, height: 8 }}
+                    onMouseEnter={(e) => {
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      setHoveredWsSegment({ group: d.group, value: d.value, color: d.color, rect });
+                    }}
+                    onMouseLeave={() => setHoveredWsSegment(null)}
+                  >
                     <Box
-                      key={d.group}
-                      style={{ flex: d.value, height: 12 }}
-                      onMouseEnter={(e) => {
-                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                        setHoveredWsSegment({ group: d.group, value: d.value, color: d.color, rect });
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: d.color,
+                        borderRadius,
+                        opacity: hoveredWsSegment !== null && hoveredWsSegment.group !== d.group ? 0.35 : 1,
+                        transition: "opacity 120ms ease",
+                        cursor: "default",
                       }}
-                      onMouseLeave={() => setHoveredWsSegment(null)}
-                    >
-                      <Box
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: d.color,
-                          borderRadius,
-                          opacity: hoveredWsSegment !== null && hoveredWsSegment.group !== d.group ? 0.45 : 1,
-                          transition: "opacity 80ms ease",
-                          cursor: "default",
-                        }}
-                      />
-                    </Box>
+                    />
+                  </Box>
                   );
                 })}
               </Flex>
-              <Flex mt="2" style={{ gap: 12 }}>
+              <Flex mt="2" style={{ gap: 2 }}>
                 {workspaceBarData.map((d) => (
-                  <Flex key={d.group} align="center" gap="1">
+                  <Flex
+                    key={d.group}
+                    align="center"
+                    gap="1"
+                    style={{
+                      padding: "2px 6px 2px 4px",
+                      borderRadius: 9999,
+                      cursor: "default",
+                      opacity: hoveredWsSegment !== null && hoveredWsSegment.group !== d.group ? 0.35 : 1,
+                      background: hoveredWsSegment?.group === d.group ? "var(--gray-a3)" : "transparent",
+                      transition: "opacity 120ms ease, background 120ms ease",
+                    }}
+                    onMouseEnter={() => {
+                      const el = wsBarRefs.current.get(d.group);
+                      if (el) setHoveredWsSegment({ group: d.group, value: d.value, color: d.color, rect: el.getBoundingClientRect() });
+                    }}
+                    onMouseLeave={() => setHoveredWsSegment(null)}
+                  >
                     <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
                     <Text size="1" color="gray">{d.group}</Text>
                   </Flex>
@@ -467,7 +505,7 @@ export default function LandingPage() {
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" color="white">
-                <path fill="currentColor" d="M3.25 17.813a2.938 2.938 0 1 1 0 5.875 2.938 2.938 0 0 1 0-5.875Zm17.5 0a2.938 2.938 0 1 1 0 5.875 2.938 2.938 0 0 1 0-5.875ZM12 4.75a7.25 7.25 0 1 1 0 14.5 7.25 7.25 0 0 1 0-14.5ZM3.25.312a2.937 2.937 0 1 1 0 5.875 2.937 2.937 0 0 1 0-5.875Zm17.5 0a2.938 2.938 0 1 1 0 5.876 2.938 2.938 0 0 1 0-5.875Z"/>
+                <path fill="currentColor" d="M6.75 13.25a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm12.8.25c.206 0 .375 0 .512.01.141.012.27.038.392.1.188.095.34.248.437.436.061.121.087.251.098.392.011.137.011.306.011.512v4.6c0 .206 0 .375-.01.512-.012.141-.038.27-.1.392a.999.999 0 0 1-.436.437 1.027 1.027 0 0 1-.392.098c-.137.011-.306.011-.512.011h-4.6c-.205 0-.375 0-.512-.01a1.027 1.027 0 0 1-.392-.1.999.999 0 0 1-.437-.436 1.027 1.027 0 0 1-.098-.392c-.011-.137-.011-.306-.011-.512v-4.6c0-.205 0-.375.01-.512.012-.141.038-.27.1-.392a.999.999 0 0 1 .436-.437c.121-.061.251-.087.392-.098.137-.011.306-.011.512-.011h4.6Zm-2.3-10.75a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-7.918.251c.085.001.162.004.23.01.141.011.27.037.392.098.188.096.34.249.437.437.061.121.087.251.098.392.011.137.011.307.011.512v4.6c0 .205 0 .375-.01.512-.012.141-.038.27-.1.392a.999.999 0 0 1-.436.437 1.027 1.027 0 0 1-.392.098c-.137.011-.307.011-.512.011h-4.6c-.205 0-.375 0-.513-.01a1.027 1.027 0 0 1-.391-.1.999.999 0 0 1-.437-.436 1.026 1.026 0 0 1-.098-.392 3.588 3.588 0 0 1-.01-.23L3 9.05v-4.6c0-.205 0-.375.01-.513.012-.14.038-.27.1-.391a1 1 0 0 1 .436-.437c.121-.061.251-.087.392-.098C4.075 3 4.245 3 4.45 3h4.6l.282.001Z"/>
               </svg>
             </Box>
             <Heading size="5">Org Space Manager</Heading>
@@ -478,13 +516,20 @@ export default function LandingPage() {
               size="2"
               onClick={() => setAgentOpen((o) => !o)}
               aria-label="Toggle assistant"
-              style={{ width: 32, height: 32, background: "linear-gradient(45deg, #6025F5, #FF5555)", boxShadow: "none" }}
+              className="btn-assistant"
+              style={{ width: 32, height: 32, boxShadow: "none" }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
                 <path
                   fill="white"
-                  d="M12.565 2.262c.799.033 1.579.136 2.332.301l-.112.222-2.44 1.232a2.222 2.222 0 0 0 0 3.966l2.44 1.23 1.232 2.441a2.222 2.222 0 0 0 3.966 0l1.23-2.44 1.432-.723c.39.937.605 1.947.605 3.009 0 5.249-5.193 9.25-11.25 9.25-.863 0-1.704-.08-2.512-.231-.014-.003-.02 0-.018 0l-4.756 2.828a1.09 1.09 0 0 1-1.629-1.13l.783-4.309-.002-.004a.066.066 0 0 0-.018-.025C1.952 16.24.75 14 .75 11.5.75 6.251 5.943 2.25 12 2.25l.565.012ZM7.75 10.475a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm4.25 0a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm6-9.912c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.067.067 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069L23.008 5.3a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.012-.02.011-.012.005a.067.067 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.784 3.784 0 0 0-.069.13L18.7 11.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.067.067 0 0 0-.011-.011c.008.006.01.007-.011-.005a3.781 3.781 0 0 0-.13-.069L12.992 6.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.012.02-.011.012-.005a.067.067 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3.992l.056-.095A.784.784 0 0 1 18 .562Z"
+                  d="M12.565 2.262c.799.033 1.579.136 2.332.301l-.112.222-2.44 1.232a2.222 2.222 0 0 0 0 3.966l2.44 1.23 1.232 2.441a2.222 2.222 0 0 0 3.966 0l1.23-2.44 1.432-.723c.39.937.605 1.947.605 3.009 0 5.249-5.193 9.25-11.25 9.25-.863 0-1.704-.08-2.512-.231-.014-.003-.02 0-.018 0l-4.756 2.828a1.09 1.09 0 0 1-1.629-1.13l.783-4.309-.002-.004a.066.066 0 0 0-.018-.025C1.952 16.24.75 14 .75 11.5.75 6.251 5.943 2.25 12 2.25l.565.012ZM7.75 10.475a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm4.25 0a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Z"
                 />
+                <g className="star-icon">
+                  <path
+                    fill="white"
+                    d="M18 0.563c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.067.067 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069L23.008 5.3a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.012-.02.011-.012.005a.067.067 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.784 3.784 0 0 0-.069.13L18.7 11.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.067.067 0 0 0-.011-.011c.008.006.01.007-.011-.005a3.781 3.781 0 0 0-.13-.069L12.992 6.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.012.02-.011.012-.005a.067.067 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3.992l.056-.095A.784.784 0 0 1 18 .562Z"
+                  />
+                </g>
               </svg>
             </IconButton>
             <Button size="2" className="btn-green" style={{ background: "var(--btn-green-bg)", color: "white" }} onClick={() => setNewPlanOpen(true)}>
