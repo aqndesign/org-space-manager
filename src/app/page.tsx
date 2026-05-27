@@ -511,13 +511,23 @@ export default function LandingPage() {
             <Heading size="5">Org Space Manager</Heading>
           </Flex>
           <Flex align="center" gap="2">
+            <Tooltip content="Open Campus assistant">
             <IconButton
               variant="solid"
               size="2"
               onClick={() => setAgentOpen((o) => !o)}
               aria-label="Toggle assistant"
               className="btn-assistant"
-              style={{ width: 32, height: 32, boxShadow: "none" }}
+              style={{ width: 32, height: 32 }}
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                e.currentTarget.style.setProperty("--assistant-gradient", `radial-gradient(circle at ${x.toFixed(1)}% ${y.toFixed(1)}%, #FF5555 0%, #6025F5 140%)`);
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.removeProperty("--assistant-gradient");
+              }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
                 <path
@@ -532,6 +542,7 @@ export default function LandingPage() {
                 </g>
               </svg>
             </IconButton>
+            </Tooltip>
             <Button size="2" className="btn-green" style={{ background: "var(--btn-green-bg)", color: "white" }} onClick={() => setNewPlanOpen(true)}>
               + New plan
             </Button>
