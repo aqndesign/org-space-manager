@@ -57,14 +57,75 @@ h4.rt-Heading {
   stroke-width: 2px;
 }
 
-/* ─── Filter pill hover ─────────────────────────────── */
-.filter-pill:hover {
-  border-color: #2657E8 !important;
+
+/* ─── View toggle group ──────────────────────────────── */
+.view-toggle-root {
+  display: inline-flex;
+  background: var(--gray-a3);
+  border-radius: 9999px;
+  padding: 2px;
+  gap: 2px;
 }
 
-/* ─── Segmented control icon color ──────────────────── */
-.rt-SegmentedControlItem[data-state="on"] svg {
+.view-toggle-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-1);
+  padding-right: var(--space-2);
+  border-radius: 9999px;
+  font-size: var(--font-size-2);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 500;
+  color: var(--gray-11);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  white-space: nowrap;
+}
+
+.view-toggle-item[data-state="on"] {
+  background: white;
+  color: var(--gray-12);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+}
+
+.view-toggle-item[data-state="off"]:hover {
+  background: var(--gray-a4);
+}
+
+/* ─── Toggle icon wrapper ────────────────────────────── */
+.seg-icon-wrap {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+@keyframes segIconCircleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0.75;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.view-toggle-item[data-state="on"] .seg-icon-wrap {
+  background: rgba(38, 87, 232, 0.20);
+  animation: segIconCircleIn 150ms ease forwards;
   color: #2657E8;
+}
+
+.view-toggle-item[data-state="off"] .seg-icon-wrap {
+  background: transparent;
 }
 
 /* ─── Data viz text tokens ──────────────────────────── */

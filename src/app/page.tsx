@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import {
+  Badge,
   Box,
   Button,
   Card,
@@ -13,7 +15,6 @@ import {
   Heading,
   IconButton,
   ScrollArea,
-  SegmentedControl,
   Separator,
   Text,
   TextArea,
@@ -43,26 +44,6 @@ function toggleSet<T>(set: Set<T>, value: T): Set<T> {
   return next;
 }
 
-function pillStyle(active: boolean): React.CSSProperties {
-  return {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 4,
-    padding: "4px 10px 4px 12px",
-    borderRadius: 9999,
-    fontSize: "var(--font-size-1)",
-    fontWeight: 500,
-    cursor: "pointer",
-    border: "1px solid",
-    borderColor: active ? "var(--blue-8)" : "var(--gray-5)",
-    background: active ? "var(--blue-3)" : "transparent",
-    color: active ? "var(--blue-11)" : "var(--gray-11)",
-    transition: "all 120ms ease",
-    lineHeight: 1.5,
-    whiteSpace: "nowrap",
-  };
-}
-
 function FilterPill({
   label,
   options,
@@ -78,12 +59,17 @@ function FilterPill({
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <button className="filter-pill" style={pillStyle(count > 0)}>
+        <Button
+          variant="soft"
+          color={count > 0 ? "blue" : "gray"}
+          size="1"
+          radius="full"
+        >
           {count > 0 ? `${label} · ${count}` : label}
           <ChevronDownIcon width={12} height={12} />
-        </button>
+        </Button>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content size="1">
+      <DropdownMenu.Content size="1" color={count > 0 ? "blue" : "gray"}>
         {options.map(opt => (
           <DropdownMenu.CheckboxItem
             key={opt}
@@ -211,9 +197,9 @@ function GroupCard({
       <Box px="5" pt="5" style={{ paddingBottom: 16 }}>
         <Flex align="baseline" gap="3">
           <Heading as="h2" size="4" style={{ color: "var(--slate-12)" }}>{title}</Heading>
-          <Text size="2">
+          <Badge color="gray" variant="soft" radius="full">
             {plans.length} {plans.length === 1 ? "plan" : "plans"}
-          </Text>
+          </Badge>
         </Flex>
       </Box>
 
@@ -222,10 +208,12 @@ function GroupCard({
         <Flex gap="5" align="start">
           {/* Left column: employees */}
           <Box style={{ flex: 1, minWidth: 0 }}>
-            <Text as="div" size="1" color="gray" style={{ marginBottom: 4 }}>Employees</Text>
-            <Text as="div" className="data-viz-lg">
-              {totalEmployees.toLocaleString()}
-            </Text>
+            <Flex align="baseline" gap="2">
+              <Text as="div" className="data-viz-lg">
+                {totalEmployees.toLocaleString()}
+              </Text>
+              <Text as="div" size="1" color="gray" style={{ lineHeight: 1 }}>Employees</Text>
+            </Flex>
             <Box mt="3">
               <Flex style={{ width: "100%", height: 12, gap: 2 }}>
                 {employeeBarData.map((d, i) => {
@@ -271,10 +259,12 @@ function GroupCard({
 
           {/* Right column: workspaces */}
           <Box style={{ flex: 1, minWidth: 0 }}>
-            <Text as="div" size="1" color="gray" style={{ marginBottom: 4 }}>Workspaces</Text>
-            <Text as="div" className="data-viz-lg">
-              {totalWorkspaces.toLocaleString()}
-            </Text>
+            <Flex align="baseline" gap="2">
+              <Text as="div" className="data-viz-lg">
+                {totalWorkspaces.toLocaleString()}
+              </Text>
+              <Text as="div" size="1" color="gray" style={{ lineHeight: 1 }}>Workspaces</Text>
+            </Flex>
             <Box mt="3">
               <Flex style={{ width: "100%", height: 12, gap: 2 }}>
                 {workspaceBarData.map((d, i) => {
@@ -476,11 +466,8 @@ export default function LandingPage() {
                 boxShadow: "0 2px 10px rgba(62, 99, 221, 0.4)",
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="8" height="8" rx="1.5" fill="white" fillOpacity="0.95" />
-                <rect x="12" y="2" width="8" height="8" rx="1.5" fill="white" fillOpacity="0.95" />
-                <rect x="2" y="12" width="8" height="8" rx="1.5" fill="white" fillOpacity="0.95" />
-                <rect x="12" y="12" width="8" height="8" rx="1.5" fill="white" fillOpacity="0.95" />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" color="white">
+                <path fill="currentColor" d="M3.25 17.813a2.938 2.938 0 1 1 0 5.875 2.938 2.938 0 0 1 0-5.875Zm17.5 0a2.938 2.938 0 1 1 0 5.875 2.938 2.938 0 0 1 0-5.875ZM12 4.75a7.25 7.25 0 1 1 0 14.5 7.25 7.25 0 0 1 0-14.5ZM3.25.312a2.937 2.937 0 1 1 0 5.875 2.937 2.937 0 0 1 0-5.875Zm17.5 0a2.938 2.938 0 1 1 0 5.876 2.938 2.938 0 0 1 0-5.875Z"/>
               </svg>
             </Box>
             <Heading size="5">Org Space Manager</Heading>
@@ -532,28 +519,29 @@ export default function LandingPage() {
                     Review the current space utilization and set desk policy for your org.
                   </Text>
                 </Flex>
-                <SegmentedControl.Root
+                <ToggleGroup.Root
+                  type="single"
                   value={view}
-                  onValueChange={(v) => setView(v as "location" | "aa")}
-                  size="2"
+                  onValueChange={(v) => v && setView(v as "location" | "aa")}
+                  className="view-toggle-root"
                 >
-                  <SegmentedControl.Item value="location">
-                    <Flex align="center" gap="1">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" style={{ flexShrink: 0 }}>
+                  <ToggleGroup.Item value="location" className="view-toggle-item">
+                    <span className="seg-icon-wrap">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
                         <path fill="currentColor" fillRule="evenodd" d="M3.75 3.5A2.25 2.25 0 0 1 6 1.25h6.5a2.25 2.25 0 0 1 2.25 2.25V6H18a2.25 2.25 0 0 1 2.25 2.25v13H22a.75.75 0 0 1 0 1.5H2a.75.75 0 0 1 0-1.5h1.75V3.5Zm11 17.75h4V18h-4v3.25Zm0-4.75h4v-3.75h-4v3.75Zm0-5.25h4v-3A.75.75 0 0 0 18 7.5h-3.25v3.75Zm-4.5 6.725a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 1 1-2 0v-.05a1 1 0 0 1 1-1Zm1-3a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 0 1-2 0v-.05a1 1 0 0 1 1-1Z" clipRule="evenodd" />
                       </svg>
-                      Work location
-                    </Flex>
-                  </SegmentedControl.Item>
-                  <SegmentedControl.Item value="aa">
-                    <Flex align="center" gap="1">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" style={{ flexShrink: 0 }}>
+                    </span>
+                    Work location
+                  </ToggleGroup.Item>
+                  <ToggleGroup.Item value="aa" className="view-toggle-item">
+                    <span className="seg-icon-wrap">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
                         <path fill="currentColor" d="M8.25 7a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM11.925 13.25c-.526 0-1.05.083-1.55.246l-.08.026A4.685 4.685 0 0 0 7.24 16.69l-.105.366c-.09.315-.135.64-.135.969v.204c0 1.117.905 2.022 2.021 2.022h5.957A2.022 2.022 0 0 0 17 18.228v-.204a3.53 3.53 0 0 0-.136-.97l-.105-.365a4.684 4.684 0 0 0-3.054-3.167l-.082-.026a5.008 5.008 0 0 0-1.548-.246h-.15ZM15.902 10.512A5.23 5.23 0 0 0 17.25 7c0-.511-.073-1.005-.21-1.473a3.385 3.385 0 1 1-1.138 4.985ZM17.862 20.25c.402-.572.638-1.27.638-2.022v-.204c0-.468-.066-.932-.194-1.382l-.104-.365a6.184 6.184 0 0 0-.892-1.864 5.756 5.756 0 0 1 1.362-.163h.156c.48 0 .957.06 1.421.178l.384.098a3.845 3.845 0 0 1 2.717 2.564l.047.149c.068.214.103.438.103.662v.31a2.04 2.04 0 0 1-2.04 2.039h-3.598ZM2.54 20.25h3.597a3.506 3.506 0 0 1-.637-2.022v-.204c0-.468.065-.932.193-1.382l.104-.365a6.183 6.183 0 0 1 .892-1.864 5.762 5.762 0 0 0-1.36-.163h-.157c-.48 0-.957.06-1.421.178l-.384.098A3.847 3.847 0 0 0 .65 17.09l-.047.149a2.188 2.188 0 0 0-.103.662v.31a2.04 2.04 0 0 0 2.04 2.039ZM5.365 11.899a3.38 3.38 0 0 0 2.732-1.387A5.23 5.23 0 0 1 6.75 7c0-.511.073-1.005.21-1.473A3.385 3.385 0 1 0 5.365 11.9Z" />
                       </svg>
-                      Allocation area
-                    </Flex>
-                  </SegmentedControl.Item>
-                </SegmentedControl.Root>
+                    </span>
+                    Allocation area
+                  </ToggleGroup.Item>
+                </ToggleGroup.Root>
               </Flex>
 
               {/* Filter toolbar */}
