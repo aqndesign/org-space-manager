@@ -57,6 +57,24 @@ h4.rt-Heading {
   stroke-width: 2px;
 }
 
+/* ─── Data viz text tokens ──────────────────────────── */
+
+.data-viz-lg {
+  font-family: var(--font-sora), system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.data-viz-sm {
+  font-family: var(--font-sora), system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
 /* ─── Custom Visual Layer ───────────────────────────── */
 
 .rt-Button,

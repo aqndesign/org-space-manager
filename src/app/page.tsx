@@ -79,11 +79,11 @@ function PlanCard({ plan }: { plan: Plan }) {
           <Grid columns="2" gap="2">
             <Flex direction="column" gap="1">
               <Text size="1" color="gray">Employees</Text>
-              <Text size="2" weight="medium">{employees}</Text>
+              <Text as="div" className="data-viz-sm">{employees}</Text>
             </Flex>
             <Flex direction="column" gap="1">
               <Text size="1" color="gray">Workspaces</Text>
-              <Text size="2" weight="medium">{totalWorkspaces}</Text>
+              <Text as="div" className="data-viz-sm">{totalWorkspaces}</Text>
             </Flex>
           </Grid>
           <Text size="1" color="gray">
@@ -116,6 +116,7 @@ function GroupCard({
   const totalWorkspaces = totalAssigned + totalAvailable + totalCoworking;
 
   const [hoveredSegment, setHoveredSegment] = useState<{ group: string; value: number; color: string; rect: DOMRect } | null>(null);
+  const [hoveredWsSegment, setHoveredWsSegment] = useState<{ group: string; value: number; color: string; rect: DOMRect } | null>(null);
 
   const empPalette = hexPalette(plans.length, "#2657E8", "#AFC8FF");
   const employeeBarData = plans.map((p, i) => ({
@@ -123,6 +124,13 @@ function GroupCard({
     value: totalHeadcount(p),
     color: empPalette[i],
   }));
+
+  const wsPalette = hexPalette(3, "#6421CA", "#D4ABFF");
+  const workspaceBarData = [
+    { group: "Assigned", value: totalAssigned, color: wsPalette[0] },
+    { group: "Available", value: totalAvailable, color: wsPalette[1] },
+    { group: "Coworking", value: totalCoworking, color: wsPalette[2] },
+  ];
 
   return (
     <Box
@@ -139,59 +147,117 @@ function GroupCard({
     >
       {/* Card header — title + metadata only */}
       <Box px="5" pt="5" style={{ paddingBottom: 16 }}>
-        <Flex direction="column" gap="1">
-          <Flex align="baseline" gap="3">
-            <Heading as="h2" size="4" style={{ color: "var(--slate-12)" }}>{title}</Heading>
-            <Text size="2">
-              {plans.length} {plans.length === 1 ? "plan" : "plans"}
-            </Text>
-          </Flex>
-          <Text size="1">
-            {totalEmployees.toLocaleString()} employees · {totalWorkspaces.toLocaleString()} workspaces · {totalAssigned} assigned · {totalAvailable} available · {totalCoworking} coworking
+        <Flex align="baseline" gap="3">
+          <Heading as="h2" size="4" style={{ color: "var(--slate-12)" }}>{title}</Heading>
+          <Text size="2">
+            {plans.length} {plans.length === 1 ? "plan" : "plans"}
           </Text>
         </Flex>
       </Box>
 
-      {/* Employee category bar */}
+      {/* Data viz: employee + workspace bars */}
       <Box px="5" pb="0">
-        <Flex style={{ width: "100%", height: 12, gap: 2 }}>
-          {employeeBarData.map((d, i) => {
-            const isOnly = employeeBarData.length === 1;
-            const isFirst = i === 0;
-            const isLast = i === employeeBarData.length - 1;
-            const borderRadius = isOnly ? 4 : isFirst ? "4px 0 0 4px" : isLast ? "0 4px 4px 0" : 0;
-            return (
-              <Box
-                key={d.group}
-                style={{ flex: d.value, height: 12 }}
-                onMouseEnter={(e) => {
-                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                  setHoveredSegment({ group: d.group, value: d.value, color: d.color, rect });
-                }}
-                onMouseLeave={() => setHoveredSegment(null)}
-              >
-                <Box
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    background: d.color,
-                    borderRadius,
-                    opacity: hoveredSegment !== null && hoveredSegment.group !== d.group ? 0.45 : 1,
-                    transition: "opacity 80ms ease",
-                    cursor: "default",
-                  }}
-                />
-              </Box>
-            );
-          })}
-        </Flex>
-        <Flex mt="2" style={{ gap: 16 }}>
-          {employeeBarData.map((d) => (
-            <Flex key={d.group} align="center" gap="1">
-              <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
-              <Text size="1" color="gray">{d.group}</Text>
-            </Flex>
-          ))}
+        <Flex gap="5" align="start">
+          {/* Left column: employees */}
+          <Box style={{ flex: 1, minWidth: 0 }}>
+            <Text as="div" size="1" color="gray" style={{ marginBottom: 4 }}>Employees</Text>
+            <Text as="div" className="data-viz-lg">
+              {totalEmployees.toLocaleString()}
+            </Text>
+            <Box mt="3">
+              <Flex style={{ width: "100%", height: 12, gap: 2 }}>
+                {employeeBarData.map((d, i) => {
+                  const isOnly = employeeBarData.length === 1;
+                  const isFirst = i === 0;
+                  const isLast = i === employeeBarData.length - 1;
+                  const borderRadius = isOnly ? 4 : isFirst ? "4px 0 0 4px" : isLast ? "0 4px 4px 0" : 0;
+                  return (
+                    <Box
+                      key={d.group}
+                      style={{ flex: d.value, height: 12 }}
+                      onMouseEnter={(e) => {
+                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        setHoveredSegment({ group: d.group, value: d.value, color: d.color, rect });
+                      }}
+                      onMouseLeave={() => setHoveredSegment(null)}
+                    >
+                      <Box
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          background: d.color,
+                          borderRadius,
+                          opacity: hoveredSegment !== null && hoveredSegment.group !== d.group ? 0.45 : 1,
+                          transition: "opacity 80ms ease",
+                          cursor: "default",
+                        }}
+                      />
+                    </Box>
+                  );
+                })}
+              </Flex>
+              <Flex mt="2" style={{ gap: 12, flexWrap: "wrap" }}>
+                {employeeBarData.map((d) => (
+                  <Flex key={d.group} align="center" gap="1">
+                    <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                    <Text size="1" color="gray">{d.group}</Text>
+                  </Flex>
+                ))}
+              </Flex>
+            </Box>
+          </Box>
+
+          {/* Divider */}
+          <Box style={{ width: 1, background: "var(--gray-5)", alignSelf: "stretch", flexShrink: 0 }} />
+
+          {/* Right column: workspaces */}
+          <Box style={{ flex: 1, minWidth: 0 }}>
+            <Text as="div" size="1" color="gray" style={{ marginBottom: 4 }}>Workspaces</Text>
+            <Text as="div" className="data-viz-lg">
+              {totalWorkspaces.toLocaleString()}
+            </Text>
+            <Box mt="3">
+              <Flex style={{ width: "100%", height: 12, gap: 2 }}>
+                {workspaceBarData.map((d, i) => {
+                  const isOnly = workspaceBarData.length === 1;
+                  const isFirst = i === 0;
+                  const isLast = i === workspaceBarData.length - 1;
+                  const borderRadius = isOnly ? 4 : isFirst ? "4px 0 0 4px" : isLast ? "0 4px 4px 0" : 0;
+                  return (
+                    <Box
+                      key={d.group}
+                      style={{ flex: d.value, height: 12 }}
+                      onMouseEnter={(e) => {
+                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        setHoveredWsSegment({ group: d.group, value: d.value, color: d.color, rect });
+                      }}
+                      onMouseLeave={() => setHoveredWsSegment(null)}
+                    >
+                      <Box
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          background: d.color,
+                          borderRadius,
+                          opacity: hoveredWsSegment !== null && hoveredWsSegment.group !== d.group ? 0.45 : 1,
+                          transition: "opacity 80ms ease",
+                          cursor: "default",
+                        }}
+                      />
+                    </Box>
+                  );
+                })}
+              </Flex>
+              <Flex mt="2" style={{ gap: 12 }}>
+                {workspaceBarData.map((d) => (
+                  <Flex key={d.group} align="center" gap="1">
+                    <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                    <Text size="1" color="gray">{d.group}</Text>
+                  </Flex>
+                ))}
+              </Flex>
+            </Box>
+          </Box>
         </Flex>
       </Box>
 
@@ -227,6 +293,32 @@ function GroupCard({
           </Flex>
           <Text as="div" size="4" weight="medium">{hoveredSegment.value.toLocaleString()}</Text>
           <Text as="div" size="1" color="gray">employees</Text>
+        </Box>,
+        document.body
+      )}
+      {hoveredWsSegment && createPortal(
+        <Box
+          style={{
+            position: "fixed",
+            top: hoveredWsSegment.rect.top - 10,
+            left: hoveredWsSegment.rect.left + hoveredWsSegment.rect.width / 2,
+            transform: "translate(-50%, -100%)",
+            background: "white",
+            border: "1px solid var(--gray-4)",
+            borderRadius: "var(--radius-3)",
+            padding: "10px 14px",
+            whiteSpace: "nowrap",
+            zIndex: 9999,
+            pointerEvents: "none",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Flex align="center" gap="2" mb="2">
+            <Box style={{ width: 8, height: 8, borderRadius: 2, background: hoveredWsSegment.color, flexShrink: 0 }} />
+            <Text size="1" color="gray">{hoveredWsSegment.group}</Text>
+          </Flex>
+          <Text as="div" size="4" weight="medium">{hoveredWsSegment.value.toLocaleString()}</Text>
+          <Text as="div" size="1" color="gray">workspaces</Text>
         </Box>,
         document.body
       )}
