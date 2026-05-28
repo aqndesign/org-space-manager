@@ -1035,13 +1035,23 @@ export default function LandingPage() {
           <Flex direction="column" gap="5">
             {/* Planning season banner */}
             {bannerVisible && (
-            <Box style={{ borderRadius: 20, overflow: "hidden" }}>
-              {/* Purple header section */}
-              <Box style={{ position: "relative", background: "#7336A5", overflow: "hidden" }}>
-                {/* Icon — 15% smaller, 5% right, border-radius 16 */}
-                <Box style={{
+            <Box style={{ position: "relative", borderRadius: 20 }}>
+              {/* Purple header section — sits on top (z-index 2) so white body slides out from beneath */}
+              <Box
+                className="banner-purple-header"
+                data-expanded={bannerExpanded ? "true" : undefined}
+                style={{
+                  position: "relative",
+                  background: "#7336A5",
+                  overflow: "hidden",
+                  borderRadius: 20,
+                  zIndex: 2,
+                }}
+              >
+                {/* Icon container */}
+                <Box className="banner-icon-container" style={{
                   position: "absolute",
-                  left: -116,
+                  left: -108,
                   top: -23,
                   width: 156,
                   height: 158,
@@ -1061,30 +1071,13 @@ export default function LandingPage() {
                     style={{
                       width: "100%",
                       height: "100%",
-                      transform: "rotate(-25.06deg) scale(0.572) translateX(35%) translateY(-15%)",
+                      transform: "rotate(-25.06deg) scale(0.429) translateX(85%) translateY(-28%)",
                     }}
                   />
                 </Box>
 
-                {/* Top-right button pair: [expand ↕] [close ×] */}
-                <Flex
-                  align="center"
-                  gap="1"
-                  style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}
-                >
-                  <IconButton
-                    variant="ghost"
-                    size="1"
-                    aria-label="Expand banner"
-                    className="banner-expand-btn btn-banner-close"
-                    onClick={() => setBannerExpanded(prev => !prev)}
-                    style={{
-                      transform: bannerExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 250ms ease",
-                    }}
-                  >
-                    <ChevronDownIcon width={14} height={14} />
-                  </IconButton>
+                {/* Top-right: close button only */}
+                <Box style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}>
                   <IconButton
                     variant="ghost"
                     size="1"
@@ -1096,24 +1089,41 @@ export default function LandingPage() {
                       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                   </IconButton>
-                </Flex>
+                </Box>
 
-                {/* Content — padded to clear the icon and the two top-right buttons */}
+                {/* Content — icon right edge ~66px, close button occupies right 38px */}
                 <Flex
                   direction="column"
-                  justify="center"
-                  style={{ paddingLeft: 96, paddingRight: 76, paddingTop: 18, paddingBottom: 18, minHeight: 80 }}
+                  className="banner-header-content"
+                  style={{ paddingLeft: 90, paddingRight: 40, paddingTop: 14, paddingBottom: 18, minHeight: 80 }}
                 >
-                  {/* Title — H3, clickable on mobile */}
+                  {/* Title — nowrap so it never breaks to a second line */}
                   <Text
                     size="3"
                     weight="bold"
-                    className="banner-title-row"
-                    onClick={() => setBannerExpanded(prev => !prev)}
-                    style={{ color: "white", fontFamily: "var(--font-heading)", display: "block" }}
+                    style={{ color: "white", fontFamily: "var(--font-heading)", display: "block", whiteSpace: "nowrap" }}
                   >
-                    Planning season has started
+                    Planning season started.
                   </Text>
+
+                  {/* "See more" — mobile only, shown when collapsed */}
+                  {!bannerExpanded && (
+                    <Box className="banner-see-more" style={{ marginTop: 4 }}>
+                      <Text
+                        size="1"
+                        onClick={() => setBannerExpanded(true)}
+                        style={{
+                          color: "rgba(255,255,255,0.72)",
+                          cursor: "pointer",
+                          textDecorationLine: "underline",
+                          textDecorationColor: "rgba(255,255,255,0.35)",
+                          textUnderlineOffset: "2px",
+                        }}
+                      >
+                        See more
+                      </Text>
+                    </Box>
+                  )}
 
                   {/* Description inside purple section — desktop only (CSS shows it) */}
                   <Box className="banner-body">
@@ -1131,28 +1141,57 @@ export default function LandingPage() {
                 </Flex>
               </Box>
 
-              {/* White expanded section — mobile only, attached directly to purple header */}
+              {/* White expanded section — slides out from beneath the purple header */}
               <Box
                 className="banner-white-body"
-                data-expanded={bannerExpanded ? "true" : undefined}
                 style={{
-                  background: "white",
-                  borderLeft: "1px solid #7336A5",
-                  borderRight: "1px solid #7336A5",
-                  borderBottom: "1px solid #7336A5",
-                  padding: "16px",
+                  overflow: "hidden",
+                  maxHeight: bannerExpanded ? 300 : 0,
+                  transition: "max-height 350ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  borderRadius: "0 0 20px 20px",
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
-                <Flex direction="column" gap="3">
-                  <Text size="1" style={{ lineHeight: 1.55 }}>
-                    Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
-                  </Text>
-                  <Box>
-                    <Button size="1" variant="solid" style={{ background: "#7336A5", color: "white" }}>
-                      Learn more
-                    </Button>
-                  </Box>
-                </Flex>
+                <Box style={{
+                  background: "white",
+                  padding: "16px",
+                  transform: bannerExpanded ? "translateY(0)" : "translateY(-16px)",
+                  opacity: bannerExpanded ? 1 : 0,
+                  transition: "transform 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease",
+                }}>
+                  <Flex direction="column" gap="3">
+                    <Text size="1" style={{ lineHeight: 1.55 }}>
+                      Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
+                    </Text>
+                    <Box>
+                      <Button size="1" variant="solid" style={{ background: "#7336A5", color: "white" }}>
+                        Learn more
+                      </Button>
+                    </Box>
+                    {/* See less — full-bleed across expanded section bottom */}
+                    <Box style={{ margin: "4px -16px -16px", borderTop: "1px solid rgba(115, 54, 165, 0.12)" }}>
+                      <button
+                        onClick={() => setBannerExpanded(false)}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          padding: "10px 16px",
+                          background: "none",
+                          border: "none",
+                          color: "#7336A5",
+                          fontSize: "var(--font-size-1)",
+                          fontFamily: "var(--font-body), system-ui, sans-serif",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          textAlign: "center",
+                        }}
+                      >
+                        See less
+                      </button>
+                    </Box>
+                  </Flex>
+                </Box>
               </Box>
             </Box>
             )}

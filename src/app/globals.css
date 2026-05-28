@@ -429,14 +429,22 @@ label {
     display: none !important;
   }
 
+  /* Banner icon container: 16px further right on mobile */
+  .banner-icon-container {
+    left: -92px !important;
+  }
+
+  /* Banner header: 8px shorter on mobile (−4px top, −4px bottom), left edge 16px right of icon */
+  .banner-header-content {
+    padding-left: 106px !important;
+    padding-top: 10px !important;
+    padding-bottom: 14px !important;
+    min-height: 72px !important;
+  }
+
   /* Banner title row: clickable on mobile */
   .banner-title-row {
     cursor: pointer;
-  }
-
-  /* Expand button visible on mobile only */
-  .banner-expand-btn {
-    display: flex !important;
   }
 
   /* Purple section description: always hidden on mobile (white section takes over) */
@@ -444,13 +452,14 @@ label {
     display: none !important;
   }
 
-  /* White expanded section: hidden by default, block when expanded */
-  .banner-white-body {
-    display: none !important;
+  /* Purple header: rounded bottom corners collapse when expanded so white body looks attached */
+  .banner-purple-header {
+    transition: border-radius 350ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 350ms ease;
   }
 
-  .banner-white-body[data-expanded="true"] {
-    display: block !important;
+  .banner-purple-header[data-expanded="true"] {
+    border-radius: 20px 20px 0 0 !important;
+    box-shadow: 0 6px 20px rgba(115, 54, 165, 0.30) !important;
   }
 }
 
@@ -461,8 +470,8 @@ label {
     display: none !important;
   }
 
-  /* Expand button and white section are mobile-only */
-  .banner-expand-btn {
+  /* "See more" / white section are mobile-only */
+  .banner-see-more {
     display: none !important;
   }
 
