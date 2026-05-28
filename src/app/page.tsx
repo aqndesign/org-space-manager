@@ -110,7 +110,7 @@ function totalHeadcount(plan: Plan) {
   return ea.fullTime + ea.partTime + ea.interns + ea.contingent + ea.other;
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({ plan, view }: { plan: Plan; view: "location" | "aa" }) {
   const employees = totalHeadcount(plan);
   const assigned = plan.workspaceAssessment.assignedDesks;
   const available = plan.workspaceAssessment.availableDesks;
@@ -128,7 +128,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         <Flex direction="column" gap="3">
           <Flex direction="column" gap="1">
             <Flex justify="between" align="start">
-              <Heading as="h3" size="3">{plan.allocationArea}</Heading>
+              <Heading as="h3" size="3">{view === "aa" ? plan.workLocation : plan.allocationArea}</Heading>
               <StatusBadge status={plan.status} />
             </Flex>
             <Text size="1" color="gray">
@@ -355,7 +355,7 @@ function GroupCard({
       <Box p="5">
         <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
           {plans.map((p) => (
-            <PlanCard key={p.id} plan={p} />
+            <PlanCard key={p.id} plan={p} view={view} />
           ))}
         </Grid>
       </Box>
@@ -425,6 +425,34 @@ export default function LandingPage() {
 
   const [view, setView] = useState<"location" | "aa">("location");
   const [agentOpen, setAgentOpen] = useState(true);
+  // Drives the CSS transition: false = scale(0.7)/opacity 0.8, true = scale(1)/opacity 1.
+  // Starts false so the panel always mounts at the small state and transitions in.
+  const [agentPanelVisible, setAgentPanelVisible] = useState(false);
+  const agentCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // After the panel mounts, wait one rAF so the browser has painted the
+  // initial (scaled-down) frame, then flip to visible to start the transition.
+  useEffect(() => {
+    if (agentOpen) {
+      const id = requestAnimationFrame(() => setAgentPanelVisible(true));
+      return () => cancelAnimationFrame(id);
+    }
+  }, [agentOpen]);
+
+  function openAgent() {
+    if (agentCloseTimer.current) clearTimeout(agentCloseTimer.current);
+    agentCloseTimer.current = null;
+    setAgentOpen(true);   // mount; agentPanelVisible is still false → starts scaled down
+  }
+
+  function closeAgent() {
+    setAgentPanelVisible(false);                      // start exit transition
+    agentCloseTimer.current = setTimeout(() => {
+      setAgentOpen(false);                            // unmount after transition
+      agentCloseTimer.current = null;
+    }, 310);                                          // 10ms grace past the 300ms transition
+  }
+
   const [agentInput, setAgentInput] = useState("");
   const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([]);
   const [newPlanOpen, setNewPlanOpen] = useState(false);
@@ -524,7 +552,7 @@ export default function LandingPage() {
             <IconButton
               variant="solid"
               size="2"
-              onClick={() => setAgentOpen((o) => !o)}
+              onClick={() => agentOpen ? closeAgent() : openAgent()}
               aria-label="Toggle assistant"
               className="btn-assistant"
               style={{ width: 32, height: 32 }}
@@ -562,9 +590,8 @@ export default function LandingPage() {
       {/* Body */}
       <Box style={{ flex: 1, overflow: "hidden", borderRadius: 24, position: "relative", zIndex: 1, background: "#F0F0F3" }}>
         <BlobCanvas />
-        <Flex style={{ height: "100%" }}>
-          {/* Scrollable content */}
-          <Box style={{ flex: 1, overflowY: "auto", height: "100%" }}>
+          {/* Scrollable content — right edge retracts to make room for the panel */}
+          <Box style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", transition: "right 300ms ease-in-out" }}>
         <Box
           px="6"
           py="6"
@@ -735,8 +762,12 @@ export default function LandingPage() {
           {agentOpen && (
             <Box
               style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                bottom: 8,
                 width: 360,
-                flexShrink: 0,
+                zIndex: 1,
                 display: "flex",
                 flexDirection: "column",
                 background: "rgba(255, 255, 255, 0.72)",
@@ -744,9 +775,11 @@ export default function LandingPage() {
                 WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 border: "0.5px solid rgba(255, 255, 255, 0.75)",
                 borderRadius: 20,
-                margin: "8px 8px 8px 0",
                 boxShadow: "0 2px 23px rgba(0,0,0,0.054), inset 0 1px 0 rgba(255,255,255,0.9)",
                 overflow: "hidden",
+                transform: agentPanelVisible ? "translateX(0)" : "translateX(calc(100% + 8px))",
+                opacity: agentPanelVisible ? 1 : 0,
+                transition: "transform 300ms ease-in-out, opacity 300ms ease-in-out",
               }}
             >
             <Flex
@@ -771,12 +804,12 @@ export default function LandingPage() {
                   <Text size="1" color="gray">Ask questions across all plans</Text>
                 </Flex>
               </Flex>
-              <IconButton variant="ghost" color="gray" size="2" onClick={() => setAgentOpen(false)}>
+              <IconButton variant="ghost" color="gray" size="2" onClick={() => closeAgent()}>
                 <Cross2Icon />
               </IconButton>
             </Flex>
 
-            <Box style={{ flex: 1, display: "flex", flexDirection: "column", background: "white", borderRadius: "16px 16px 0 0", overflow: "hidden", minHeight: 0, margin: "0 4px 4px" }}>
+            <Box style={{ flex: 1, display: "flex", flexDirection: "column", background: "white", borderRadius: "16px 16px 20px 20px", overflow: "hidden", minHeight: 0, margin: "0 4px 4px" }}>
             <ScrollArea style={{ flex: 1 }}>
               <Flex direction="column" gap="3" p="4">
                 <Flex direction="column" align="center" gap="2" py="6">
@@ -814,7 +847,7 @@ export default function LandingPage() {
               </Flex>
             </ScrollArea>
 
-            <Box px="4" py="3" style={{ borderTop: "0.5px solid rgba(0,0,0,0.1)", flexShrink: 0 }}>
+            <Box px="4" py="3" style={{ borderTop: "0.5px solid rgba(0,0,0,0.1)", flexShrink: 0, borderRadius: "0 0 20px 20px" }}>
               <Flex gap="2">
                 <TextArea
                   placeholder="Ask a question..."
@@ -838,7 +871,6 @@ export default function LandingPage() {
             </Box>
             </Box>
           )}
-        </Flex>
       </Box>
 
       <NewPlanModal
