@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import Lottie from "lottie-react";
 import type { LottieRefCurrentProps } from "lottie-react";
-import projectResearchAnimation from "../../asset/illustration/project_research.json";
 import calendarAnimation from "../../asset/icons/calendar.json";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import {
@@ -133,7 +132,7 @@ function PlanCard({ plan }: { plan: Plan }) {
               <StatusBadge status={plan.status} />
             </Flex>
             <Text size="1" color="gray">
-              Evaluated from Q2'25 to Q3'25
+              Evaluated from Q2&apos;25 to Q3&apos;25
             </Text>
           </Flex>
 
@@ -639,7 +638,7 @@ export default function LandingPage() {
                     Planning season has started
                   </Text>
                   <Text size="1" style={{ color: "white", lineHeight: 1.55 }}>
-                    Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees' productivity and space utilization.
+                    Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
                   </Text>
                 </Flex>
                 <Box>
@@ -788,7 +787,7 @@ export default function LandingPage() {
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
                     }}>
-                      Hi, I'm your Campus assistant!
+                      Hi, I&apos;m your Campus assistant!
                     </span>
                   </Text>
                   <Text size="1" color="gray" align="center">Ask me anything about your space plans, desk utilization, or allocation areas.</Text>
