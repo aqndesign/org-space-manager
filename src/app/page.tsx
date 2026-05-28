@@ -25,7 +25,7 @@ import {
   TextArea,
   Tooltip,
 } from "@radix-ui/themes";
-import { ChevronDownIcon, Cross2Icon, PaperPlaneIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, Cross2Icon, MixerHorizontalIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { addPlan, getPlansByAA, getPlansByLocation, PLANS } from "@/lib/mock-data";
 import { BlobCanvas } from "@/components/BlobCanvas";
 import { NewPlanModal } from "@/components/NewPlanModal";
@@ -220,6 +220,262 @@ function QuarterRangePill({
         </Flex>
       </Popover.Content>
     </Popover.Root>
+  );
+}
+
+type FilterSheetProps = {
+  open: boolean;
+  onClose: () => void;
+  statusFilter: Set<PlanStatus>;
+  setStatusFilter: (s: Set<PlanStatus>) => void;
+  locationFilter: Set<WorkLocation>;
+  setLocationFilter: (s: Set<WorkLocation>) => void;
+  aaFilter: Set<AllocationArea>;
+  setAAFilter: (s: Set<AllocationArea>) => void;
+  periodFilter: QuarterRange | null;
+  setPeriodFilter: (v: QuarterRange | null) => void;
+  availableLocations: string[];
+  availableAAs: string[];
+};
+
+function FilterSheet({
+  open,
+  onClose,
+  statusFilter, setStatusFilter,
+  locationFilter, setLocationFilter,
+  aaFilter, setAAFilter,
+  periodFilter, setPeriodFilter,
+  availableLocations,
+  availableAAs,
+}: FilterSheetProps) {
+  const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      setVisible(false);
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+      closeTimer.current = setTimeout(() => {
+        setMounted(false);
+        closeTimer.current = null;
+      }, 310);
+    }
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
+  }, [open]);
+
+  if (!mounted) return null;
+
+  const STATUS_OPTIONS: PlanStatus[] = ["Plan draft", "Policy draft", "Submitted", "Approved", "Live"];
+  const YEARS = [2023, 2024, 2025, 2026, 2027];
+  const DEFAULT_PERIOD: QuarterRange = { startQ: 1, startYear: 2026, endQ: 4, endYear: 2026 };
+  const currentPeriod = periodFilter ?? DEFAULT_PERIOD;
+  const hasActiveFilters = statusFilter.size > 0 || locationFilter.size > 0 || aaFilter.size > 0 || periodFilter !== null;
+
+  return createPortal(
+    <>
+      {/* Backdrop */}
+      <Box
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.45)",
+          zIndex: 200,
+          opacity: visible ? 1 : 0,
+          transition: "opacity 300ms ease-in-out",
+        }}
+        onClick={onClose}
+      />
+      {/* Sheet */}
+      <Box
+        style={{
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 201,
+          background: "white",
+          borderRadius: "20px 20px 0 0",
+          transform: visible ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 300ms ease-in-out",
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 -4px 40px rgba(0,0,0,0.12)",
+        }}
+      >
+        {/* Handle bar */}
+        <Flex justify="center" pt="3" pb="1" style={{ flexShrink: 0 }}>
+          <Box style={{ width: 36, height: 4, borderRadius: 9999, background: "var(--gray-5)" }} />
+        </Flex>
+
+        {/* Header row */}
+        <Flex align="center" justify="between" px="4" py="2" style={{ flexShrink: 0 }}>
+          <Text size="3" weight="bold">Filters</Text>
+          <IconButton variant="ghost" color="gray" size="2" onClick={onClose} aria-label="Close filters">
+            <Cross2Icon />
+          </IconButton>
+        </Flex>
+
+        {/* Scrollable filter sections */}
+        <ScrollArea style={{ flex: 1 }}>
+          <Flex direction="column" gap="5" px="4" pb="4">
+
+            {/* Pillar */}
+            <Flex direction="column" gap="2">
+              <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Pillar</Text>
+              <Button variant="soft" color="blue" size="1" radius="full" disabled style={{ opacity: 1, cursor: "default", width: "fit-content" }}>
+                Enterprise Engineering
+              </Button>
+            </Flex>
+
+            {/* Evaluation period */}
+            <Flex direction="column" gap="2">
+              <Flex align="center" justify="between">
+                <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Evaluation period</Text>
+                {periodFilter !== null && (
+                  <Button variant="ghost" color="gray" size="1" radius="full" onClick={() => setPeriodFilter(null)}>
+                    Clear
+                  </Button>
+                )}
+              </Flex>
+              <Flex gap="3">
+                <Flex direction="column" gap="1" style={{ flex: 1 }}>
+                  <Text size="1" color="gray">Start</Text>
+                  <Flex gap="1">
+                    <Select.Root size="1" value={String(currentPeriod.startQ)} onValueChange={(v) => setPeriodFilter({ ...currentPeriod, startQ: Number(v) })}>
+                      <Select.Trigger style={{ flex: 1 }} />
+                      <Select.Content>
+                        {[1,2,3,4].map(q => <Select.Item key={q} value={String(q)}>Q{q}</Select.Item>)}
+                      </Select.Content>
+                    </Select.Root>
+                    <Select.Root size="1" value={String(currentPeriod.startYear)} onValueChange={(v) => setPeriodFilter({ ...currentPeriod, startYear: Number(v) })}>
+                      <Select.Trigger style={{ flex: 1 }} />
+                      <Select.Content>
+                        {YEARS.map(y => <Select.Item key={y} value={String(y)}>{y}</Select.Item>)}
+                      </Select.Content>
+                    </Select.Root>
+                  </Flex>
+                </Flex>
+                <Flex direction="column" gap="1" style={{ flex: 1 }}>
+                  <Text size="1" color="gray">End</Text>
+                  <Flex gap="1">
+                    <Select.Root size="1" value={String(currentPeriod.endQ)} onValueChange={(v) => setPeriodFilter({ ...currentPeriod, endQ: Number(v) })}>
+                      <Select.Trigger style={{ flex: 1 }} />
+                      <Select.Content>
+                        {[1,2,3,4].map(q => <Select.Item key={q} value={String(q)}>Q{q}</Select.Item>)}
+                      </Select.Content>
+                    </Select.Root>
+                    <Select.Root size="1" value={String(currentPeriod.endYear)} onValueChange={(v) => setPeriodFilter({ ...currentPeriod, endYear: Number(v) })}>
+                      <Select.Trigger style={{ flex: 1 }} />
+                      <Select.Content>
+                        {YEARS.map(y => <Select.Item key={y} value={String(y)}>{y}</Select.Item>)}
+                      </Select.Content>
+                    </Select.Root>
+                  </Flex>
+                </Flex>
+              </Flex>
+            </Flex>
+
+            {/* Status */}
+            <Flex direction="column" gap="2">
+              <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Status</Text>
+              <Flex gap="2" style={{ flexWrap: "wrap" }}>
+                {STATUS_OPTIONS.map(s => (
+                  <Button
+                    key={s}
+                    variant={statusFilter.has(s) ? "solid" : "soft"}
+                    color={statusFilter.has(s) ? "blue" : "gray"}
+                    size="1"
+                    radius="full"
+                    onClick={() => setStatusFilter(toggleSet(statusFilter, s))}
+                  >
+                    {s}
+                  </Button>
+                ))}
+              </Flex>
+            </Flex>
+
+            {/* Location */}
+            <Flex direction="column" gap="2">
+              <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Location</Text>
+              <Flex gap="2" style={{ flexWrap: "wrap" }}>
+                {availableLocations.map(loc => (
+                  <Button
+                    key={loc}
+                    variant={locationFilter.has(loc as WorkLocation) ? "solid" : "soft"}
+                    color={locationFilter.has(loc as WorkLocation) ? "blue" : "gray"}
+                    size="1"
+                    radius="full"
+                    onClick={() => setLocationFilter(toggleSet(locationFilter, loc as WorkLocation))}
+                  >
+                    {loc}
+                  </Button>
+                ))}
+              </Flex>
+            </Flex>
+
+            {/* Allocation area */}
+            <Flex direction="column" gap="2">
+              <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Allocation area</Text>
+              <Flex gap="2" style={{ flexWrap: "wrap" }}>
+                {availableAAs.map(aa => (
+                  <Button
+                    key={aa}
+                    variant={aaFilter.has(aa as AllocationArea) ? "solid" : "soft"}
+                    color={aaFilter.has(aa as AllocationArea) ? "blue" : "gray"}
+                    size="1"
+                    radius="full"
+                    onClick={() => setAAFilter(toggleSet(aaFilter, aa as AllocationArea))}
+                  >
+                    {aa}
+                  </Button>
+                ))}
+              </Flex>
+            </Flex>
+
+          </Flex>
+        </ScrollArea>
+
+        {/* Footer */}
+        <Box
+          px="4"
+          py="3"
+          style={{
+            borderTop: "0.5px solid var(--gray-4)",
+            flexShrink: 0,
+            paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
+          }}
+        >
+          <Flex gap="2" justify="between">
+            <Button
+              variant="ghost"
+              color="gray"
+              size="2"
+              radius="full"
+              disabled={!hasActiveFilters}
+              onClick={() => {
+                setStatusFilter(new Set());
+                setLocationFilter(new Set());
+                setAAFilter(new Set());
+                setPeriodFilter(null);
+              }}
+            >
+              Clear all
+            </Button>
+            <Button size="2" variant="solid" radius="full" onClick={onClose}>
+              Done
+            </Button>
+          </Flex>
+        </Box>
+      </Box>
+    </>,
+    document.body
   );
 }
 
@@ -628,6 +884,7 @@ export default function LandingPage() {
     }, 310);                                          // 10ms grace past the 300ms transition
   }
 
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [agentInput, setAgentInput] = useState("");
   const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([]);
   const [newPlanOpen, setNewPlanOpen] = useState(false);
@@ -856,41 +1113,65 @@ export default function LandingPage() {
             )}
             {/* Header card */}
             <Box style={GLASS_CARD_STYLE}>
-              {/* Title + toggle row */}
-              <Flex align="center" justify="between" gap="4" px="5" pt="5" pb="4">
+              {/* Title + toggle row — stacks vertically on mobile */}
+              <Flex
+                direction={{ initial: "column", sm: "row" }}
+                align={{ initial: "start", sm: "center" }}
+                justify="between"
+                gap={{ initial: "3", sm: "4" }}
+                px="5"
+                pt="5"
+                pb="4"
+              >
                 <Flex direction="column" gap="1">
                   <Heading size="4">Desk policy plans</Heading>
                   <Text size="2" color="gray">
                     Review the current space utilization and set desk policy for your org.
                   </Text>
                 </Flex>
-                <ToggleGroup.Root
-                  type="single"
-                  value={view}
-                  onValueChange={(v) => v && setView(v as "location" | "aa")}
-                  className="view-toggle-root"
-                >
-                  <ToggleGroup.Item value="location" className="view-toggle-item">
-                    <span className="seg-icon-wrap">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
-                        <path fill="currentColor" fillRule="evenodd" d="M3.75 3.5A2.25 2.25 0 0 1 6 1.25h6.5a2.25 2.25 0 0 1 2.25 2.25V6H18a2.25 2.25 0 0 1 2.25 2.25v13H22a.75.75 0 0 1 0 1.5H2a.75.75 0 0 1 0-1.5h1.75V3.5Zm11 17.75h4V18h-4v3.25Zm0-4.75h4v-3.75h-4v3.75Zm0-5.25h4v-3A.75.75 0 0 0 18 7.5h-3.25v3.75Zm-4.5 6.725a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 1 1-2 0v-.05a1 1 0 0 1 1-1Zm1-3a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 0 1-2 0v-.05a1 1 0 0 1 1-1Z" clipRule="evenodd" />
-                      </svg>
-                    </span>
-                    Work location
-                  </ToggleGroup.Item>
-                  <ToggleGroup.Item value="aa" className="view-toggle-item">
-                    <span className="seg-icon-wrap">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
-                        <path fill="currentColor" d="M8.25 7a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM11.925 13.25c-.526 0-1.05.083-1.55.246l-.08.026A4.685 4.685 0 0 0 7.24 16.69l-.105.366c-.09.315-.135.64-.135.969v.204c0 1.117.905 2.022 2.021 2.022h5.957A2.022 2.022 0 0 0 17 18.228v-.204a3.53 3.53 0 0 0-.136-.97l-.105-.365a4.684 4.684 0 0 0-3.054-3.167l-.082-.026a5.008 5.008 0 0 0-1.548-.246h-.15ZM15.902 10.512A5.23 5.23 0 0 0 17.25 7c0-.511-.073-1.005-.21-1.473a3.385 3.385 0 1 1-1.138 4.985ZM17.862 20.25c.402-.572.638-1.27.638-2.022v-.204c0-.468-.066-.932-.194-1.382l-.104-.365a6.184 6.184 0 0 0-.892-1.864 5.756 5.756 0 0 1 1.362-.163h.156c.48 0 .957.06 1.421.178l.384.098a3.845 3.845 0 0 1 2.717 2.564l.047.149c.068.214.103.438.103.662v.31a2.04 2.04 0 0 1-2.04 2.039h-3.598ZM2.54 20.25h3.597a3.506 3.506 0 0 1-.637-2.022v-.204c0-.468.065-.932.193-1.382l.104-.365a6.183 6.183 0 0 1 .892-1.864 5.762 5.762 0 0 0-1.36-.163h-.157c-.48 0-.957.06-1.421.178l-.384.098A3.847 3.847 0 0 0 .65 17.09l-.047.149a2.188 2.188 0 0 0-.103.662v.31a2.04 2.04 0 0 0 2.04 2.039ZM5.365 11.899a3.38 3.38 0 0 0 2.732-1.387A5.23 5.23 0 0 1 6.75 7c0-.511.073-1.005.21-1.473A3.385 3.385 0 1 0 5.365 11.9Z" />
-                      </svg>
-                    </span>
-                    Allocation area
-                  </ToggleGroup.Item>
-                </ToggleGroup.Root>
+                <Flex align="center" gap="4">
+                  <ToggleGroup.Root
+                    type="single"
+                    value={view}
+                    onValueChange={(v) => v && setView(v as "location" | "aa")}
+                    className="view-toggle-root"
+                  >
+                    <ToggleGroup.Item value="location" className="view-toggle-item">
+                      <span className="seg-icon-wrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
+                          <path fill="currentColor" fillRule="evenodd" d="M3.75 3.5A2.25 2.25 0 0 1 6 1.25h6.5a2.25 2.25 0 0 1 2.25 2.25V6H18a2.25 2.25 0 0 1 2.25 2.25v13H22a.75.75 0 0 1 0 1.5H2a.75.75 0 0 1 0-1.5h1.75V3.5Zm11 17.75h4V18h-4v3.25Zm0-4.75h4v-3.75h-4v3.75Zm0-5.25h4v-3A.75.75 0 0 0 18 7.5h-3.25v3.75Zm-4.5 6.725a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 1 1-2 0v-.05a1 1 0 0 1 1-1Zm1-3a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 0 1-2 0v-.05a1 1 0 0 1 1-1Z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                      Work location
+                    </ToggleGroup.Item>
+                    <ToggleGroup.Item value="aa" className="view-toggle-item">
+                      <span className="seg-icon-wrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
+                          <path fill="currentColor" d="M8.25 7a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM11.925 13.25c-.526 0-1.05.083-1.55.246l-.08.026A4.685 4.685 0 0 0 7.24 16.69l-.105.366c-.09.315-.135.64-.135.969v.204c0 1.117.905 2.022 2.021 2.022h5.957A2.022 2.022 0 0 0 17 18.228v-.204a3.53 3.53 0 0 0-.136-.97l-.105-.365a4.684 4.684 0 0 0-3.054-3.167l-.082-.026a5.008 5.008 0 0 0-1.548-.246h-.15ZM15.902 10.512A5.23 5.23 0 0 0 17.25 7c0-.511-.073-1.005-.21-1.473a3.385 3.385 0 1 1-1.138 4.985ZM17.862 20.25c.402-.572.638-1.27.638-2.022v-.204c0-.468-.066-.932-.194-1.382l-.104-.365a6.184 6.184 0 0 0-.892-1.864 5.756 5.756 0 0 1 1.362-.163h.156c.48 0 .957.06 1.421.178l.384.098a3.845 3.845 0 0 1 2.717 2.564l.047.149c.068.214.103.438.103.662v.31a2.04 2.04 0 0 1-2.04 2.039h-3.598ZM2.54 20.25h3.597a3.506 3.506 0 0 1-.637-2.022v-.204c0-.468.065-.932.193-1.382l.104-.365a6.183 6.183 0 0 1 .892-1.864 5.762 5.762 0 0 0-1.36-.163h-.157c-.48 0-.957.06-1.421.178l-.384.098A3.847 3.847 0 0 0 .65 17.09l-.047.149a2.188 2.188 0 0 0-.103.662v.31a2.04 2.04 0 0 0 2.04 2.039ZM5.365 11.899a3.38 3.38 0 0 0 2.732-1.387A5.23 5.23 0 0 1 6.75 7c0-.511.073-1.005.21-1.473A3.385 3.385 0 1 0 5.365 11.9Z" />
+                        </svg>
+                      </span>
+                      Allocation area
+                    </ToggleGroup.Item>
+                  </ToggleGroup.Root>
+                  {/* Filter button — mobile only, hidden on desktop via CSS */}
+                  <Tooltip content="Filters">
+                    <IconButton
+                      variant="soft"
+                      color={hasActiveFilters ? "blue" : "gray"}
+                      size="2"
+                      radius="full"
+                      className="filter-btn-mobile"
+                      aria-label="Open filters"
+                      onClick={() => setFilterSheetOpen(true)}
+                    >
+                      <MixerHorizontalIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Flex>
               </Flex>
 
-              {/* Filter toolbar */}
-              <Box style={{ margin: "0 8px 8px", background: "white", borderRadius: 9999, padding: "6px 12px" }}>
+              {/* Filter toolbar — desktop only, hidden on mobile via CSS */}
+              <Box className="filter-bar" style={{ margin: "0 8px 8px", background: "white", borderRadius: 9999, padding: "6px 12px" }}>
                 <Flex gap="2" align="center">
                   <PillarPill />
                   <QuarterRangePill value={periodFilter} onChange={setPeriodFilter} />
@@ -914,20 +1195,20 @@ export default function LandingPage() {
                   />
                   {hasActiveFilters && (
                     <Button
-                        variant="ghost"
-                        color="gray"
-                        size="1"
-                        radius="full"
-                        style={{ marginLeft: 0 }}
-                        onClick={() => {
-                          setStatusFilter(new Set());
-                          setLocationFilter(new Set());
-                          setAAFilter(new Set());
-                          setPeriodFilter(null);
-                        }}
-                      >
-                        Clear filters
-                      </Button>
+                      variant="ghost"
+                      color="gray"
+                      size="1"
+                      radius="full"
+                      style={{ marginLeft: 0 }}
+                      onClick={() => {
+                        setStatusFilter(new Set());
+                        setLocationFilter(new Set());
+                        setAAFilter(new Set());
+                        setPeriodFilter(null);
+                      }}
+                    >
+                      Clear filters
+                    </Button>
                   )}
                 </Flex>
               </Box>
@@ -1072,6 +1353,20 @@ export default function LandingPage() {
           )}
       </Box>
 
+      <FilterSheet
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        locationFilter={locationFilter}
+        setLocationFilter={setLocationFilter}
+        aaFilter={aaFilter}
+        setAAFilter={setAAFilter}
+        periodFilter={periodFilter}
+        setPeriodFilter={setPeriodFilter}
+        availableLocations={availableLocations}
+        availableAAs={availableAAs}
+      />
       <NewPlanModal
         open={newPlanOpen}
         onOpenChange={setNewPlanOpen}

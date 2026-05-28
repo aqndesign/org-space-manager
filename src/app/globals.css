@@ -423,4 +423,17 @@ label {
     transform: translateY(100%) !important;
     opacity: 0 !important;
   }
+
+  /* Hide desktop filter bar on mobile */
+  .filter-bar {
+    display: none !important;
+  }
+}
+
+/* ─── Desktop layout ─────────────────────────────────── */
+@media (min-width: 768px) {
+  /* Hide mobile-only filter button on desktop */
+  .filter-btn-mobile {
+    display: none !important;
+  }
 }
