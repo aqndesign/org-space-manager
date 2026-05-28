@@ -429,22 +429,27 @@ label {
     display: none !important;
   }
 
-  /* Banner: collapsed by default on mobile — title row is clickable */
+  /* Banner title row: clickable on mobile */
   .banner-title-row {
     cursor: pointer;
   }
 
-  /* Chevron visible on mobile only */
-  .banner-chevron {
+  /* Expand button visible on mobile only */
+  .banner-expand-btn {
     display: flex !important;
   }
 
-  /* Body hidden unless expanded */
+  /* Purple section description: always hidden on mobile (white section takes over) */
   .banner-body {
     display: none !important;
   }
 
-  .banner-body[data-expanded="true"] {
+  /* White expanded section: hidden by default, block when expanded */
+  .banner-white-body {
+    display: none !important;
+  }
+
+  .banner-white-body[data-expanded="true"] {
     display: block !important;
   }
 }
@@ -456,11 +461,16 @@ label {
     display: none !important;
   }
 
-  /* Chevron hidden on desktop — banner body always visible */
-  .banner-chevron {
+  /* Expand button and white section are mobile-only */
+  .banner-expand-btn {
     display: none !important;
   }
 
+  .banner-white-body {
+    display: none !important;
+  }
+
+  /* Purple section description always visible on desktop */
   .banner-body {
     display: block !important;
   }

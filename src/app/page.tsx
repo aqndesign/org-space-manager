@@ -1035,102 +1035,125 @@ export default function LandingPage() {
           <Flex direction="column" gap="5">
             {/* Planning season banner */}
             {bannerVisible && (
-            <Box
-              style={{
-                position: "relative",
-                borderRadius: 20,
-                background: "#7336A5",
-                overflow: "hidden",
-              }}
-            >
-              {/* White rotated icon container — 25% smaller, shifted left */}
-              <Box style={{
-                position: "absolute",
-                left: -125,
-                top: -23,
-                width: 183,
-                height: 186,
-                background: "white",
-                borderRadius: 40,
-                transform: "rotate(25.06deg)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
-              }}>
-                <Lottie
-                  lottieRef={bannerLottieRef}
-                  animationData={calendarAnimation}
-                  loop
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    transform: "rotate(-25.06deg) scale(0.572) translateX(35%) translateY(-15%)",
-                  }}
-                />
-              </Box>
-              {/* Close button */}
-              <IconButton
-                variant="ghost"
-                size="1"
-                aria-label="Dismiss banner"
-                onClick={(e) => { e.stopPropagation(); setBannerVisible(false); }}
-                className="btn-banner-close"
-                style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </IconButton>
-              {/* Content — normal flow, padded left to clear icon, right for close btn */}
-              <Flex
-                direction="column"
-                justify="center"
-                style={{ paddingLeft: 96, paddingRight: 48, paddingTop: 18, paddingBottom: 18, minHeight: 80 }}
-              >
-                {/* Title row — clickable on mobile to expand/collapse */}
+            <Box style={{ borderRadius: 20, overflow: "hidden" }}>
+              {/* Purple header section */}
+              <Box style={{ position: "relative", background: "#7336A5", overflow: "hidden" }}>
+                {/* Icon — 15% smaller, 5% right, border-radius 16 */}
+                <Box style={{
+                  position: "absolute",
+                  left: -116,
+                  top: -23,
+                  width: 156,
+                  height: 158,
+                  background: "white",
+                  borderRadius: 16,
+                  transform: "rotate(25.06deg)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
+                }}>
+                  <Lottie
+                    lottieRef={bannerLottieRef}
+                    animationData={calendarAnimation}
+                    loop
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      transform: "rotate(-25.06deg) scale(0.572) translateX(35%) translateY(-15%)",
+                    }}
+                  />
+                </Box>
+
+                {/* Top-right button pair: [expand ↕] [close ×] */}
                 <Flex
                   align="center"
-                  justify="between"
-                  gap="2"
-                  className="banner-title-row"
-                  onClick={() => setBannerExpanded(prev => !prev)}
+                  gap="1"
+                  style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}
                 >
-                  <Text size="4" weight="bold" style={{ color: "white", fontFamily: "var(--font-heading)" }}>
-                    Planning season has started
-                  </Text>
-                  <Box
-                    className="banner-chevron"
+                  <IconButton
+                    variant="ghost"
+                    size="1"
+                    aria-label="Expand banner"
+                    className="banner-expand-btn btn-banner-close"
+                    onClick={() => setBannerExpanded(prev => !prev)}
                     style={{
-                      color: "rgba(255,255,255,0.75)",
                       transform: bannerExpanded ? "rotate(180deg)" : "rotate(0deg)",
                       transition: "transform 250ms ease",
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
                     }}
                   >
-                    <ChevronDownIcon width={16} height={16} />
+                    <ChevronDownIcon width={14} height={14} />
+                  </IconButton>
+                  <IconButton
+                    variant="ghost"
+                    size="1"
+                    aria-label="Dismiss banner"
+                    className="btn-banner-close"
+                    onClick={(e) => { e.stopPropagation(); setBannerVisible(false); }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </IconButton>
+                </Flex>
+
+                {/* Content — padded to clear the icon and the two top-right buttons */}
+                <Flex
+                  direction="column"
+                  justify="center"
+                  style={{ paddingLeft: 96, paddingRight: 76, paddingTop: 18, paddingBottom: 18, minHeight: 80 }}
+                >
+                  {/* Title — H3, clickable on mobile */}
+                  <Text
+                    size="3"
+                    weight="bold"
+                    className="banner-title-row"
+                    onClick={() => setBannerExpanded(prev => !prev)}
+                    style={{ color: "white", fontFamily: "var(--font-heading)", display: "block" }}
+                  >
+                    Planning season has started
+                  </Text>
+
+                  {/* Description inside purple section — desktop only (CSS shows it) */}
+                  <Box className="banner-body">
+                    <Flex direction="column" style={{ gap: 4, marginTop: 8 }}>
+                      <Text size="1" style={{ color: "white", lineHeight: 1.55 }}>
+                        Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
+                      </Text>
+                    </Flex>
+                    <Box mt="3">
+                      <Button size="1" variant="solid" className="btn-banner-learn-more">
+                        Learn more
+                      </Button>
+                    </Box>
                   </Box>
                 </Flex>
-                {/* Expandable body — always visible on desktop, toggled on mobile */}
-                <Box
-                  className="banner-body"
-                  data-expanded={bannerExpanded ? "true" : undefined}
-                >
-                  <Flex direction="column" style={{ gap: 4, marginTop: 8 }}>
-                    <Text size="1" style={{ color: "white", lineHeight: 1.55 }}>
-                      Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
-                    </Text>
-                  </Flex>
-                  <Box mt="3">
-                    <Button size="1" variant="solid" className="btn-banner-learn-more">
+              </Box>
+
+              {/* White expanded section — mobile only, attached directly to purple header */}
+              <Box
+                className="banner-white-body"
+                data-expanded={bannerExpanded ? "true" : undefined}
+                style={{
+                  background: "white",
+                  borderLeft: "1px solid #7336A5",
+                  borderRight: "1px solid #7336A5",
+                  borderBottom: "1px solid #7336A5",
+                  padding: "16px",
+                }}
+              >
+                <Flex direction="column" gap="3">
+                  <Text size="1" style={{ lineHeight: 1.55 }}>
+                    Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
+                  </Text>
+                  <Box>
+                    <Button size="1" variant="solid" style={{ background: "#7336A5", color: "white" }}>
                       Learn more
                     </Button>
                   </Box>
-                </Box>
-              </Flex>
+                </Flex>
+              </Box>
             </Box>
             )}
             {/* Header card */}
