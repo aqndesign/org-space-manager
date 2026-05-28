@@ -385,58 +385,55 @@ function FilterSheet({
             {/* Status */}
             <Flex direction="column" gap="2">
               <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Status</Text>
-              <Flex gap="2" style={{ flexWrap: "wrap" }}>
-                {STATUS_OPTIONS.map(s => (
-                  <Button
-                    key={s}
-                    variant={statusFilter.has(s) ? "solid" : "soft"}
-                    color={statusFilter.has(s) ? "blue" : "gray"}
-                    size="1"
-                    radius="full"
-                    onClick={() => setStatusFilter(toggleSet(statusFilter, s))}
-                  >
-                    {s}
-                  </Button>
-                ))}
-              </Flex>
+              <Select.Root
+                size="2"
+                value={statusFilter.size === 1 ? Array.from(statusFilter)[0] as string : "all"}
+                onValueChange={(v) => v === "all" ? setStatusFilter(new Set()) : setStatusFilter(new Set([v as PlanStatus]))}
+              >
+                <Select.Trigger style={{ width: "100%" }} />
+                <Select.Content>
+                  <Select.Item value="all">All statuses</Select.Item>
+                  {STATUS_OPTIONS.map(s => (
+                    <Select.Item key={s} value={s}>{s}</Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
             </Flex>
 
             {/* Location */}
             <Flex direction="column" gap="2">
               <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Location</Text>
-              <Flex gap="2" style={{ flexWrap: "wrap" }}>
-                {availableLocations.map(loc => (
-                  <Button
-                    key={loc}
-                    variant={locationFilter.has(loc as WorkLocation) ? "solid" : "soft"}
-                    color={locationFilter.has(loc as WorkLocation) ? "blue" : "gray"}
-                    size="1"
-                    radius="full"
-                    onClick={() => setLocationFilter(toggleSet(locationFilter, loc as WorkLocation))}
-                  >
-                    {loc}
-                  </Button>
-                ))}
-              </Flex>
+              <Select.Root
+                size="2"
+                value={locationFilter.size === 1 ? Array.from(locationFilter)[0] as string : "all"}
+                onValueChange={(v) => v === "all" ? setLocationFilter(new Set()) : setLocationFilter(new Set([v as WorkLocation]))}
+              >
+                <Select.Trigger style={{ width: "100%" }} />
+                <Select.Content>
+                  <Select.Item value="all">All locations</Select.Item>
+                  {availableLocations.map(loc => (
+                    <Select.Item key={loc} value={loc}>{loc}</Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
             </Flex>
 
             {/* Allocation area */}
             <Flex direction="column" gap="2">
               <Text size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>Allocation area</Text>
-              <Flex gap="2" style={{ flexWrap: "wrap" }}>
-                {availableAAs.map(aa => (
-                  <Button
-                    key={aa}
-                    variant={aaFilter.has(aa as AllocationArea) ? "solid" : "soft"}
-                    color={aaFilter.has(aa as AllocationArea) ? "blue" : "gray"}
-                    size="1"
-                    radius="full"
-                    onClick={() => setAAFilter(toggleSet(aaFilter, aa as AllocationArea))}
-                  >
-                    {aa}
-                  </Button>
-                ))}
-              </Flex>
+              <Select.Root
+                size="2"
+                value={aaFilter.size === 1 ? Array.from(aaFilter)[0] as string : "all"}
+                onValueChange={(v) => v === "all" ? setAAFilter(new Set()) : setAAFilter(new Set([v as AllocationArea]))}
+              >
+                <Select.Trigger style={{ width: "100%" }} />
+                <Select.Content>
+                  <Select.Item value="all">All areas</Select.Item>
+                  {availableAAs.map(aa => (
+                    <Select.Item key={aa} value={aa}>{aa}</Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
             </Flex>
 
           </Flex>
@@ -810,6 +807,7 @@ export default function LandingPage() {
   useEffect(() => { bannerLottieRef.current?.setSpeed(0.4); }, []);
 
   const [bannerVisible, setBannerVisible] = useState(true);
+  const [bannerExpanded, setBannerExpanded] = useState(false);
 
   const [view, setView] = useState<"location" | "aa">("location");
   const [agentOpen, setAgentOpen] = useState(true);
@@ -957,7 +955,7 @@ export default function LandingPage() {
         <Flex
           align="center"
           justify="between"
-          px="6"
+          px={{ initial: "4", sm: "6" }}
           py="3"
           style={{ position: "relative", zIndex: 1 }}
         >
@@ -979,7 +977,7 @@ export default function LandingPage() {
                 <path fill="currentColor" d="M6.75 13.25a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm12.8.25c.206 0 .375 0 .512.01.141.012.27.038.392.1.188.095.34.248.437.436.061.121.087.251.098.392.011.137.011.306.011.512v4.6c0 .206 0 .375-.01.512-.012.141-.038.27-.1.392a.999.999 0 0 1-.436.437 1.027 1.027 0 0 1-.392.098c-.137.011-.306.011-.512.011h-4.6c-.205 0-.375 0-.512-.01a1.027 1.027 0 0 1-.392-.1.999.999 0 0 1-.437-.436 1.027 1.027 0 0 1-.098-.392c-.011-.137-.011-.306-.011-.512v-4.6c0-.205 0-.375.01-.512.012-.141.038-.27.1-.392a.999.999 0 0 1 .436-.437c.121-.061.251-.087.392-.098.137-.011.306-.011.512-.011h4.6Zm-2.3-10.75a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-7.918.251c.085.001.162.004.23.01.141.011.27.037.392.098.188.096.34.249.437.437.061.121.087.251.098.392.011.137.011.307.011.512v4.6c0 .205 0 .375-.01.512-.012.141-.038.27-.1.392a.999.999 0 0 1-.436.437 1.027 1.027 0 0 1-.392.098c-.137.011-.307.011-.512.011h-4.6c-.205 0-.375 0-.513-.01a1.027 1.027 0 0 1-.391-.1.999.999 0 0 1-.437-.436 1.026 1.026 0 0 1-.098-.392 3.588 3.588 0 0 1-.01-.23L3 9.05v-4.6c0-.205 0-.375.01-.513.012-.14.038-.27.1-.391a1 1 0 0 1 .436-.437c.121-.061.251-.087.392-.098C4.075 3 4.245 3 4.45 3h4.6l.282.001Z"/>
               </svg>
             </Box>
-            <Heading size="5">Org Space Manager</Heading>
+            <Heading size={{ initial: "4", sm: "5" }} style={{ whiteSpace: "nowrap" }}>Org Space Manager</Heading>
           </Flex>
           <Flex align="center" gap="2">
             <Tooltip content="Open Campus assistant">
@@ -1043,16 +1041,15 @@ export default function LandingPage() {
                 borderRadius: 20,
                 background: "#7336A5",
                 overflow: "hidden",
-                minHeight: 169,
               }}
             >
-              {/* White rotated icon container */}
+              {/* White rotated icon container — 25% smaller, shifted left */}
               <Box style={{
                 position: "absolute",
-                left: -76,
+                left: -125,
                 top: -23,
-                width: 243.64,
-                height: 248.38,
+                width: 183,
+                height: 186,
                 background: "white",
                 borderRadius: 40,
                 transform: "rotate(25.06deg)",
@@ -1078,35 +1075,60 @@ export default function LandingPage() {
                 variant="ghost"
                 size="1"
                 aria-label="Dismiss banner"
-                onClick={() => setBannerVisible(false)}
+                onClick={(e) => { e.stopPropagation(); setBannerVisible(false); }}
                 className="btn-banner-close"
-                style={{ position: "absolute", top: 18, right: 18, zIndex: 1 }}
+                style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </IconButton>
-              {/* Text container */}
-              <Flex direction="column" justify="center" gap="3" style={{
-                position: "absolute",
-                left: 197,
-                top: 0,
-                bottom: 0,
-                right: 0,
-                padding: "16px 24px 16px 16px",
-              }}>
-                <Flex direction="column" style={{ gap: 4 }}>
+              {/* Content — normal flow, padded left to clear icon, right for close btn */}
+              <Flex
+                direction="column"
+                justify="center"
+                style={{ paddingLeft: 96, paddingRight: 48, paddingTop: 18, paddingBottom: 18, minHeight: 80 }}
+              >
+                {/* Title row — clickable on mobile to expand/collapse */}
+                <Flex
+                  align="center"
+                  justify="between"
+                  gap="2"
+                  className="banner-title-row"
+                  onClick={() => setBannerExpanded(prev => !prev)}
+                >
                   <Text size="4" weight="bold" style={{ color: "white", fontFamily: "var(--font-heading)" }}>
                     Planning season has started
                   </Text>
-                  <Text size="1" style={{ color: "white", lineHeight: 1.55 }}>
-                    Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
-                  </Text>
+                  <Box
+                    className="banner-chevron"
+                    style={{
+                      color: "rgba(255,255,255,0.75)",
+                      transform: bannerExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 250ms ease",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <ChevronDownIcon width={16} height={16} />
+                  </Box>
                 </Flex>
-                <Box>
-                  <Button size="1" variant="solid" className="btn-banner-learn-more">
-                    Learn more
-                  </Button>
+                {/* Expandable body — always visible on desktop, toggled on mobile */}
+                <Box
+                  className="banner-body"
+                  data-expanded={bannerExpanded ? "true" : undefined}
+                >
+                  <Flex direction="column" style={{ gap: 4, marginTop: 8 }}>
+                    <Text size="1" style={{ color: "white", lineHeight: 1.55 }}>
+                      Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees&apos; productivity and space utilization.
+                    </Text>
+                  </Flex>
+                  <Box mt="3">
+                    <Button size="1" variant="solid" className="btn-banner-learn-more">
+                      Learn more
+                    </Button>
+                  </Box>
                 </Box>
               </Flex>
             </Box>

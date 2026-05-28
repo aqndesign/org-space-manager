@@ -428,6 +428,25 @@ label {
   .filter-bar {
     display: none !important;
   }
+
+  /* Banner: collapsed by default on mobile — title row is clickable */
+  .banner-title-row {
+    cursor: pointer;
+  }
+
+  /* Chevron visible on mobile only */
+  .banner-chevron {
+    display: flex !important;
+  }
+
+  /* Body hidden unless expanded */
+  .banner-body {
+    display: none !important;
+  }
+
+  .banner-body[data-expanded="true"] {
+    display: block !important;
+  }
 }
 
 /* ─── Desktop layout ─────────────────────────────────── */
@@ -435,5 +454,14 @@ label {
   /* Hide mobile-only filter button on desktop */
   .filter-btn-mobile {
     display: none !important;
+  }
+
+  /* Chevron hidden on desktop — banner body always visible */
+  .banner-chevron {
+    display: none !important;
+  }
+
+  .banner-body {
+    display: block !important;
   }
 }
