@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Lottie from "lottie-react";
+import type { LottieRefCurrentProps } from "lottie-react";
+import projectResearchAnimation from "../../asset/illustration/project_research.json";
+import calendarAnimation from "../../asset/icons/calendar.json";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import {
   Badge,
@@ -129,7 +133,7 @@ function PlanCard({ plan }: { plan: Plan }) {
               <StatusBadge status={plan.status} />
             </Flex>
             <Text size="1" color="gray">
-              {employees} employees · {totalWorkspaces} workspaces
+              Evaluated from Q2'25 to Q3'25
             </Text>
           </Flex>
 
@@ -414,6 +418,12 @@ function GroupCard({
 }
 
 export default function LandingPage() {
+  const bannerLottieRef = useRef<LottieRefCurrentProps>(null);
+
+  useEffect(() => { bannerLottieRef.current?.setSpeed(0.4); }, []);
+
+  const [bannerVisible, setBannerVisible] = useState(true);
+
   const [view, setView] = useState<"location" | "aa">("location");
   const [agentOpen, setAgentOpen] = useState(true);
   const [agentInput, setAgentInput] = useState("");
@@ -523,7 +533,7 @@ export default function LandingPage() {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = ((e.clientX - rect.left) / rect.width) * 100;
                 const y = ((e.clientY - rect.top) / rect.height) * 100;
-                e.currentTarget.style.setProperty("--assistant-gradient", `radial-gradient(circle at ${x.toFixed(1)}% ${y.toFixed(1)}%, #FF5555 0%, #6025F5 140%)`);
+                e.currentTarget.style.setProperty("--assistant-gradient", `radial-gradient(circle at ${x.toFixed(1)}% ${y.toFixed(1)}%, #CF3897 0%, #2657E8 140%)`);
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.removeProperty("--assistant-gradient");
@@ -565,6 +575,81 @@ export default function LandingPage() {
           }}
         >
           <Flex direction="column" gap="6">
+            {/* Planning season banner */}
+            {bannerVisible && (
+            <Box
+              style={{
+                position: "relative",
+                borderRadius: 20,
+                background: "#D94781",
+                overflow: "hidden",
+                minHeight: 169,
+              }}
+            >
+              {/* White rotated icon container */}
+              <Box style={{
+                position: "absolute",
+                left: -76,
+                top: -23,
+                width: 243.64,
+                height: 248.38,
+                background: "white",
+                borderRadius: 40,
+                transform: "rotate(25.06deg)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+              }}>
+                <Lottie
+                  lottieRef={bannerLottieRef}
+                  animationData={calendarAnimation}
+                  loop
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    transform: "rotate(-25.06deg) scale(0.572) translateX(35%) translateY(-15%)",
+                  }}
+                />
+              </Box>
+              {/* Close button */}
+              <IconButton
+                variant="ghost"
+                size="1"
+                aria-label="Dismiss banner"
+                onClick={() => setBannerVisible(false)}
+                className="btn-banner-close"
+                style={{ position: "absolute", top: 18, right: 18, zIndex: 1 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </IconButton>
+              {/* Text container */}
+              <Flex direction="column" justify="center" gap="3" style={{
+                position: "absolute",
+                left: 197,
+                top: 0,
+                bottom: 0,
+                right: 0,
+                padding: "16px 24px 16px 16px",
+              }}>
+                <Flex direction="column" style={{ gap: 4 }}>
+                  <Text size="4" weight="bold" style={{ color: "white", fontFamily: "var(--font-heading)" }}>
+                    Planning season has started
+                  </Text>
+                  <Text size="1" style={{ color: "white", lineHeight: 1.55 }}>
+                    Review all the desk policy plans and work with your planner to determine desk assignment for your org. All decisions must be submitted for approvals by June 20th to ensure employees' productivity and space utilization.
+                  </Text>
+                </Flex>
+                <Box>
+                  <Button size="1" variant="solid" className="btn-banner-learn-more">
+                    Learn more
+                  </Button>
+                </Box>
+              </Flex>
+            </Box>
+            )}
             {/* Header card */}
             <Box style={GLASS_CARD_STYLE}>
               {/* Title + toggle row */}
@@ -676,8 +761,8 @@ export default function LandingPage() {
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" style={{ flexShrink: 0 }}>
                   <defs>
                     <linearGradient id="panelIconGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#6025F5" />
-                      <stop offset="100%" stopColor="#FF5555" />
+                      <stop offset="0%" stopColor="#2657E8" />
+                      <stop offset="100%" stopColor="#CF3897" />
                     </linearGradient>
                   </defs>
                   <path fill="url(#panelIconGrad)" d="M12.565 2.262c.799.033 1.579.136 2.332.301l-.112.222-2.44 1.232a2.222 2.222 0 0 0 0 3.966l2.44 1.23 1.232 2.441a2.222 2.222 0 0 0 3.966 0l1.23-2.44 1.432-.723c.39.937.605 1.947.605 3.009 0 5.249-5.193 9.25-11.25 9.25-.863 0-1.704-.08-2.512-.231-.014-.003-.02 0-.018 0l-4.756 2.828a1.09 1.09 0 0 1-1.629-1.13l.783-4.309-.002-.004a.066.066 0 0 0-.018-.025C1.952 16.24.75 14 .75 11.5.75 6.251 5.943 2.25 12 2.25l.565.012ZM7.75 10.475a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm4.25 0a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm6-9.912c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.067.067 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069L23.008 5.3a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.012-.02.011-.012.005a.067.067 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.784 3.784 0 0 0-.069.13L18.7 11.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.067.067 0 0 0-.011-.011c.008.006.01.007-.011-.005a3.781 3.781 0 0 0-.13-.069L12.992 6.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.012.02-.011.012-.005a.067.067 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3.992l.056-.095A.784.784 0 0 1 18 .562Z" />
@@ -696,17 +781,15 @@ export default function LandingPage() {
             <ScrollArea style={{ flex: 1 }}>
               <Flex direction="column" gap="3" p="4">
                 <Flex direction="column" align="center" gap="2" py="6">
-                  <Text
-                    size="5"
-                    weight="bold"
-                    style={{
-                      background: "linear-gradient(135deg, #6025F5, #FF5555)",
+                  <Text size="5" weight="bold" style={{ fontFamily: "var(--font-heading)" }}>
+                    <span style={{
+                      background: "linear-gradient(135deg, #2657E8, #CF3897)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
-                    }}
-                  >
-                    Hi, I'm your Campus assistant!
+                    }}>
+                      Hi, I'm your Campus assistant!
+                    </span>
                   </Text>
                   <Text size="1" color="gray" align="center">Ask me anything about your space plans, desk utilization, or allocation areas.</Text>
                 </Flex>

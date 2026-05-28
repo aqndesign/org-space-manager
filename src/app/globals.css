@@ -189,15 +189,39 @@ h4.rt-Heading {
 
 /* ─── Assistant toggle button ───────────────────────── */
 .btn-assistant {
-  background: var(--assistant-gradient, linear-gradient(135deg, #6025F5, #FF5555)) !important;
+  background: var(--assistant-gradient, linear-gradient(135deg, #2657E8, #CF3897)) !important;
   box-shadow: none !important;
 }
 
 .btn-assistant:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px -2px color-mix(in srgb, color-mix(in srgb, #6025F5 55%, #FF5555) 45%, transparent) !important;
+  box-shadow: 0 6px 16px -2px color-mix(in srgb, color-mix(in srgb, #2657E8 55%, #CF3897) 45%, transparent) !important;
 }
 
+
+/* ─── Banner buttons ────────────────────────────────── */
+.btn-banner-learn-more {
+  background: white !important;
+  color: #D94781 !important;
+  font-weight: 600;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease !important;
+}
+
+.btn-banner-learn-more:hover {
+  background: color-mix(in srgb, white 85%, #D94781) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn-banner-close {
+  color: white !important;
+  background: transparent !important;
+  transition: background 150ms ease, color 150ms ease !important;
+}
+
+.btn-banner-close:hover {
+  background: white !important;
+  color: #D94781 !important;
+}
 
 /* ─── Global interactive hover transitions ───────────── */
 .rt-Button,
