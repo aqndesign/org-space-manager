@@ -17,7 +17,9 @@ import {
   Grid,
   Heading,
   IconButton,
+  Popover,
   ScrollArea,
+  Select,
   Separator,
   Text,
   TextArea,
@@ -84,6 +86,140 @@ function FilterPill({
         ))}
       </DropdownMenu.Content>
     </DropdownMenu.Root>
+  );
+}
+
+function PillarPill() {
+  return (
+    <Button
+      variant="soft"
+      color="blue"
+      size="1"
+      radius="full"
+      disabled
+      style={{ opacity: 1, cursor: "default" }}
+    >
+      Pillar · Enterprise Engineering
+    </Button>
+  );
+}
+
+type QuarterRange = { startQ: number; startYear: number; endQ: number; endYear: number };
+
+function QuarterRangePill({
+  value,
+  onChange,
+}: {
+  value: QuarterRange | null;
+  onChange: (v: QuarterRange | null) => void;
+}) {
+  const YEARS = [2023, 2024, 2025, 2026, 2027];
+  const DEFAULT: QuarterRange = { startQ: 1, startYear: 2026, endQ: 4, endYear: 2026 };
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<QuarterRange>(value ?? DEFAULT);
+
+  // Reset draft when the popover opens so it always reflects the current value
+  useEffect(() => {
+    if (open) setDraft(value ?? DEFAULT);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const label = value
+    ? `Q${value.startQ} ${value.startYear} – Q${value.endQ} ${value.endYear}`
+    : "Evaluation period";
+
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger>
+        <Button variant="soft" color={value ? "blue" : "gray"} size="1" radius="full">
+          {label}
+          <ChevronDownIcon width={12} height={12} />
+        </Button>
+      </Popover.Trigger>
+      <Popover.Content size="1" style={{ width: 296 }}>
+        <Flex direction="column" gap="3">
+          <Flex gap="3">
+            {/* Start */}
+            <Flex direction="column" gap="1" style={{ flex: 1 }}>
+              <Text size="1" color="gray" weight="medium">Start</Text>
+              <Flex gap="1">
+                <Select.Root
+                  size="1"
+                  value={String(draft.startQ)}
+                  onValueChange={(v) => setDraft(d => ({ ...d, startQ: Number(v) }))}
+                >
+                  <Select.Trigger style={{ flex: 1 }} />
+                  <Select.Content>
+                    {[1, 2, 3, 4].map(q => (
+                      <Select.Item key={q} value={String(q)}>Q{q}</Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+                <Select.Root
+                  size="1"
+                  value={String(draft.startYear)}
+                  onValueChange={(v) => setDraft(d => ({ ...d, startYear: Number(v) }))}
+                >
+                  <Select.Trigger style={{ flex: 1 }} />
+                  <Select.Content>
+                    {YEARS.map(y => (
+                      <Select.Item key={y} value={String(y)}>{y}</Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+              </Flex>
+            </Flex>
+            {/* End */}
+            <Flex direction="column" gap="1" style={{ flex: 1 }}>
+              <Text size="1" color="gray" weight="medium">End</Text>
+              <Flex gap="1">
+                <Select.Root
+                  size="1"
+                  value={String(draft.endQ)}
+                  onValueChange={(v) => setDraft(d => ({ ...d, endQ: Number(v) }))}
+                >
+                  <Select.Trigger style={{ flex: 1 }} />
+                  <Select.Content>
+                    {[1, 2, 3, 4].map(q => (
+                      <Select.Item key={q} value={String(q)}>Q{q}</Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+                <Select.Root
+                  size="1"
+                  value={String(draft.endYear)}
+                  onValueChange={(v) => setDraft(d => ({ ...d, endYear: Number(v) }))}
+                >
+                  <Select.Trigger style={{ flex: 1 }} />
+                  <Select.Content>
+                    {YEARS.map(y => (
+                      <Select.Item key={y} value={String(y)}>{y}</Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+              </Flex>
+            </Flex>
+          </Flex>
+          <Flex justify="end" gap="2">
+            <Button
+              size="1"
+              variant="ghost"
+              color="gray"
+              onClick={() => { onChange(null); setOpen(false); }}
+            >
+              Clear
+            </Button>
+            <Button
+              size="1"
+              variant="solid"
+              onClick={() => { onChange(draft); setOpen(false); }}
+            >
+              Apply
+            </Button>
+          </Flex>
+        </Flex>
+      </Popover.Content>
+    </Popover.Root>
   );
 }
 
@@ -425,6 +561,49 @@ export default function LandingPage() {
 
   const [view, setView] = useState<"location" | "aa">("location");
   const [agentOpen, setAgentOpen] = useState(true);
+  // ── Toggle indicator ──────────────────────────────────────────────────────
+  // Drives the ::before sliding pill in .view-toggle-root via CSS custom props.
+  const toggleInitialized = useRef(false);
+  const toggleAnimTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const root = document.querySelector('.view-toggle-root') as HTMLElement | null;
+    if (!root) return;
+
+    const rafId = requestAnimationFrame(() => {
+      const active = root.querySelector<HTMLElement>('[data-state="on"]');
+      if (!active) return;
+
+      const rr = root.getBoundingClientRect();
+      const ar = active.getBoundingClientRect();
+      root.style.setProperty('--ind-left', `${ar.left - rr.left}px`);
+      root.style.setProperty('--ind-top', `${ar.top - rr.top}px`);
+      root.style.setProperty('--ind-width', `${ar.width}px`);
+      root.style.setProperty('--ind-height', `${ar.height}px`);
+
+      if (!toggleInitialized.current) {
+        // First paint: place without transition, then unlock transitions
+        toggleInitialized.current = true;
+        requestAnimationFrame(() => root.setAttribute('data-initialized', 'true'));
+      } else {
+        // Subsequent changes: set direction then restart the velocity-tail animation
+        root.setAttribute('data-direction', view === 'aa' ? 'right' : 'left');
+        root.removeAttribute('data-animating');
+        requestAnimationFrame(() => {
+          root.setAttribute('data-animating', 'true');
+          if (toggleAnimTimer.current) clearTimeout(toggleAnimTimer.current);
+          toggleAnimTimer.current = setTimeout(() => {
+            root.removeAttribute('data-animating');
+            toggleAnimTimer.current = null;
+          }, 340);
+        });
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [view]);
+
+  // ── Agent panel ────────────────────────────────────────────────────────────
   // Drives the CSS transition: false = scale(0.7)/opacity 0.8, true = scale(1)/opacity 1.
   // Starts false so the panel always mounts at the small state and transitions in.
   const [agentPanelVisible, setAgentPanelVisible] = useState(false);
@@ -460,6 +639,8 @@ export default function LandingPage() {
   const [statusFilter, setStatusFilter] = useState<Set<PlanStatus>>(new Set());
   const [locationFilter, setLocationFilter] = useState<Set<WorkLocation>>(new Set());
   const [aaFilter, setAAFilter] = useState<Set<AllocationArea>>(new Set());
+  const [periodFilter, setPeriodFilter] = useState<QuarterRange | null>(null);
+  const hasActiveFilters = statusFilter.size > 0 || locationFilter.size > 0 || aaFilter.size > 0 || periodFilter !== null;
 
   function sendAgentMessage() {
     const content = agentInput.trim();
@@ -600,14 +781,14 @@ export default function LandingPage() {
             margin: "0 auto",
           }}
         >
-          <Flex direction="column" gap="6">
+          <Flex direction="column" gap="5">
             {/* Planning season banner */}
             {bannerVisible && (
             <Box
               style={{
                 position: "relative",
                 borderRadius: 20,
-                background: "#D94781",
+                background: "#7336A5",
                 overflow: "hidden",
                 minHeight: 169,
               }}
@@ -626,6 +807,7 @@ export default function LandingPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 overflow: "hidden",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
               }}>
                 <Lottie
                   lottieRef={bannerLottieRef}
@@ -679,7 +861,7 @@ export default function LandingPage() {
             {/* Header card */}
             <Box style={GLASS_CARD_STYLE}>
               {/* Title + toggle row */}
-              <Flex align="center" justify="between" px="5" pt="5" pb="4">
+              <Flex align="center" justify="between" gap="4" px="5" pt="5" pb="4">
                 <Flex direction="column" gap="1">
                   <Heading size="4">Desk policy plans</Heading>
                   <Text size="2" color="gray">
@@ -714,6 +896,8 @@ export default function LandingPage() {
               {/* Filter toolbar */}
               <Box style={{ margin: "0 8px 8px", background: "white", borderRadius: 9999, padding: "6px 12px" }}>
                 <Flex gap="2" align="center">
+                  <PillarPill />
+                  <QuarterRangePill value={periodFilter} onChange={setPeriodFilter} />
                   <FilterPill
                     label="Status"
                     options={["Plan draft", "Policy draft", "Submitted", "Approved", "Live"]}
@@ -732,6 +916,23 @@ export default function LandingPage() {
                     selected={aaFilter as Set<string>}
                     onToggle={(v) => setAAFilter(prev => toggleSet(prev, v as AllocationArea))}
                   />
+                  {hasActiveFilters && (
+                    <Button
+                        variant="ghost"
+                        color="gray"
+                        size="1"
+                        radius="full"
+                        style={{ marginLeft: 0 }}
+                        onClick={() => {
+                          setStatusFilter(new Set());
+                          setLocationFilter(new Set());
+                          setAAFilter(new Set());
+                          setPeriodFilter(null);
+                        }}
+                      >
+                        Clear filters
+                      </Button>
+                  )}
                 </Flex>
               </Box>
             </Box>

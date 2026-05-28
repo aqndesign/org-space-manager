@@ -61,10 +61,53 @@ h4.rt-Heading {
 /* ─── View toggle group ──────────────────────────────── */
 .view-toggle-root {
   display: inline-flex;
-  background: var(--gray-a3);
+  position: relative;
+  background: #EFF0F3;
   border-radius: 9999px;
   padding: 2px;
   gap: 2px;
+}
+
+/* ── Sliding indicator ─────────────────────────────────── */
+.view-toggle-root::before {
+  content: "";
+  position: absolute;
+  left: var(--ind-left, 2px);
+  top: var(--ind-top, 2px);
+  width: var(--ind-width, 50%);
+  height: var(--ind-height, calc(100% - 4px));
+  background: white;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+  pointer-events: none;
+  z-index: 0;
+  /* Transitions enabled only after initial placement to avoid a flash on mount */
+}
+
+.view-toggle-root[data-initialized]::before {
+  transition: left 320ms ease-in-out, width 320ms ease-in-out;
+}
+
+/* Velocity tail: scaleX from the leading edge so the trailing end compresses.
+   transform-origin is set per direction so scaleX always anchors at the front.
+   border-radius stays 9999px throughout — rounding is never touched. */
+
+.view-toggle-root[data-direction="right"]::before {
+  transform-origin: right center;
+}
+.view-toggle-root[data-direction="left"]::before {
+  transform-origin: left center;
+}
+
+@keyframes indVelocity {
+  0%   { transform: scaleX(1); }
+  38%  { transform: scaleX(0.82); }
+  100% { transform: scaleX(1); }
+}
+
+.view-toggle-root[data-animating][data-direction="right"]::before,
+.view-toggle-root[data-animating][data-direction="left"]::before {
+  animation: indVelocity 320ms ease-in-out forwards;
 }
 
 .view-toggle-item {
@@ -81,14 +124,17 @@ h4.rt-Heading {
   cursor: pointer;
   border: none;
   background: transparent;
-  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  /* Only transition color — background is owned by the ::before indicator */
+  transition: color 150ms ease;
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
 .view-toggle-item[data-state="on"] {
-  background: white;
+  background: transparent;
   color: var(--gray-12);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+  box-shadow: none;
 }
 
 .view-toggle-item[data-state="off"]:hover {
@@ -203,13 +249,13 @@ h4.rt-Heading {
 /* ─── Banner buttons ────────────────────────────────── */
 .btn-banner-learn-more {
   background: white !important;
-  color: #D94781 !important;
+  color: #7336A5 !important;
   font-weight: 600;
   transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease !important;
 }
 
 .btn-banner-learn-more:hover {
-  background: color-mix(in srgb, white 85%, #D94781) !important;
+  background: color-mix(in srgb, white 85%, #7336A5) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
@@ -221,7 +267,7 @@ h4.rt-Heading {
 
 .btn-banner-close:hover {
   background: white !important;
-  color: #D94781 !important;
+  color: #7336A5 !important;
 }
 
 /* ─── Global interactive hover transitions ───────────── */
