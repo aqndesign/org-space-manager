@@ -1051,7 +1051,7 @@ export default function LandingPage() {
                 {/* Icon container */}
                 <Box className="banner-icon-container" style={{
                   position: "absolute",
-                  left: -108,
+                  left: -116,
                   top: -23,
                   width: 156,
                   height: 158,
@@ -1068,10 +1068,11 @@ export default function LandingPage() {
                     lottieRef={bannerLottieRef}
                     animationData={calendarAnimation}
                     loop
+                    className="banner-lottie-icon"
                     style={{
                       width: "100%",
                       height: "100%",
-                      transform: "rotate(-25.06deg) scale(0.429) translateX(85%) translateY(-28%)",
+                      transform: "rotate(-25.06deg) scale(0.572) translateX(35%) translateY(-15%)",
                     }}
                   />
                 </Box>

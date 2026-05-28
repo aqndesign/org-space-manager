@@ -429,9 +429,14 @@ label {
     display: none !important;
   }
 
-  /* Banner icon container: 16px further right on mobile */
+  /* Banner icon container: 5% right + 16px right on mobile (−116 + 7.8 + 16 = −92px) */
   .banner-icon-container {
     left: -92px !important;
+  }
+
+  /* Banner lottie icon: all session size/position changes applied mobile-only */
+  .banner-lottie-icon {
+    transform: rotate(-25.06deg) scale(0.429) translateX(85%) translateY(-28%) !important;
   }
 
   /* Banner header: 8px shorter on mobile (−4px top, −4px bottom), left edge 16px right of icon */
