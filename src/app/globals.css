@@ -394,3 +394,33 @@ label {
 .rt-AlertDialogOverlay[data-state="open"] { opacity: 1; }
 .rt-DialogOverlay[data-state="closed"],
 .rt-AlertDialogOverlay[data-state="closed"] { opacity: 0; }
+
+/* ─── Mobile layout ──────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Scrollable content never retracts — panel is full-screen on mobile */
+  .scrollable-content {
+    right: 0 !important;
+  }
+
+  /* Agent panel becomes a full-screen overlay that slides up from the bottom */
+  .agent-panel {
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: auto !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  .agent-panel[data-visible="true"] {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+  }
+
+  .agent-panel[data-visible="false"] {
+    transform: translateY(100%) !important;
+    opacity: 0 !important;
+  }
+}

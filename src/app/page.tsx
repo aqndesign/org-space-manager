@@ -284,10 +284,6 @@ function PlanCard({ plan, view }: { plan: Plan; view: "location" | "aa" }) {
               <Text as="div" className="data-viz-sm">{totalWorkspaces}</Text>
             </Flex>
           </Grid>
-          <Text size="1" color="gray">
-            {assigned} assigned · {available} available · {coworking} coworking
-          </Text>
-
         </Flex>
       </Card>
     </Link>
@@ -346,7 +342,7 @@ function GroupCard({
 
       {/* Data viz: employee + workspace bars */}
       <Box px="5" pb="0">
-        <Flex gap="5" align="start">
+        <Flex direction={{ initial: "column", sm: "row" }} gap={{ initial: "4", sm: "5" }} align="start">
           {/* Left column: employees */}
           <Box style={{ flex: 1, minWidth: 0 }}>
             <Flex align="baseline" gap="2">
@@ -772,10 +768,10 @@ export default function LandingPage() {
       <Box style={{ flex: 1, overflow: "hidden", borderRadius: 24, position: "relative", zIndex: 1, background: "#F0F0F3" }}>
         <BlobCanvas />
           {/* Scrollable content — right edge retracts to make room for the panel */}
-          <Box style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", transition: "right 300ms ease-in-out" }}>
+          <Box className="scrollable-content" style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", transition: "right 300ms ease-in-out" }}>
         <Box
-          px="6"
-          py="6"
+          px={{ initial: "4", sm: "6" }}
+          py={{ initial: "4", sm: "6" }}
           style={{
             maxWidth: 1400,
             margin: "0 auto",
@@ -962,6 +958,8 @@ export default function LandingPage() {
           </Box>
           {agentOpen && (
             <Box
+              className="agent-panel"
+              data-visible={agentPanelVisible ? "true" : "false"}
               style={{
                 position: "absolute",
                 top: 8,
