@@ -33,7 +33,7 @@ import { Plan, PlanStatus, WorkLocation, AllocationArea } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
 const GLASS_CARD_STYLE: React.CSSProperties = {
-  background: "rgba(255, 255, 255, 0.80)",
+  background: "rgba(255, 255, 255, 0.65)",
   backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
   WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
   border: "0.5px solid rgba(255, 255, 255, 0.75)",
@@ -595,7 +595,7 @@ function GroupCard({
 
       {/* Data viz: employee + workspace bars */}
       <Box px="5" pb="0">
-        <Flex direction={{ initial: "column", sm: "row" }} gap={{ initial: "4", sm: "5" }} align="start">
+        <Flex direction={{ initial: "column", sm: "row" }} gap={{ initial: "4", sm: "5" }} align={{ initial: "stretch", sm: "start" }}>
           {/* Left column: employees */}
           <Box style={{ flex: 1, minWidth: 0 }}>
             <Flex align="baseline" gap="2">
@@ -1339,10 +1339,10 @@ export default function LandingPage() {
                 right: 8,
                 bottom: 8,
                 width: 360,
-                zIndex: 1,
+                zIndex: 10,
                 display: "flex",
                 flexDirection: "column",
-                background: "rgba(255, 255, 255, 0.72)",
+                background: "rgba(255, 255, 255, 0.65)",
                 backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 border: "0.5px solid rgba(255, 255, 255, 0.75)",
