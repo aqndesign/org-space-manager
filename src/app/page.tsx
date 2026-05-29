@@ -33,7 +33,7 @@ import { Plan, PlanStatus, WorkLocation, AllocationArea } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
 const GLASS_CARD_STYLE: React.CSSProperties = {
-  background: "rgba(255, 255, 255, 0.65)",
+  background: "rgba(255, 255, 255, 0.72)",
   backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
   WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
   border: "0.5px solid rgba(255, 255, 255, 0.75)",
@@ -1342,7 +1342,7 @@ export default function LandingPage() {
                 zIndex: 10,
                 display: "flex",
                 flexDirection: "column",
-                background: "rgba(255, 255, 255, 0.65)",
+                background: "rgba(255, 255, 255, 0.72)",
                 backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 border: "0.5px solid rgba(255, 255, 255, 0.75)",
