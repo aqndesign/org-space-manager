@@ -810,7 +810,13 @@ export default function LandingPage() {
   const [bannerExpanded, setBannerExpanded] = useState(false);
 
   const [view, setView] = useState<"location" | "aa">("location");
-  const [agentOpen, setAgentOpen] = useState(true);
+  const [agentOpen, setAgentOpen] = useState(false);
+
+  // Open the agent panel by default on desktop only
+  useEffect(() => {
+    if (window.innerWidth >= 768) setAgentOpen(true);
+  }, []);
+
   // ── Toggle indicator ──────────────────────────────────────────────────────
   // Drives the ::before sliding pill in .view-toggle-root via CSS custom props.
   const toggleInitialized = useRef(false);
@@ -1046,17 +1052,18 @@ export default function LandingPage() {
                   overflow: "hidden",
                   borderRadius: 20,
                   zIndex: 2,
+                  minHeight: 169,
                 }}
               >
-                {/* Icon container */}
+                {/* Icon container — desktop: original specs; mobile: overridden via CSS */}
                 <Box className="banner-icon-container" style={{
                   position: "absolute",
-                  left: -116,
+                  left: -100,
                   top: -23,
-                  width: 156,
-                  height: 158,
+                  width: 243.64,
+                  height: 248.38,
                   background: "white",
-                  borderRadius: 16,
+                  borderRadius: 40,
                   transform: "rotate(25.06deg)",
                   display: "flex",
                   alignItems: "center",
@@ -1072,7 +1079,7 @@ export default function LandingPage() {
                     style={{
                       width: "100%",
                       height: "100%",
-                      transform: "rotate(-25.06deg) scale(0.572) translateX(35%) translateY(-15%)",
+                      transform: "rotate(-25.06deg) scale(0.515) translateX(45%) translateY(-15%)",
                     }}
                   />
                 </Box>
@@ -1092,11 +1099,11 @@ export default function LandingPage() {
                   </IconButton>
                 </Box>
 
-                {/* Content — icon right edge ~66px, close button occupies right 38px */}
+                {/* Content — desktop: matches original left:197 text start; mobile: CSS overrides */}
                 <Flex
                   direction="column"
                   className="banner-header-content"
-                  style={{ paddingLeft: 90, paddingRight: 40, paddingTop: 14, paddingBottom: 18, minHeight: 80 }}
+                  style={{ paddingLeft: 197, paddingRight: 40, paddingTop: 14, paddingBottom: 18 }}
                 >
                   {/* Title — nowrap so it never breaks to a second line */}
                   <Text
