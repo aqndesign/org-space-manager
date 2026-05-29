@@ -1050,9 +1050,10 @@ export default function LandingPage() {
                   position: "relative",
                   background: "#7336A5",
                   overflow: "hidden",
-                  borderRadius: 20,
+                  borderRadius: bannerExpanded ? "20px 20px 0 0" : 20,
                   zIndex: 2,
                   minHeight: 169,
+                  transition: "border-radius 350ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 350ms ease",
                 }}
               >
                 {/* Icon container — desktop: original specs; mobile: overridden via CSS */}

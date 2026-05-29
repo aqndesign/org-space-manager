@@ -442,9 +442,14 @@ label {
     transform: rotate(-25.06deg) scale(0.429) translateX(85%) translateY(-28%) !important;
   }
 
-  /* Banner header: mobile overrides — smaller padding, shorter height */
+  /* Banner header: mobile overrides — smaller padding, shorter height, no min-height */
   .banner-purple-header {
     min-height: auto !important;
+  }
+
+  /* Drop shadow when expanded — border-radius is driven by React state */
+  .banner-purple-header[data-expanded="true"] {
+    box-shadow: 0 6px 20px rgba(115, 54, 165, 0.30) !important;
   }
 
   .banner-header-content {
@@ -461,16 +466,6 @@ label {
   /* Purple section description: always hidden on mobile (white section takes over) */
   .banner-body {
     display: none !important;
-  }
-
-  /* Purple header: rounded bottom corners collapse when expanded so white body looks attached */
-  .banner-purple-header {
-    transition: border-radius 350ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 350ms ease;
-  }
-
-  .banner-purple-header[data-expanded="true"] {
-    border-radius: 20px 20px 0 0 !important;
-    box-shadow: 0 6px 20px rgba(115, 54, 165, 0.30) !important;
   }
 }
 
