@@ -25,12 +25,16 @@ import {
   TextArea,
   Tooltip,
 } from "@radix-ui/themes";
-import { ChevronDownIcon, CheckCircledIcon, Cross2Icon, GroupIcon, LoopIcon, MagicWandIcon, MixerHorizontalIcon, PaperPlaneIcon, TimerIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, CheckCircledIcon, Cross2Icon, MagicWandIcon, MixerHorizontalIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { addPlan, getPlansByAA, getPlansByLocation, PLANS } from "@/lib/mock-data";
 import { BlobCanvas } from "@/components/BlobCanvas";
 import { NewPlanModal } from "@/components/NewPlanModal";
 import { Plan, PlanStatus, WorkLocation, AllocationArea } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
+
+const SECONDARY_BTN_STYLE: React.CSSProperties = {
+  color: "var(--slate-12)",
+};
 
 const GLASS_CARD_STYLE: React.CSSProperties = {
   background: "rgba(255, 255, 255, 0.72)",
@@ -622,7 +626,7 @@ function GroupCard({
                 </Popover.Trigger>
               </Tooltip>
               <Popover.Content style={{ width: 400, padding: 0, overflow: "hidden" }} align="end" sideOffset={8}>
-                <Box style={{ height: 320, display: "flex", flexDirection: "column" }}>
+                <Box style={{ display: "flex", flexDirection: "column" }}>
                   {/* Popover header */}
                   <Box style={{ padding: "18px 20px 14px", borderBottom: "1px solid var(--gray-a4)" }}>
                     <Flex align="center" gap="2">
@@ -663,7 +667,7 @@ function GroupCard({
                     </Flex>
                   </Box>
                   {/* Insight body */}
-                  <Box style={{ padding: "14px 20px", flex: 1, overflow: "auto" }}>
+                  <Box style={{ padding: "14px 20px" }}>
                     <Text as="p" size="2" color="gray" style={{ lineHeight: 1.6, margin: 0 }}>
                       {totalEmployees > totalWorkspaces
                         ? `There are ${(totalEmployees - totalWorkspaces).toLocaleString()} more employees than workspaces at this location. Without action, employees without assigned desks will struggle to find available space. Consider transitioning some to coworking zones or enabling desk-sharing to rebalance utilization.`
@@ -677,7 +681,7 @@ function GroupCard({
                       size="2"
                       variant="soft"
                       color="gray"
-                      style={{ width: "100%", cursor: "pointer" }}
+                      style={{ width: "100%", cursor: "pointer", marginTop: 16, ...SECONDARY_BTN_STYLE }}
                       onClick={() => { setRecOpen(false); onShowRecommendations?.(); }}
                     >
                       Show recommendations
@@ -1612,10 +1616,10 @@ export default function LandingPage() {
           {recPhase === "content" && (
             <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", zIndex: 1, overflow: "hidden" }}>
               {/* Modal header */}
-              <Box style={{ padding: "28px 36px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid rgba(255,255,255,0.7)", flexShrink: 0, animation: "recHeaderIn 220ms ease-out both" }}>
+              <Box style={{ padding: "28px 36px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid rgba(255,255,255,0.7)", flexShrink: 0, animation: "recHeaderIn 250ms ease-in-out 350ms both" }}>
                 <Flex align="start" justify="between">
-                  <Flex align="start" style={{ gap: 16 }}>
-                    <Box style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #2657E8, #6421CA)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Flex align="start" style={{ gap: 8 }}>
+                    <Box style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #2657E8, #6421CA)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" style={{ color: "white" }}>
                         <path fill="currentColor" d="M11.925 2.044c-.397-1.1-1.952-1.1-2.35 0L7.693 7.243a.75.75 0 0 1-.45.45L2.044 9.574c-1.1.398-1.1 1.953 0 2.351l5.2 1.882a.75.75 0 0 1 .45.45l1.88 5.199c.399 1.1 1.954 1.1 2.351 0l1.882-5.2a.75.75 0 0 1 .45-.45l5.199-1.88c1.1-.399 1.1-1.954 0-2.352l-5.2-1.881a.75.75 0 0 1-.45-.45l-1.88-5.2ZM19.5 15.375a.806.806 0 0 0-.754.521l-.641 1.699a.875.875 0 0 1-.51.51l-1.699.641a.806.806 0 0 0 0 1.508l1.7.641c.234.089.42.275.509.51l.641 1.699a.806.806 0 0 0 1.508 0l.641-1.7a.875.875 0 0 1 .51-.509l1.699-.641a.806.806 0 0 0 0-1.508l-1.7-.641a.875.875 0 0 1-.509-.51l-.641-1.699a.806.806 0 0 0-.754-.521Z" />
                       </svg>
@@ -1628,7 +1632,7 @@ export default function LandingPage() {
                       </Text>
                     </Box>
                   </Flex>
-                  <IconButton variant="ghost" color="gray" size="2" style={{ marginTop: -4, flexShrink: 0 }} onClick={closeRec}>
+                  <IconButton variant="soft" color="gray" size="2" style={{ flexShrink: 0, width: 32, height: 32 }} onClick={closeRec}>
                     <Cross2Icon />
                   </IconButton>
                 </Flex>
@@ -1640,11 +1644,11 @@ export default function LandingPage() {
                   <Grid columns={{ initial: "1", md: "3" }} style={{ alignItems: "stretch", gap: 16 }}>
 
                     {/* Option 1: In-Person Frequency Priority */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(38,87,232,0.12))", border: "none", borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--blue-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--blue-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
-                            <TimerIcon width={18} height={18} style={{ color: "white" }} />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={18} height={18} style={{ color: "white" }}><path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M8 4.5V2M16 4.5V2M7.25 20.5H5.9c-.84 0-1.26 0-1.581-.163a1.5 1.5 0 0 1-.656-.656c-.163-.32-.163-.74-.163-1.581V6.9c0-.84 0-1.26.163-1.581a1.5 1.5 0 0 1 .656-.656c.32-.163.74-.163 1.581-.163h12.2c.84 0 1.26 0 1.581.163a1.5 1.5 0 0 1 .655.656c.164.32.164.74.164 1.581V9"/><path stroke="currentColor" strokeWidth="1.5" d="M3.5 9h17"/><path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="m13 18.75 2.402 2.401c.296.297.445.446.616.502a.75.75 0 0 0 .464 0c.171-.056.32-.204.617-.502L22.5 15.75"/></svg>
                           </Box>
                           <Box>
                             <Text as="div" size="1" weight="medium" style={{ color: "var(--gray-11)", letterSpacing: "0.04em" }}>Option 1</Text>
@@ -1659,40 +1663,42 @@ export default function LandingPage() {
                           <Text weight="medium" style={{ color: "var(--slate-12)" }}>3 days per week</Text>.
                           Employees with lighter schedules transition to drop-in or coworking zones within the same location—still ensuring a great workspace when they do come in.
                         </Text>
-                        <Box>
-                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
+                        <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
                           <Flex direction="column" gap="2">
                             {["Desk assignments reflect actual usage patterns", "Rewards consistent in-person culture", "Frees up desks for future headcount growth"].map((pro) => (
-                              <Flex key={pro} align="start" gap="2">
-                                <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
+                              <Flex key={pro} align="start" style={{ gap: 4 }}>
+                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
+                                  <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
+                                </Box>
                                 <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
                               </Flex>
                             ))}
                           </Flex>
                         </Box>
-                        <Box>
-                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
+                        <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px" }}>
                           <Flex direction="column" gap="2">
                             {["Some employees may lose their assigned desk", "Relies on accurate badge-in data availability"].map((con) => (
-                              <Flex key={con} align="start" gap="2">
-                                <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
+                              <Flex key={con} align="start" style={{ gap: 4 }}>
+                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
+                                  <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
+                                </Box>
                                 <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
                               </Flex>
                             ))}
                           </Flex>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="3" variant="soft" color="gray" style={{ width: "100%" }}>Preview changes</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
 
                     {/* Option 2: Team Colocation */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(100,33,202,0.12))", border: "none", borderRadius: 16, animation: "recItemIn 200ms ease-out 180ms both" }}>
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--purple-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: "recItemIn 200ms ease-out 180ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--purple-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
-                            <GroupIcon width={18} height={18} style={{ color: "white" }} />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={18} height={18} style={{ color: "white" }}><circle cx="1.75" cy="1.75" r="1.75" stroke="currentColor" strokeWidth="1.25" transform="matrix(0 -1 -1 0 9 4.5)"/><circle cx="1.75" cy="1.75" r="1.75" stroke="currentColor" strokeWidth="1.25" transform="matrix(0 -1 -1 0 18.5 4.5)"/><circle cx="12" cy="8.375" r="1.875" stroke="currentColor" strokeWidth="1.25"/><circle cx="2.75" cy="12.25" r="1.75" stroke="currentColor" strokeWidth="1.25" transform="rotate(180 2.75 12.25)"/><circle cx="1.75" cy="1.75" r="1.75" stroke="currentColor" strokeWidth="1.25" transform="matrix(1 0 0 -1 19.5 14)"/><path stroke="currentColor" strokeLinecap="round" strokeWidth="1.438" d="M15.5 16v-.5A2.5 2.5 0 0 0 13 13h-2a2.5 2.5 0 0 0-2.5 2.5v.5"/><circle cx="7.25" cy="21.25" r="1.75" stroke="currentColor" strokeWidth="1.25" transform="rotate(-180 7.25 21.25)"/><circle cx="16.75" cy="21.25" r="1.75" stroke="currentColor" strokeWidth="1.25" transform="rotate(90 16.75 21.25)"/></svg>
                           </Box>
                           <Box>
                             <Text as="div" size="1" weight="medium" style={{ color: "var(--gray-11)", letterSpacing: "0.04em" }}>Option 2</Text>
@@ -1706,40 +1712,42 @@ export default function LandingPage() {
                           Teams sit together in contiguous neighborhoods—Enterprise Products in one zone, Enterprise Solutions in another—maximizing proximity for standups, 1:1s, and spontaneous collaboration.
                           If a team&apos;s headcount exceeds available workspaces here, the assistant surfaces a migration plan to move a subset to the nearest compatible office.
                         </Text>
-                        <Box>
-                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
+                        <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
                           <Flex direction="column" gap="2">
                             {["Strong team identity and colocation on office days", "Easy for teammates to find each other", "Simplifies desk management and onboarding"].map((pro) => (
-                              <Flex key={pro} align="start" gap="2">
-                                <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
+                              <Flex key={pro} align="start" style={{ gap: 4 }}>
+                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
+                                  <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
+                                </Box>
                                 <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
                               </Flex>
                             ))}
                           </Flex>
                         </Box>
-                        <Box>
-                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
+                        <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px" }}>
                           <Flex direction="column" gap="2">
                             {["May require displacing some teams to other locations", "Needs coordinated agreement across team leaders and planners"].map((con) => (
-                              <Flex key={con} align="start" gap="2">
-                                <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
+                              <Flex key={con} align="start" style={{ gap: 4 }}>
+                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
+                                  <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
+                                </Box>
                                 <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
                               </Flex>
                             ))}
                           </Flex>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="3" variant="soft" color="gray" style={{ width: "100%" }}>Preview changes</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
 
                     {/* Option 3: Collaboration Graph Clustering */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(18,165,148,0.12))", border: "none", borderRadius: 16, animation: "recItemIn 200ms ease-out 280ms both" }}>
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--teal-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: "recItemIn 200ms ease-out 280ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--teal-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
-                            <LoopIcon width={18} height={18} style={{ color: "white" }} />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={18} height={18} style={{ color: "white" }}><path stroke="currentColor" strokeWidth="1.5" d="M3.5 13.25 9 7.75 7.31 6.06a1.5 1.5 0 0 0-2.12 0L1.81 9.44a1.5 1.5 0 0 0 0 2.12l1.69 1.69Z"/><path stroke="currentColor" strokeWidth="1.5" d="m17 16.75-.743.743a6.034 6.034 0 0 1-8.515 0L3.5 13.25 9 7.75h1.879a1.5 1.5 0 0 1 1.06.44L13.25 9.5"/><path stroke="currentColor" strokeWidth="1.5" d="m15 7.75-4.558 4.558a1.509 1.509 0 0 0 0 2.134l.058.058c.32.32.754.5 1.207.5h2.922a1.5 1.5 0 0 1 1.06.44L17 16.75l3.5-3.5"/><path stroke="currentColor" strokeWidth="1.5" d="M20.5 13.25 15 7.75l1.69-1.69a1.5 1.5 0 0 1 2.12 0l3.38 3.38a1.5 1.5 0 0 1 0 2.12l-1.69 1.69Z"/></svg>
                           </Box>
                           <Box>
                             <Text as="div" size="1" weight="medium" style={{ color: "var(--gray-11)", letterSpacing: "0.04em" }}>Option 3</Text>
@@ -1754,30 +1762,32 @@ export default function LandingPage() {
                           Employees are seated near their most frequent collaborators across teams, so engineers who regularly pair with PMs end up in adjacent desks.
                           The assistant recalculates the graph each quarter and proposes incremental re-seating changes to stay current with how work actually flows.
                         </Text>
-                        <Box>
-                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
+                        <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
                           <Flex direction="column" gap="2">
                             {["Optimizes for real-world collaboration patterns", "Bridges cross-functional silos naturally", "Self-updating — adapts automatically each quarter"].map((pro) => (
-                              <Flex key={pro} align="start" gap="2">
-                                <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
+                              <Flex key={pro} align="start" style={{ gap: 4 }}>
+                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
+                                  <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
+                                </Box>
                                 <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
                               </Flex>
                             ))}
                           </Flex>
                         </Box>
-                        <Box>
-                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
+                        <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px" }}>
                           <Flex direction="column" gap="2">
                             {["Requires access to calendar metadata (privacy review needed)", "Less intuitive than team-based or frequency-based grouping"].map((con) => (
-                              <Flex key={con} align="start" gap="2">
-                                <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
+                              <Flex key={con} align="start" style={{ gap: 4 }}>
+                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
+                                  <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
+                                </Box>
                                 <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
                               </Flex>
                             ))}
                           </Flex>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="3" variant="soft" color="gray" style={{ width: "100%" }}>Preview changes</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>

@@ -197,7 +197,9 @@ h4.rt-Heading {
 /* ─── Custom Visual Layer ───────────────────────────── */
 
 .rt-Button,
-.rt-reset.rt-Button {
+.rt-reset.rt-Button,
+.rt-IconButton,
+.rt-reset.rt-IconButton {
   border-radius: 9999px !important;
 }
 
@@ -249,7 +251,7 @@ h4.rt-Heading {
 }
 
 @keyframes recHeaderIn {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; transform: translateY(-48px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 

@@ -85,7 +85,7 @@ export function BlobCanvas() {
           marginTop: -450,
           background: "#3D63DD",
           filter: "blur(110px)",
-          opacity: 0.09,
+          opacity: 0.077,
           animation: "blobMorph1 20s ease-in-out infinite",
         }}
       />
@@ -100,7 +100,7 @@ export function BlobCanvas() {
           marginTop: -360,
           background: "#7C3CDD",
           filter: "blur(90px)",
-          opacity: 0.08,
+          opacity: 0.068,
           animation: "blobMorph2 15s ease-in-out infinite",
         }}
       />
@@ -115,7 +115,7 @@ export function BlobCanvas() {
           marginTop: -290,
           background: "#DD543C",
           filter: "blur(80px)",
-          opacity: 0.08,
+          opacity: 0.068,
           animation: "blobMorph3 12s ease-in-out infinite",
         }}
       />
