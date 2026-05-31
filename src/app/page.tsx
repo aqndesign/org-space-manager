@@ -1614,14 +1614,20 @@ export default function LandingPage() {
               {/* Modal header */}
               <Box style={{ padding: "28px 36px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid rgba(255,255,255,0.7)", flexShrink: 0, animation: "recHeaderIn 220ms ease-out both" }}>
                 <Flex align="start" justify="between">
-                  <Box>
-                    <Text size="5" weight="bold" style={{ color: "var(--slate-12)" }} mb="2">Campus Assistant Recommendations</Text>
-                    <Text as="p" size="2" color="gray" style={{ margin: 0, maxWidth: 620, lineHeight: 1.55 }}>
-                      Three AI-driven strategies to rebalance workspace allocation at{" "}
-                      <Text weight="medium" style={{ color: "var(--slate-12)" }}>{recTitle}</Text>.
-                      Each option is designed by the Campus assistant based on your headcount, workspace inventory, and usage patterns.
-                    </Text>
-                  </Box>
+                  <Flex align="start" style={{ gap: 16 }}>
+                    <Box style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #2657E8, #6421CA)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" style={{ color: "white" }}>
+                        <path fill="currentColor" d="M11.925 2.044c-.397-1.1-1.952-1.1-2.35 0L7.693 7.243a.75.75 0 0 1-.45.45L2.044 9.574c-1.1.398-1.1 1.953 0 2.351l5.2 1.882a.75.75 0 0 1 .45.45l1.88 5.199c.399 1.1 1.954 1.1 2.351 0l1.882-5.2a.75.75 0 0 1 .45-.45l5.199-1.88c1.1-.399 1.1-1.954 0-2.352l-5.2-1.881a.75.75 0 0 1-.45-.45l-1.88-5.2ZM19.5 15.375a.806.806 0 0 0-.754.521l-.641 1.699a.875.875 0 0 1-.51.51l-1.699.641a.806.806 0 0 0 0 1.508l1.7.641c.234.089.42.275.509.51l.641 1.699a.806.806 0 0 0 1.508 0l.641-1.7a.875.875 0 0 1 .51-.509l1.699-.641a.806.806 0 0 0 0-1.508l-1.7-.641a.875.875 0 0 1-.509-.51l-.641-1.699a.806.806 0 0 0-.754-.521Z" />
+                      </svg>
+                    </Box>
+                    <Box>
+                      <Heading as="h1" size="5" style={{ color: "var(--slate-12)" }} mb="2">Campus Assistant Recommendations</Heading>
+                      <Text as="p" size="2" color="gray" style={{ margin: 0, maxWidth: 620, lineHeight: 1.55 }}>
+                        Based on your team headcount, workspace inventory, and usage patterns, I was able to design 3 strategies to rebalance workspace allocation for{" "}
+                        <Text weight="medium" style={{ color: "var(--slate-12)" }}>{recTitle}</Text>.
+                      </Text>
+                    </Box>
+                  </Flex>
                   <IconButton variant="ghost" color="gray" size="2" style={{ marginTop: -4, flexShrink: 0 }} onClick={closeRec}>
                     <Cross2Icon />
                   </IconButton>
@@ -1634,19 +1640,19 @@ export default function LandingPage() {
                   <Grid columns={{ initial: "1", md: "3" }} style={{ alignItems: "stretch", gap: 16 }}>
 
                     {/* Option 1: In-Person Frequency Priority */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
-                      <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(38,87,232,0.07), rgba(38,87,232,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(38,87,232,0.12))", border: "none", borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
+                      <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--blue-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
                             <TimerIcon width={18} height={18} style={{ color: "white" }} />
                           </Box>
                           <Box>
-                            <Text as="div" size="1" weight="medium" style={{ color: "var(--slate-12)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 1</Text>
-                            <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>In-Person Frequency Priority</Text>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--gray-11)", letterSpacing: "0.04em" }}>Option 1</Text>
+                            <Heading as="h2" size="3" style={{ color: "var(--slate-12)" }}>In-person time priority</Heading>
                           </Box>
                         </Flex>
                       </Box>
-                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
+                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
                         <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
                           The Campus assistant analyzes badge-in patterns and segments employees by in-office frequency.
                           Assigned desks are reserved for employees who come in at least{" "}
@@ -1676,25 +1682,25 @@ export default function LandingPage() {
                           </Flex>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="2" variant="soft" color="blue" style={{ width: "100%" }}>Apply this approach</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%" }}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
 
                     {/* Option 2: Team Colocation */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 180ms both" }}>
-                      <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(100,33,202,0.07), rgba(100,33,202,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(100,33,202,0.12))", border: "none", borderRadius: 16, animation: "recItemIn 200ms ease-out 180ms both" }}>
+                      <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--purple-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
                             <GroupIcon width={18} height={18} style={{ color: "white" }} />
                           </Box>
                           <Box>
-                            <Text as="div" size="1" weight="medium" style={{ color: "var(--slate-12)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 2</Text>
-                            <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Team Colocation</Text>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--gray-11)", letterSpacing: "0.04em" }}>Option 2</Text>
+                            <Heading as="h2" size="3" style={{ color: "var(--slate-12)" }}>Team colocation priority</Heading>
                           </Box>
                         </Flex>
                       </Box>
-                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
+                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
                         <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
                           The Campus assistant consolidates all employees within the same allocation area into dedicated floor zones at {recTitle}.
                           Teams sit together in contiguous neighborhoods—Enterprise Products in one zone, Enterprise Solutions in another—maximizing proximity for standups, 1:1s, and spontaneous collaboration.
@@ -1723,25 +1729,25 @@ export default function LandingPage() {
                           </Flex>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="2" variant="soft" color="purple" style={{ width: "100%" }}>Apply this approach</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%" }}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
 
                     {/* Option 3: Collaboration Graph Clustering */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 280ms both" }}>
-                      <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(18,165,148,0.07), rgba(18,165,148,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(18,165,148,0.12))", border: "none", borderRadius: 16, animation: "recItemIn 200ms ease-out 280ms both" }}>
+                      <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--teal-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
                             <LoopIcon width={18} height={18} style={{ color: "white" }} />
                           </Box>
                           <Box>
-                            <Text as="div" size="1" weight="medium" style={{ color: "var(--slate-12)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 3</Text>
-                            <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Collaboration Graph Clustering</Text>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--gray-11)", letterSpacing: "0.04em" }}>Option 3</Text>
+                            <Heading as="h2" size="3" style={{ color: "var(--slate-12)" }}>XFN collaboration priority</Heading>
                           </Box>
                         </Flex>
                       </Box>
-                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
+                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
                         <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
                           The Campus assistant mines calendar meeting data and collaboration signals to build a{" "}
                           <Text weight="medium" style={{ color: "var(--slate-12)" }}>weighted collaboration graph</Text>—mapping who works most closely with whom, regardless of org chart.
@@ -1771,7 +1777,7 @@ export default function LandingPage() {
                           </Flex>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="2" variant="soft" color="teal" style={{ width: "100%" }}>Apply this approach</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%" }}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
