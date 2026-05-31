@@ -221,19 +221,22 @@ h4.rt-Heading {
 }
 
 /* ─── Space recommendation button ───────────────────── */
-@keyframes recBtnPulse {
-  0%, 100% { background-color: #EAF3FF; }
-  50%       { background-color: #EFF6FF; }
+@keyframes recRingPulse {
+  0%   { box-shadow: 0 0 0 0px  rgba(38, 87, 232, 0.55); }
+  100% { box-shadow: 0 0 0 12px rgba(38, 87, 232, 0);    }
 }
 
 .rec-pulse-btn.rt-BaseButton {
-  background-color: #EAF3FF !important;
-  animation: recBtnPulse 2.5s ease-in-out infinite !important;
+  overflow: visible !important;
+  background: linear-gradient(135deg, #2657E8, #6421CA) !important;
+  color: white !important;
+  animation: recRingPulse 2s ease-out infinite !important;
 }
 
 .rec-pulse-btn.rt-BaseButton:hover {
-  background-color: #D4E9FF !important;
+  transform: translateY(-2px) !important;
   animation-play-state: paused !important;
+  box-shadow: 0 6px 16px -2px color-mix(in srgb, color-mix(in srgb, #2657E8 55%, #6421CA) 45%, transparent) !important;
 }
 
 /* ─── Plan card hover ───────────────────────────────── */
