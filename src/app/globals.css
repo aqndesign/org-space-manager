@@ -239,6 +239,17 @@ h4.rt-Heading {
   box-shadow: 0 6px 16px -2px color-mix(in srgb, color-mix(in srgb, #2657E8 55%, #6421CA) 45%, transparent) !important;
 }
 
+/* ─── Recommendations expanded view ─────────────────── */
+@keyframes recItemIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes recHeaderIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ─── Plan card hover ───────────────────────────────── */
 .plan-card {
   transition: box-shadow 250ms ease, transform 250ms ease, background-color 250ms ease !important;

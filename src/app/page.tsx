@@ -548,10 +548,12 @@ function GroupCard({
   title,
   plans,
   view,
+  onShowRecommendations,
 }: {
   title: string;
   plans: Plan[];
   view: "location" | "aa";
+  onShowRecommendations?: () => void;
 }) {
   const totalEmployees = plans.reduce((s, p) => s + totalHeadcount(p), 0);
   const totalAssigned = plans.reduce((s, p) => s + p.workspaceAssessment.assignedDesks, 0);
@@ -565,14 +567,7 @@ function GroupCard({
   const ratio = totalWorkspaces > 0 ? totalEmployees / totalWorkspaces : Infinity;
   const isImbalanced = totalEmployees > totalWorkspaces || ratio > 2;
   const [recOpen, setRecOpen] = useState(false);
-  const [optionsOpen, setOptionsOpen] = useState(false);
 
-  useEffect(() => {
-    if (!optionsOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOptionsOpen(false); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [optionsOpen]);
 
   const [hoveredSegment, setHoveredSegment] = useState<{ group: string; value: number; color: string; rect: DOMRect } | null>(null);
   const [hoveredWsSegment, setHoveredWsSegment] = useState<{ group: string; value: number; color: string; rect: DOMRect } | null>(null);
@@ -594,7 +589,12 @@ function GroupCard({
   ];
 
   return (
-    <Box style={{ ...GLASS_CARD_STYLE, position: "relative" }}>
+    <Box
+      style={{
+        ...GLASS_CARD_STYLE,
+        position: "relative",
+      }}
+    >
       {/* Card header — title + metadata + optional recommendation */}
       <Box px="5" pt="5" style={{ paddingBottom: 16 }}>
         <Flex align="center" justify="between">
@@ -674,9 +674,9 @@ function GroupCard({
                     <Button
                       size="2"
                       variant="soft"
-                      color="indigo"
+                      color="gray"
                       style={{ width: "100%", cursor: "pointer" }}
-                      onClick={() => { setRecOpen(false); setOptionsOpen(true); }}
+                      onClick={() => { setRecOpen(false); onShowRecommendations?.(); }}
                     >
                       Show recommendations
                     </Button>
@@ -893,190 +893,6 @@ function GroupCard({
         document.body
       )}
 
-      {/* Optimization options full-screen modal */}
-      {optionsOpen && createPortal(
-        <Box
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Workspace optimization options for ${title}`}
-          style={{ position: "fixed", inset: 0, zIndex: 99999, background: "white", display: "flex", flexDirection: "column", overflow: "hidden" }}
-        >
-          {/* Modal header */}
-          <Box style={{ padding: "28px 36px 24px", background: "linear-gradient(135deg, rgba(38,87,232,0.05), rgba(100,33,202,0.05))", borderBottom: "1px solid var(--gray-a4)", flexShrink: 0 }}>
-            <Flex align="start" justify="between">
-              <Box>
-                <Flex align="center" gap="3" mb="2">
-                  <Box style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #2657E8, #6421CA)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <MagicWandIcon width={16} height={16} style={{ color: "white" }} />
-                  </Box>
-                  <Text size="5" weight="bold" style={{ color: "var(--slate-12)" }}>Campus Assistant Recommendations</Text>
-                </Flex>
-                <Text as="p" size="2" color="gray" style={{ margin: 0, maxWidth: 620, lineHeight: 1.55 }}>
-                  Three AI-driven strategies to rebalance workspace allocation at{" "}
-                  <Text weight="medium" style={{ color: "var(--slate-12)" }}>{title}</Text>.
-                  Each option is designed by the Campus assistant based on your headcount, workspace inventory, and usage patterns.
-                </Text>
-              </Box>
-              <IconButton variant="ghost" color="gray" size="2" style={{ marginTop: -4, flexShrink: 0 }} onClick={() => setOptionsOpen(false)}>
-                <Cross2Icon />
-              </IconButton>
-            </Flex>
-          </Box>
-
-          {/* Options grid */}
-          <ScrollArea style={{ flex: 1 }}>
-            <Box style={{ padding: "28px 36px 40px" }}>
-              <Grid columns={{ initial: "1", md: "3" }} gap="5" style={{ alignItems: "stretch" }}>
-
-                {/* Option 1: In-Person Frequency Priority */}
-                <Flex direction="column" style={{ border: "1.5px solid var(--blue-a5)", borderRadius: 16, overflow: "hidden", background: "white" }}>
-                  <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(38,87,232,0.06), rgba(38,87,232,0.02))", borderBottom: "1px solid var(--blue-a4)" }}>
-                    <Flex align="center" gap="3">
-                      <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--blue-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <TimerIcon width={18} height={18} style={{ color: "var(--blue-11)" }} />
-                      </Box>
-                      <Box>
-                        <Text as="div" size="1" weight="medium" style={{ color: "var(--blue-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 1</Text>
-                        <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>In-Person Frequency Priority</Text>
-                      </Box>
-                    </Flex>
-                  </Box>
-                  <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
-                    <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
-                      The Campus assistant analyzes badge-in patterns and segments employees by in-office frequency.
-                      Assigned desks are reserved for employees who come in at least{" "}
-                      <Text weight="medium" style={{ color: "var(--slate-12)" }}>3 days per week</Text>.
-                      Employees with lighter schedules transition to drop-in or coworking zones within the same location—still ensuring a great workspace when they do come in.
-                    </Text>
-                    <Box>
-                      <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
-                      <Flex direction="column" gap="2">
-                        {["Desk assignments reflect actual usage patterns", "Rewards consistent in-person culture", "Frees up desks for future headcount growth"].map((pro) => (
-                          <Flex key={pro} align="start" gap="2">
-                            <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
-                            <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
-                          </Flex>
-                        ))}
-                      </Flex>
-                    </Box>
-                    <Box>
-                      <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
-                      <Flex direction="column" gap="2">
-                        {["Some employees may lose their assigned desk", "Relies on accurate badge-in data availability"].map((con) => (
-                          <Flex key={con} align="start" gap="2">
-                            <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
-                            <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
-                          </Flex>
-                        ))}
-                      </Flex>
-                    </Box>
-                    <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                      <Button size="2" variant="soft" color="blue" style={{ width: "100%" }}>Apply this approach</Button>
-                    </Box>
-                  </Flex>
-                </Flex>
-
-                {/* Option 2: Team Colocation */}
-                <Flex direction="column" style={{ border: "1.5px solid var(--purple-a5)", borderRadius: 16, overflow: "hidden", background: "white" }}>
-                  <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(100,33,202,0.06), rgba(100,33,202,0.02))", borderBottom: "1px solid var(--purple-a4)" }}>
-                    <Flex align="center" gap="3">
-                      <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--purple-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <GroupIcon width={18} height={18} style={{ color: "var(--purple-11)" }} />
-                      </Box>
-                      <Box>
-                        <Text as="div" size="1" weight="medium" style={{ color: "var(--purple-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 2</Text>
-                        <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Team Colocation</Text>
-                      </Box>
-                    </Flex>
-                  </Box>
-                  <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
-                    <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
-                      The Campus assistant consolidates all employees within the same allocation area into dedicated floor zones at {title}.
-                      Teams sit together in contiguous neighborhoods—Enterprise Products in one zone, Enterprise Solutions in another—maximizing proximity for standups, 1:1s, and spontaneous collaboration.
-                      If a team&apos;s headcount exceeds available workspaces here, the assistant surfaces a migration plan to move a subset to the nearest compatible office.
-                    </Text>
-                    <Box>
-                      <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
-                      <Flex direction="column" gap="2">
-                        {["Strong team identity and colocation on office days", "Easy for teammates to find each other", "Simplifies desk management and onboarding"].map((pro) => (
-                          <Flex key={pro} align="start" gap="2">
-                            <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
-                            <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
-                          </Flex>
-                        ))}
-                      </Flex>
-                    </Box>
-                    <Box>
-                      <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
-                      <Flex direction="column" gap="2">
-                        {["May require displacing some teams to other locations", "Needs coordinated agreement across team leaders and planners"].map((con) => (
-                          <Flex key={con} align="start" gap="2">
-                            <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
-                            <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
-                          </Flex>
-                        ))}
-                      </Flex>
-                    </Box>
-                    <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                      <Button size="2" variant="soft" color="purple" style={{ width: "100%" }}>Apply this approach</Button>
-                    </Box>
-                  </Flex>
-                </Flex>
-
-                {/* Option 3: Collaboration Graph Clustering */}
-                <Flex direction="column" style={{ border: "1.5px solid var(--teal-a5)", borderRadius: 16, overflow: "hidden", background: "white" }}>
-                  <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(18,165,148,0.06), rgba(18,165,148,0.02))", borderBottom: "1px solid var(--teal-a4)" }}>
-                    <Flex align="center" gap="3">
-                      <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--teal-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <LoopIcon width={18} height={18} style={{ color: "var(--teal-11)" }} />
-                      </Box>
-                      <Box>
-                        <Text as="div" size="1" weight="medium" style={{ color: "var(--teal-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 3</Text>
-                        <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Collaboration Graph Clustering</Text>
-                      </Box>
-                    </Flex>
-                  </Box>
-                  <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
-                    <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
-                      The Campus assistant mines calendar meeting data and collaboration signals to build a{" "}
-                      <Text weight="medium" style={{ color: "var(--slate-12)" }}>weighted collaboration graph</Text>—mapping who works most closely with whom, regardless of org chart.
-                      Employees are seated near their most frequent collaborators across teams, so engineers who regularly pair with PMs end up in adjacent desks.
-                      The assistant recalculates the graph each quarter and proposes incremental re-seating changes to stay current with how work actually flows.
-                    </Text>
-                    <Box>
-                      <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
-                      <Flex direction="column" gap="2">
-                        {["Optimizes for real-world collaboration patterns", "Bridges cross-functional silos naturally", "Self-updating — adapts automatically each quarter"].map((pro) => (
-                          <Flex key={pro} align="start" gap="2">
-                            <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
-                            <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
-                          </Flex>
-                        ))}
-                      </Flex>
-                    </Box>
-                    <Box>
-                      <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
-                      <Flex direction="column" gap="2">
-                        {["Requires access to calendar metadata (privacy review needed)", "Less intuitive than team-based or frequency-based grouping"].map((con) => (
-                          <Flex key={con} align="start" gap="2">
-                            <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
-                            <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
-                          </Flex>
-                        ))}
-                      </Flex>
-                    </Box>
-                    <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                      <Button size="2" variant="soft" color="teal" style={{ width: "100%" }}>Apply this approach</Button>
-                    </Box>
-                  </Flex>
-                </Flex>
-
-              </Grid>
-            </Box>
-          </ScrollArea>
-        </Box>,
-        document.body
-      )}
     </Box>
   );
 }
@@ -1173,6 +989,48 @@ export default function LandingPage() {
   const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([]);
   const [newPlanOpen, setNewPlanOpen] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([...PLANS]);
+
+  // ── Recommendations full-screen expansion ─────────────────────────────────
+  const contentAreaRef = useRef<HTMLDivElement>(null);
+  const [recTitle, setRecTitle] = useState<string | null>(null);
+  const [recPhase, setRecPhase] = useState<"idle" | "expanding" | "content">("idle");
+  const [recIsExpanded, setRecIsExpanded] = useState(false);
+  const [recRect, setRecRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [contentFaded, setContentFaded] = useState(false);
+
+  useEffect(() => {
+    if (recPhase === "idle") return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") closeRec(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recPhase]);
+
+  function openRec(title: string) {
+    const el = contentAreaRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setRecRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+    setRecTitle(title);
+    closeAgent();
+    setContentFaded(true);
+    setTimeout(() => {
+      setRecPhase("expanding");
+      requestAnimationFrame(() => requestAnimationFrame(() => setRecIsExpanded(true)));
+      setTimeout(() => setRecPhase("content"), 260);
+    }, 280);
+  }
+
+  function closeRec() {
+    setRecPhase("expanding");
+    setRecIsExpanded(false);
+    setContentFaded(false);
+    setTimeout(() => {
+      setRecPhase("idle");
+      setRecRect(null);
+      setRecTitle(null);
+    }, 280);
+  }
   const [statusFilter, setStatusFilter] = useState<Set<PlanStatus>>(new Set());
   const [locationFilter, setLocationFilter] = useState<Set<WorkLocation>>(new Set());
   const [aaFilter, setAAFilter] = useState<Set<AllocationArea>>(new Set());
@@ -1306,10 +1164,10 @@ export default function LandingPage() {
       </Box>
 
       {/* Body */}
-      <Box style={{ flex: 1, overflow: "hidden", borderRadius: 24, position: "relative", zIndex: 1, background: "#F0F0F3" }}>
+      <Box ref={contentAreaRef as React.Ref<HTMLDivElement>} style={{ flex: 1, overflow: "hidden", borderRadius: 24, position: "relative", zIndex: 1, background: "#F0F0F3" }}>
         <BlobCanvas />
           {/* Scrollable content — right edge retracts to make room for the panel */}
-          <Box className="scrollable-content" style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", transition: "right 300ms ease-in-out" }}>
+          <Box className="scrollable-content" style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", opacity: contentFaded ? 0 : 1, pointerEvents: contentFaded ? "none" : undefined, transition: "opacity 250ms ease-in-out, right 300ms ease-in-out" }}>
         <Box
           px={{ initial: "4", sm: "6" }}
           py={{ initial: "4", sm: "6" }}
@@ -1598,12 +1456,13 @@ export default function LandingPage() {
                         title={loc}
                         plans={byLocation.get(loc)!}
                         view="location"
+                        onShowRecommendations={() => openRec(loc)}
                       />
                     ))
                 : aaOrder
                     .filter((aa) => byAA.has(aa))
                     .map((aa) => (
-                      <GroupCard key={aa} title={aa} plans={byAA.get(aa)!} view="aa" />
+                      <GroupCard key={aa} title={aa} plans={byAA.get(aa)!} view="aa" onShowRecommendations={() => openRec(aa)} />
                     ))}
             </Flex>
           </Flex>
@@ -1725,6 +1584,204 @@ export default function LandingPage() {
             </Box>
           )}
       </Box>
+
+      {/* Full-screen recommendations expansion — parent container grows to cover the viewport */}
+      {recPhase !== "idle" && createPortal(
+        <Box
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Workspace optimization options for ${recTitle}`}
+          style={{
+            position: "fixed",
+            top: recIsExpanded ? 0 : (recRect?.top ?? 0),
+            left: recIsExpanded ? 0 : (recRect?.left ?? 0),
+            width: recIsExpanded ? "100vw" : `${recRect?.width ?? 0}px`,
+            height: recIsExpanded ? "100vh" : `${recRect?.height ?? 0}px`,
+            borderRadius: recIsExpanded ? 0 : 24,
+            background: "#F0F0F3",
+            zIndex: 200,
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            transition: "top 250ms ease-in-out, left 250ms ease-in-out, width 250ms ease-in-out, height 250ms ease-in-out, border-radius 250ms ease-in-out",
+          }}
+        >
+          <BlobCanvas />
+          {recPhase === "content" && (
+            <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", zIndex: 1, overflow: "hidden" }}>
+              {/* Modal header */}
+              <Box style={{ padding: "28px 36px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid rgba(255,255,255,0.7)", flexShrink: 0, animation: "recHeaderIn 220ms ease-out both" }}>
+                <Flex align="start" justify="between">
+                  <Box>
+                    <Text size="5" weight="bold" style={{ color: "var(--slate-12)" }} mb="2">Campus Assistant Recommendations</Text>
+                    <Text as="p" size="2" color="gray" style={{ margin: 0, maxWidth: 620, lineHeight: 1.55 }}>
+                      Three AI-driven strategies to rebalance workspace allocation at{" "}
+                      <Text weight="medium" style={{ color: "var(--slate-12)" }}>{recTitle}</Text>.
+                      Each option is designed by the Campus assistant based on your headcount, workspace inventory, and usage patterns.
+                    </Text>
+                  </Box>
+                  <IconButton variant="ghost" color="gray" size="2" style={{ marginTop: -4, flexShrink: 0 }} onClick={closeRec}>
+                    <Cross2Icon />
+                  </IconButton>
+                </Flex>
+              </Box>
+
+              {/* Options grid */}
+              <ScrollArea style={{ flex: 1 }}>
+                <Box style={{ padding: "28px 36px 40px" }}>
+                  <Grid columns={{ initial: "1", md: "3" }} style={{ alignItems: "stretch", gap: 16 }}>
+
+                    {/* Option 1: In-Person Frequency Priority */}
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
+                      <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(38,87,232,0.07), rgba(38,87,232,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
+                        <Flex align="center" gap="3">
+                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--blue-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <TimerIcon width={18} height={18} style={{ color: "var(--blue-11)" }} />
+                          </Box>
+                          <Box>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--blue-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 1</Text>
+                            <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>In-Person Frequency Priority</Text>
+                          </Box>
+                        </Flex>
+                      </Box>
+                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
+                        <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
+                          The Campus assistant analyzes badge-in patterns and segments employees by in-office frequency.
+                          Assigned desks are reserved for employees who come in at least{" "}
+                          <Text weight="medium" style={{ color: "var(--slate-12)" }}>3 days per week</Text>.
+                          Employees with lighter schedules transition to drop-in or coworking zones within the same location—still ensuring a great workspace when they do come in.
+                        </Text>
+                        <Box>
+                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
+                          <Flex direction="column" gap="2">
+                            {["Desk assignments reflect actual usage patterns", "Rewards consistent in-person culture", "Frees up desks for future headcount growth"].map((pro) => (
+                              <Flex key={pro} align="start" gap="2">
+                                <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
+                                <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                              </Flex>
+                            ))}
+                          </Flex>
+                        </Box>
+                        <Box>
+                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
+                          <Flex direction="column" gap="2">
+                            {["Some employees may lose their assigned desk", "Relies on accurate badge-in data availability"].map((con) => (
+                              <Flex key={con} align="start" gap="2">
+                                <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
+                                <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                              </Flex>
+                            ))}
+                          </Flex>
+                        </Box>
+                        <Box style={{ marginTop: "auto", paddingTop: 8 }}>
+                          <Button size="2" variant="soft" color="blue" style={{ width: "100%" }}>Apply this approach</Button>
+                        </Box>
+                      </Flex>
+                    </Flex>
+
+                    {/* Option 2: Team Colocation */}
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 180ms both" }}>
+                      <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(100,33,202,0.07), rgba(100,33,202,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
+                        <Flex align="center" gap="3">
+                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--purple-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <GroupIcon width={18} height={18} style={{ color: "var(--purple-11)" }} />
+                          </Box>
+                          <Box>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--purple-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 2</Text>
+                            <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Team Colocation</Text>
+                          </Box>
+                        </Flex>
+                      </Box>
+                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
+                        <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
+                          The Campus assistant consolidates all employees within the same allocation area into dedicated floor zones at {recTitle}.
+                          Teams sit together in contiguous neighborhoods—Enterprise Products in one zone, Enterprise Solutions in another—maximizing proximity for standups, 1:1s, and spontaneous collaboration.
+                          If a team&apos;s headcount exceeds available workspaces here, the assistant surfaces a migration plan to move a subset to the nearest compatible office.
+                        </Text>
+                        <Box>
+                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
+                          <Flex direction="column" gap="2">
+                            {["Strong team identity and colocation on office days", "Easy for teammates to find each other", "Simplifies desk management and onboarding"].map((pro) => (
+                              <Flex key={pro} align="start" gap="2">
+                                <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
+                                <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                              </Flex>
+                            ))}
+                          </Flex>
+                        </Box>
+                        <Box>
+                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
+                          <Flex direction="column" gap="2">
+                            {["May require displacing some teams to other locations", "Needs coordinated agreement across team leaders and planners"].map((con) => (
+                              <Flex key={con} align="start" gap="2">
+                                <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
+                                <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                              </Flex>
+                            ))}
+                          </Flex>
+                        </Box>
+                        <Box style={{ marginTop: "auto", paddingTop: 8 }}>
+                          <Button size="2" variant="soft" color="purple" style={{ width: "100%" }}>Apply this approach</Button>
+                        </Box>
+                      </Flex>
+                    </Flex>
+
+                    {/* Option 3: Collaboration Graph Clustering */}
+                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 280ms both" }}>
+                      <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(18,165,148,0.07), rgba(18,165,148,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
+                        <Flex align="center" gap="3">
+                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--teal-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <LoopIcon width={18} height={18} style={{ color: "var(--teal-11)" }} />
+                          </Box>
+                          <Box>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--teal-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 3</Text>
+                            <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Collaboration Graph Clustering</Text>
+                          </Box>
+                        </Flex>
+                      </Box>
+                      <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1 }}>
+                        <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
+                          The Campus assistant mines calendar meeting data and collaboration signals to build a{" "}
+                          <Text weight="medium" style={{ color: "var(--slate-12)" }}>weighted collaboration graph</Text>—mapping who works most closely with whom, regardless of org chart.
+                          Employees are seated near their most frequent collaborators across teams, so engineers who regularly pair with PMs end up in adjacent desks.
+                          The assistant recalculates the graph each quarter and proposes incremental re-seating changes to stay current with how work actually flows.
+                        </Text>
+                        <Box>
+                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Pros</Text>
+                          <Flex direction="column" gap="2">
+                            {["Optimizes for real-world collaboration patterns", "Bridges cross-functional silos naturally", "Self-updating — adapts automatically each quarter"].map((pro) => (
+                              <Flex key={pro} align="start" gap="2">
+                                <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)", marginTop: 1, flexShrink: 0 }} />
+                                <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                              </Flex>
+                            ))}
+                          </Flex>
+                        </Box>
+                        <Box>
+                          <Text as="div" size="1" weight="medium" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cons</Text>
+                          <Flex direction="column" gap="2">
+                            {["Requires access to calendar metadata (privacy review needed)", "Less intuitive than team-based or frequency-based grouping"].map((con) => (
+                              <Flex key={con} align="start" gap="2">
+                                <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)", marginTop: 2, flexShrink: 0 }} />
+                                <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                              </Flex>
+                            ))}
+                          </Flex>
+                        </Box>
+                        <Box style={{ marginTop: "auto", paddingTop: 8 }}>
+                          <Button size="2" variant="soft" color="teal" style={{ width: "100%" }}>Apply this approach</Button>
+                        </Box>
+                      </Flex>
+                    </Flex>
+
+                  </Grid>
+                </Box>
+              </ScrollArea>
+            </Box>
+          )}
+        </Box>,
+        document.body
+      )}
 
       <FilterSheet
         open={filterSheetOpen}
