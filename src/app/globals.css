@@ -220,15 +220,16 @@ h4.rt-Heading {
   55%     { border-radius: 46% 54% 60% 40% / 60% 40% 52% 48%; transform: scale(1.15); }
 }
 
-/* ─── Space recommendation button ───────────────────── */
+/* ─── Space recommendation button (warning/amber) ─────── */
 @keyframes recRingPulse {
-  0%   { box-shadow: 0 0 0 0px  rgba(38, 87, 232, 0.55); }
-  100% { box-shadow: 0 0 0 12px rgba(38, 87, 232, 0);    }
+  0%   { box-shadow: 0 0 0 0px  rgba(234, 120, 20, 0.55); }
+  100% { box-shadow: 0 0 0 12px rgba(234, 120, 20, 0);    }
 }
 
 .rec-pulse-btn.rt-BaseButton {
   overflow: visible !important;
-  background: linear-gradient(135deg, #2657E8, #6421CA) !important;
+  background-image: linear-gradient(135deg, #F59E0B, #EA7814) !important;
+  background-color: #F59E0B !important;
   color: white !important;
   animation: recRingPulse 2s ease-out infinite !important;
 }
@@ -236,7 +237,7 @@ h4.rt-Heading {
 .rec-pulse-btn.rt-BaseButton:hover {
   transform: translateY(-2px) !important;
   animation-play-state: paused !important;
-  box-shadow: 0 6px 16px -2px color-mix(in srgb, color-mix(in srgb, #2657E8 55%, #6421CA) 45%, transparent) !important;
+  box-shadow: 0 6px 16px -2px rgba(234, 120, 20, 0.45) !important;
 }
 
 /* ─── Recommendations expanded view ─────────────────── */

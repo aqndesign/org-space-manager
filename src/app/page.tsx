@@ -626,15 +626,17 @@ function GroupCard({
                   {/* Popover header */}
                   <Box style={{ padding: "18px 20px 14px", borderBottom: "1px solid var(--gray-a4)" }}>
                     <Flex align="center" gap="2">
+                      <Box style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(245, 158, 11, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" style={{ flexShrink: 0 }}>
                         <defs>
                           <linearGradient id="rec-icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#2657E8" />
-                            <stop offset="100%" stopColor="#6421CA" />
+                            <stop offset="0%" stopColor="#F59E0B" />
+                            <stop offset="100%" stopColor="#EA7814" />
                           </linearGradient>
                         </defs>
                         <path fill="url(#rec-icon-grad)" d="M14 22.25a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1 0-1.5h4Zm3.125-11.844a4.594 4.594 0 0 1 3.662 7.365l2.22 2.221.094.113a.719.719 0 0 1-.996.996l-.113-.093-2.241-2.241a4.594 4.594 0 1 1-2.626-8.36ZM12 5.5a6.498 6.498 0 0 1 5.75 3.469 6.063 6.063 0 0 0-3.19 11.524.745.745 0 0 1-.56.257h-4a.75.75 0 0 1-.75-.75v-1.02c0-.615-.42-1.24-1.108-1.748A6.58 6.58 0 0 1 5.5 12 6.5 6.5 0 0 1 12 5.5Zm5.125 6.344a3.156 3.156 0 1 0 0 6.312 3.156 3.156 0 0 0 0-6.312Zm0 1.281a1.875 1.875 0 1 1 0 3.75 1.875 1.875 0 0 1 0-3.75ZM2.5 11.25a.75.75 0 0 1 0 1.5H1.25a.75.75 0 0 1 0-1.5H2.5Zm1.336-7.414a.75.75 0 0 1 1.06 0l.884.884a.75.75 0 1 1-1.06 1.06l-.884-.884a.75.75 0 0 1 0-1.06Zm15.259 0a.75.75 0 0 1 1.06 1.06l-.884.884a.75.75 0 0 1-1.06-1.06l.884-.884ZM12 .5a.75.75 0 0 1 .75.75V2.5a.75.75 0 0 1-1.5 0V1.25A.75.75 0 0 1 12 .5Z" />
                       </svg>
+                      </Box>
                       <Box>
                         <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)" }}>Space imbalance detected</Text>
                         <Text as="div" size="1" color="gray">{title}</Text>
@@ -1164,7 +1166,7 @@ export default function LandingPage() {
       </Box>
 
       {/* Body */}
-      <Box ref={contentAreaRef as React.Ref<HTMLDivElement>} style={{ flex: 1, overflow: "hidden", borderRadius: 24, position: "relative", zIndex: 1, background: "#F0F0F3" }}>
+      <Box ref={contentAreaRef as React.Ref<HTMLDivElement>} style={{ flex: 1, overflow: "hidden", borderRadius: "24px 24px 0 0", position: "relative", zIndex: 1, background: "#F0F0F3" }}>
         <BlobCanvas />
           {/* Scrollable content — right edge retracts to make room for the panel */}
           <Box className="scrollable-content" style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", opacity: contentFaded ? 0 : 1, pointerEvents: contentFaded ? "none" : undefined, transition: "opacity 250ms ease-in-out, right 300ms ease-in-out" }}>
@@ -1597,7 +1599,7 @@ export default function LandingPage() {
             left: recIsExpanded ? 0 : (recRect?.left ?? 0),
             width: recIsExpanded ? "100vw" : `${recRect?.width ?? 0}px`,
             height: recIsExpanded ? "100vh" : `${recRect?.height ?? 0}px`,
-            borderRadius: recIsExpanded ? 0 : 24,
+            borderRadius: recIsExpanded ? 0 : "24px 24px 0 0",
             background: "#F0F0F3",
             zIndex: 200,
             overflow: "hidden",
