@@ -1635,11 +1635,11 @@ export default function LandingPage() {
                     <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(38,87,232,0.07), rgba(38,87,232,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
                         <Flex align="center" gap="3">
-                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--blue-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <TimerIcon width={18} height={18} style={{ color: "var(--blue-11)" }} />
+                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--blue-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
+                            <TimerIcon width={18} height={18} style={{ color: "white" }} />
                           </Box>
                           <Box>
-                            <Text as="div" size="1" weight="medium" style={{ color: "var(--blue-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 1</Text>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--slate-12)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 1</Text>
                             <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>In-Person Frequency Priority</Text>
                           </Box>
                         </Flex>
@@ -1683,11 +1683,11 @@ export default function LandingPage() {
                     <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 180ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(100,33,202,0.07), rgba(100,33,202,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
                         <Flex align="center" gap="3">
-                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--purple-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <GroupIcon width={18} height={18} style={{ color: "var(--purple-11)" }} />
+                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--purple-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
+                            <GroupIcon width={18} height={18} style={{ color: "white" }} />
                           </Box>
                           <Box>
-                            <Text as="div" size="1" weight="medium" style={{ color: "var(--purple-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 2</Text>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--slate-12)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 2</Text>
                             <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Team Colocation</Text>
                           </Box>
                         </Flex>
@@ -1730,11 +1730,11 @@ export default function LandingPage() {
                     <Flex direction="column" style={{ ...GLASS_CARD_STYLE, borderRadius: 16, animation: "recItemIn 200ms ease-out 280ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "linear-gradient(135deg, rgba(18,165,148,0.07), rgba(18,165,148,0.02))", borderBottom: "0.5px solid rgba(255,255,255,0.6)" }}>
                         <Flex align="center" gap="3">
-                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--teal-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <LoopIcon width={18} height={18} style={{ color: "var(--teal-11)" }} />
+                          <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--teal-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
+                            <LoopIcon width={18} height={18} style={{ color: "white" }} />
                           </Box>
                           <Box>
-                            <Text as="div" size="1" weight="medium" style={{ color: "var(--teal-10)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 3</Text>
+                            <Text as="div" size="1" weight="medium" style={{ color: "var(--slate-12)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option 3</Text>
                             <Text as="div" size="3" weight="bold" style={{ color: "var(--slate-12)" }}>Collaboration Graph Clustering</Text>
                           </Box>
                         </Flex>
