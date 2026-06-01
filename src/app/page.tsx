@@ -25,7 +25,7 @@ import {
   TextArea,
   Tooltip,
 } from "@radix-ui/themes";
-import { ChevronDownIcon, CheckCircledIcon, Cross2Icon, MagicWandIcon, MixerHorizontalIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, ChevronLeftIcon, CheckCircledIcon, Cross2Icon, MagicWandIcon, MinusIcon, PlusIcon, MixerHorizontalIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { addPlan, getPlansByAA, getPlansByLocation, PLANS } from "@/lib/mock-data";
 import { BlobCanvas } from "@/components/BlobCanvas";
 import { NewPlanModal } from "@/components/NewPlanModal";
@@ -40,10 +40,13 @@ const GLASS_CARD_STYLE: React.CSSProperties = {
   background: "rgba(255, 255, 255, 0.72)",
   backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
   WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
-  border: "0.5px solid rgba(255, 255, 255, 0.75)",
+  borderTop: "0.5px solid rgba(255,255,255,0.88)",
+  borderLeft: "0.5px solid rgba(255,255,255,0.72)",
+  borderRight: "0.5px solid rgba(255,255,255,0.42)",
+  borderBottom: "0.5px solid rgba(255,255,255,0.32)",
   borderRadius: 20,
   overflow: "hidden",
-  boxShadow: "0 2px 23px rgba(0,0,0,0.054), inset 0 1px 0 rgba(255,255,255,0.9)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92)",
 };
 
 function toggleSet<T>(set: Set<T>, value: T): Set<T> {
@@ -620,7 +623,7 @@ function GroupCard({
                   className="rec-pulse-btn"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="white" d="M14 22.25a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1 0-1.5h4Zm3.125-11.844a4.594 4.594 0 0 1 3.662 7.365l2.22 2.221.094.113a.719.719 0 0 1-.996.996l-.113-.093-2.241-2.241a4.594 4.594 0 1 1-2.626-8.36ZM12 5.5a6.498 6.498 0 0 1 5.75 3.469 6.063 6.063 0 0 0-3.19 11.524.745.745 0 0 1-.56.257h-4a.75.75 0 0 1-.75-.75v-1.02c0-.615-.42-1.24-1.108-1.748A6.58 6.58 0 0 1 5.5 12 6.5 6.5 0 0 1 12 5.5Zm5.125 6.344a3.156 3.156 0 1 0 0 6.312 3.156 3.156 0 0 0 0-6.312Zm0 1.281a1.875 1.875 0 1 1 0 3.75 1.875 1.875 0 0 1 0-3.75ZM2.5 11.25a.75.75 0 0 1 0 1.5H1.25a.75.75 0 0 1 0-1.5H2.5Zm1.336-7.414a.75.75 0 0 1 1.06 0l.884.884a.75.75 0 1 1-1.06 1.06l-.884-.884a.75.75 0 0 1 0-1.06Zm15.259 0a.75.75 0 0 1 1.06 1.06l-.884.884a.75.75 0 0 1-1.06-1.06l.884-.884ZM12 .5a.75.75 0 0 1 .75.75V2.5a.75.75 0 0 1-1.5 0V1.25A.75.75 0 0 1 12 .5Z" />
+                    <path fill="white" d="M14 22.25a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1 0-1.5h4ZM12 5.5a6.49 6.49 0 0 1 5.3 2.74 2.221 2.221 0 0 0-1.283 1.106l-1.232 2.44-2.44 1.23a2.222 2.222 0 0 0 0 3.967l2.44 1.23.24.476a2.86 2.86 0 0 0-.275 1.181V20a.75.75 0 0 1-.75.75h-4a.75.75 0 0 1-.75-.75v-.13c0-1.157-.816-2.224-1.87-3.3A6.59 6.59 0 0 1 5.5 12 6.5 6.5 0 0 1 12 5.5Zm6 4.063c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.065.065 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069l2.713 1.368a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.011-.02.011-.012.005a.065.065 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.724 3.724 0 0 0-.069.13L18.7 20.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.065.065 0 0 0-.011-.011c.008.006.01.006-.011-.005a3.724 3.724 0 0 0-.13-.069L12.992 15.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.011.02-.011.012-.005a.065.065 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3 9.992l.056-.095A.784.784 0 0 1 18 9.563ZM3 11.25a.75.75 0 0 1 0 1.5H1.25a.75.75 0 0 1 0-1.5H3Zm.836-7.414a.75.75 0 0 1 1.06 0L6.03 4.97a.75.75 0 1 1-1.06 1.06L3.836 4.896a.75.75 0 0 1 0-1.06Zm15.259 0a.75.75 0 1 1 1.06 1.06L19.021 6.03a.75.75 0 1 1-1.06-1.06l1.134-1.134ZM12 .5a.75.75 0 0 1 .75.75V3a.75.75 0 0 1-1.5 0V1.25A.75.75 0 0 1 12 .5Z" />
                   </svg>
                 </IconButton>
                 </Popover.Trigger>
@@ -903,6 +906,144 @@ function GroupCard({
   );
 }
 
+// ── Preview: donut chart ──────────────────────────────────────────────────────
+function MultiDonutChart({
+  segments,
+  total,
+  size = 96,
+  thickness = 12,
+}: {
+  segments: { value: number; color: string }[];
+  total: number;
+  size?: number;
+  thickness?: number;
+}) {
+  const r = (size - thickness) / 2;
+  const circ = 2 * Math.PI * r;
+  let accumulated = 0;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)", display: "block", flexShrink: 0 }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--gray-4)" strokeWidth={thickness} />
+      {segments.map((seg, i) => {
+        if (seg.value <= 0 || total <= 0) return null;
+        const len = circ * (seg.value / total);
+        const offset = -(accumulated / total) * circ;
+        accumulated += seg.value;
+        return (
+          <circle
+            key={i}
+            cx={size / 2} cy={size / 2} r={r}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth={thickness}
+            strokeDasharray={`${len} ${circ}`}
+            strokeDashoffset={offset}
+            strokeLinecap="butt"
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+// ── Preview: employee breakdown mock data ─────────────────────────────────────
+const PREVIEW_EMP = {
+  fullTime: 260,
+  inboundEmbeds: 25,
+  outboundEmbeds: 18,
+  contingent: 14,
+  interns: 10,
+  futureHeadcount: 8,
+};
+
+// ── Preview: workspace/desk data by option ────────────────────────────────────
+type WsState = { assignedEmp: number; assignedSpaces: number; coworkingEmp: number; coworkingSpaces: number; deskByCategory: { label: string; value: number; color: string }[] };
+const PREVIEW_WORKSPACE: { current: WsState; planned: Record<1 | 2 | 3, WsState> } = {
+  current: {
+    assignedEmp: 51, assignedSpaces: 69,
+    coworkingEmp: 120, coworkingSpaces: 203,
+    deskByCategory: [
+      { label: "Full-time", value: 40, color: "var(--blue-9)" },
+      { label: "Inbound embeds", value: 8, color: "var(--purple-9)" },
+      { label: "Contingent", value: 3, color: "var(--orange-9)" },
+    ],
+  },
+  planned: {
+    1: {
+      assignedEmp: 35, assignedSpaces: 69,
+      coworkingEmp: 136, coworkingSpaces: 203,
+      deskByCategory: [
+        { label: "Full-time", value: 27, color: "var(--blue-9)" },
+        { label: "Inbound embeds", value: 6, color: "var(--purple-9)" },
+        { label: "Contingent", value: 2, color: "var(--orange-9)" },
+      ],
+    },
+    2: {
+      assignedEmp: 45, assignedSpaces: 69,
+      coworkingEmp: 125, coworkingSpaces: 203,
+      deskByCategory: [
+        { label: "Full-time", value: 35, color: "var(--blue-9)" },
+        { label: "Inbound embeds", value: 7, color: "var(--purple-9)" },
+        { label: "Contingent", value: 3, color: "var(--orange-9)" },
+      ],
+    },
+    3: {
+      assignedEmp: 42, assignedSpaces: 69,
+      coworkingEmp: 128, coworkingSpaces: 203,
+      deskByCategory: [
+        { label: "Full-time", value: 32, color: "var(--blue-9)" },
+        { label: "Inbound embeds", value: 7, color: "var(--purple-9)" },
+        { label: "Contingent", value: 3, color: "var(--orange-9)" },
+      ],
+    },
+  },
+};
+
+// ── Preview: map zone data ────────────────────────────────────────────────────
+const ZONE_AA_COLORS: Record<string, string> = {
+  "Enterprise Products": "rgba(38,87,232,0.28)",
+  "Enterprise Solutions": "rgba(147,51,234,0.28)",
+  "Enterprise Ticketing": "rgba(20,184,166,0.28)",
+  "Enterprise Analytics": "rgba(245,158,11,0.28)",
+};
+const ZONE_AA_BORDER: Record<string, string> = {
+  "Enterprise Products": "rgba(38,87,232,0.5)",
+  "Enterprise Solutions": "rgba(147,51,234,0.5)",
+  "Enterprise Ticketing": "rgba(20,184,166,0.5)",
+  "Enterprise Analytics": "rgba(245,158,11,0.5)",
+};
+
+type MapZone = { id: string; label: string; top: number; left: number; width: number; height: number };
+
+const MAP_ZONES: { current: MapZone[]; planned: Record<1 | 2 | 3, MapZone[]> } = {
+  current: [
+    { id: "ep", label: "Enterprise Products",  top: 11, left: 28, width: 22, height: 40 },
+    { id: "es", label: "Enterprise Solutions",  top: 11, left: 50, width: 19, height: 40 },
+    { id: "et", label: "Enterprise Ticketing",  top: 54, left: 28, width: 19, height: 26 },
+    { id: "ea", label: "Enterprise Analytics",  top: 54, left: 47, width: 22, height: 26 },
+  ],
+  planned: {
+    1: [
+      { id: "ep", label: "Enterprise Products",  top: 11, left: 28, width: 17, height: 40 },
+      { id: "es", label: "Enterprise Solutions",  top: 11, left: 45, width: 19, height: 40 },
+      { id: "et", label: "Enterprise Ticketing",  top: 54, left: 28, width: 15, height: 26 },
+      { id: "ea", label: "Enterprise Analytics",  top: 54, left: 43, width: 26, height: 26 },
+    ],
+    2: [
+      { id: "ep", label: "Enterprise Products",  top:  9, left: 26, width: 24, height: 44 },
+      { id: "es", label: "Enterprise Solutions",  top:  9, left: 50, width: 21, height: 44 },
+      { id: "et", label: "Enterprise Ticketing",  top: 53, left: 26, width: 24, height: 29 },
+      { id: "ea", label: "Enterprise Analytics",  top: 53, left: 50, width: 21, height: 29 },
+    ],
+    3: [
+      { id: "ep", label: "Enterprise Products",  top: 10, left: 27, width: 28, height: 38 },
+      { id: "es", label: "Enterprise Solutions",  top: 10, left: 55, width: 14, height: 38 },
+      { id: "et", label: "Enterprise Ticketing",  top: 52, left: 27, width: 18, height: 30 },
+      { id: "ea", label: "Enterprise Analytics",  top: 52, left: 45, width: 24, height: 30 },
+    ],
+  },
+};
+
 export default function LandingPage() {
   const bannerLottieRef = useRef<LottieRefCurrentProps>(null);
 
@@ -1004,9 +1145,27 @@ export default function LandingPage() {
   const [recRect, setRecRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const [contentFaded, setContentFaded] = useState(false);
 
+  // ── Preview level within the rec modal ───────────────────────────────────────
+  const [previewOption, setPreviewOption] = useState<{ num: 1 | 2 | 3; label: string; color: string } | null>(null);
+  const [previewView, setPreviewView] = useState<"data" | "map">("data");
+  const [previewEmpHovered, setPreviewEmpHovered] = useState<string | null>(null);
+  const previewEmpBarRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const [mapZoom, setMapZoom] = useState(1);
+  const [mapRotation, setMapRotation] = useState(0);
+  const previewOptionRef = useRef<{ num: 1 | 2 | 3; label: string; color: string } | null>(null);
+
   useEffect(() => {
     if (recPhase === "idle") return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") closeRec(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (previewOptionRef.current) {
+          previewOptionRef.current = null;
+          setPreviewOption(null);
+        } else {
+          closeRec();
+        }
+      }
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1028,6 +1187,8 @@ export default function LandingPage() {
   }
 
   function closeRec() {
+    previewOptionRef.current = null;
+    setPreviewOption(null);
     setRecPhase("expanding");
     setRecIsExpanded(false);
     setContentFaded(false);
@@ -1037,6 +1198,21 @@ export default function LandingPage() {
       setRecTitle(null);
     }, 280);
   }
+
+  function openPreview(num: 1 | 2 | 3, label: string, color: string) {
+    const opt = { num, label, color };
+    previewOptionRef.current = opt;
+    setPreviewOption(opt);
+    setPreviewView("data");
+    setMapZoom(1);
+    setMapRotation(0);
+  }
+
+  function closePreview() {
+    previewOptionRef.current = null;
+    setPreviewOption(null);
+  }
+
   const [statusFilter, setStatusFilter] = useState<Set<PlanStatus>>(new Set());
   const [locationFilter, setLocationFilter] = useState<Set<WorkLocation>>(new Set());
   const [aaFilter, setAAFilter] = useState<Set<AllocationArea>>(new Set());
@@ -1092,6 +1268,20 @@ export default function LandingPage() {
   const allByAA = getPlansByAA(plans);
   const availableLocations = locationOrder.filter(loc => allByLocation.has(loc));
   const availableAAs = aaOrder.filter(aa => allByAA.has(aa));
+
+  // Derived preview values (computed outside JSX to avoid IIFE)
+  const previewCur = PREVIEW_WORKSPACE.current;
+  const previewPln = previewOption ? PREVIEW_WORKSPACE.planned[previewOption.num] : null;
+  const previewEmpTotal = PREVIEW_EMP.fullTime + PREVIEW_EMP.inboundEmbeds + PREVIEW_EMP.outboundEmbeds + PREVIEW_EMP.contingent + PREVIEW_EMP.interns + PREVIEW_EMP.futureHeadcount;
+  const previewEmpRows: { label: string; value: number; color: string; tooltip: string | null }[] = [
+    { label: "Full-time", value: PREVIEW_EMP.fullTime, color: "var(--blue-9)", tooltip: null },
+    { label: "Inbound embeds", value: PREVIEW_EMP.inboundEmbeds, color: "var(--purple-9)", tooltip: "Employees from other teams embedded within this allocation area" },
+    { label: "Outbound embeds", value: PREVIEW_EMP.outboundEmbeds, color: "var(--violet-9)", tooltip: "Employees from this area embedded in other teams' spaces" },
+    { label: "Contingent workers", value: PREVIEW_EMP.contingent, color: "var(--orange-9)", tooltip: null },
+    { label: "Interns", value: PREVIEW_EMP.interns, color: "var(--green-9)", tooltip: null },
+  ];
+  const previewCurrentZones = MAP_ZONES.current;
+  const previewPlannedZones = previewOption ? MAP_ZONES.planned[previewOption.num] : MAP_ZONES.current;
 
   return (
     <Box style={{ height: "100vh", display: "flex", flexDirection: "column", position: "relative", background: "#FCFCFD" }}>
@@ -1196,19 +1386,18 @@ export default function LandingPage() {
                   overflow: "hidden",
                   borderRadius: bannerExpanded ? "20px 20px 0 0" : 20,
                   zIndex: 2,
-                  minHeight: 169,
                   transition: "border-radius 350ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 350ms ease",
                 }}
               >
                 {/* Icon container — desktop: original specs; mobile: overridden via CSS */}
                 <Box className="banner-icon-container" style={{
                   position: "absolute",
-                  left: -100,
+                  left: -124,
                   top: -23,
                   width: 243.64,
                   height: 248.38,
                   background: "white",
-                  borderRadius: 40,
+                  borderRadius: 20,
                   transform: "rotate(25.06deg)",
                   display: "flex",
                   alignItems: "center",
@@ -1224,7 +1413,7 @@ export default function LandingPage() {
                     style={{
                       width: "100%",
                       height: "100%",
-                      transform: "rotate(-25.06deg) scale(0.515) translateX(45%) translateY(-15%)",
+                      transform: "rotate(-25.06deg) scale(0.438) translateX(70%) translateY(-31%)",
                     }}
                   />
                 </Box>
@@ -1491,9 +1680,12 @@ export default function LandingPage() {
                 background: "rgba(255, 255, 255, 0.72)",
                 backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
-                border: "0.5px solid rgba(255, 255, 255, 0.75)",
+                borderTop: "0.5px solid rgba(255,255,255,0.88)",
+                borderLeft: "0.5px solid rgba(255,255,255,0.72)",
+                borderRight: "0.5px solid rgba(255,255,255,0.42)",
+                borderBottom: "0.5px solid rgba(255,255,255,0.32)",
                 borderRadius: 20,
-                boxShadow: "0 2px 23px rgba(0,0,0,0.054), inset 0 1px 0 rgba(255,255,255,0.9)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92)",
                 overflow: "hidden",
                 transform: agentPanelVisible ? "translateX(0)" : "translateX(calc(100% + 8px))",
                 opacity: agentPanelVisible ? 1 : 0,
@@ -1616,7 +1808,7 @@ export default function LandingPage() {
           {recPhase === "content" && (
             <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", zIndex: 1, overflow: "hidden" }}>
               {/* Modal header */}
-              <Box style={{ padding: "28px 36px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid rgba(255,255,255,0.7)", flexShrink: 0, animation: "recHeaderIn 250ms ease-in-out 350ms both" }}>
+              <Box style={{ padding: "28px 36px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid var(--gray-5)", flexShrink: 0, animation: "recHeaderIn 250ms ease-in-out 350ms both" }}>
                 <Flex align="start" justify="between">
                   <Flex align="start" style={{ gap: 8 }}>
                     <Box style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #2657E8, #6421CA)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1638,8 +1830,8 @@ export default function LandingPage() {
                 </Flex>
               </Box>
 
-              {/* Options grid */}
-              <ScrollArea style={{ flex: 1 }}>
+              {/* ── Main level: options grid ──────────────────────────── */}
+              {!previewOption && <ScrollArea style={{ flex: 1 }}>
                 <Box style={{ padding: "28px 36px 40px" }}>
                   <Grid columns={{ initial: "1", md: "3" }} style={{ alignItems: "stretch", gap: 16 }}>
 
@@ -1691,7 +1883,7 @@ export default function LandingPage() {
                           </Box>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }} onClick={() => openPreview(1, "In-person time priority", "var(--blue-11)")}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
@@ -1743,7 +1935,7 @@ export default function LandingPage() {
                           </Box>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }} onClick={() => openPreview(2, "Team colocation priority", "var(--purple-11)")}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
@@ -1796,14 +1988,391 @@ export default function LandingPage() {
                           </Box>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
-                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
+                          <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }} onClick={() => openPreview(3, "XFN collaboration priority", "var(--teal-11)")}>Preview changes</Button>
                         </Box>
                       </Flex>
                     </Flex>
 
                   </Grid>
                 </Box>
-              </ScrollArea>
+              </ScrollArea>}
+
+              {/* ── Preview level ──────────────────────────────────────── */}
+              {previewOption && (
+                <Box style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", position: "relative", animation: "previewSlideIn 200ms ease-out both" }}>
+                  {/* Sub-header — outside scroll area so backdrop-filter correctly blurs scrolling content behind it */}
+                  <Box style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100, padding: "10px 16px 10px 20px", background: "rgba(255,255,255,0.6)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "none", borderRadius: 0, borderBottom: "0.5px solid var(--gray-5)", boxShadow: "inset 0 4px 10px rgba(255,255,255,0.4)" }}>
+                    <Flex align="center" justify="between">
+                      <Flex align="center" style={{ gap: 8 }}>
+                        <IconButton variant="soft" color="gray" size="3" onClick={closePreview} aria-label="Back" style={{ flexShrink: 0, width: 32, height: 32 }}>
+                          <ChevronLeftIcon width={16} height={16} />
+                        </IconButton>
+                        <Flex direction="column" style={{ gap: 1 }}>
+                          <Heading as="h2" size="2" style={{ color: "var(--slate-12)", fontWeight: 600 }}>Employee and workspace changes</Heading>
+                          <Flex align="center" style={{ gap: 6 }}>
+                            <Box style={{ width: 8, height: 8, borderRadius: "50%", background: previewOption.color, flexShrink: 0 }} />
+                            <Text size="1" weight="medium" style={{ color: "var(--gray-11)" }}>Option {previewOption.num}</Text>
+                            <Text size="2" weight="medium" style={{ color: "var(--slate-12)" }}>{previewOption.label}</Text>
+                          </Flex>
+                        </Flex>
+                      </Flex>
+                      {/* View toggle */}
+                      <ToggleGroup.Root
+                        type="single"
+                        value={previewView}
+                        onValueChange={(v) => { if (v) setPreviewView(v as "data" | "map"); }}
+                        className="preview-toggle-root"
+                      >
+                        <ToggleGroup.Item value="data" className="preview-toggle-item" data-state={previewView === "data" ? "on" : "off"}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+                          Summary
+                        </ToggleGroup.Item>
+                        <ToggleGroup.Item value="map" className="preview-toggle-item" data-state={previewView === "map" ? "on" : "off"}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><line x1="9" y1="4" x2="9" y2="17"/><line x1="15" y1="7" x2="15" y2="20"/></svg>
+                          Floor map
+                        </ToggleGroup.Item>
+                      </ToggleGroup.Root>
+                    </Flex>
+                  </Box>
+                  <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--gray-6) transparent" }}>
+                    <Box style={{ padding: "80px 0 40px" }}>
+                      <Box style={{ padding: "0 36px" }}>
+
+                      {/* ── DATA VIEW ──────────────────────────────────────── */}
+                      {previewView === "data" && previewPln && (
+                          <Flex direction="column" style={{ gap: 16, animation: "previewFadeUp 180ms ease-out both" }}>
+
+                            {/* Card 1: Employee population */}
+                            <Box style={{ ...GLASS_CARD_STYLE, borderRadius: 16, padding: "20px 24px", background: "white" }}>
+                              <Flex justify="between" align="start" style={{ marginBottom: 16 }}>
+                                <Box>
+                                  <Heading as="h3" size="3" style={{ color: "var(--slate-12)" }}>Employee population</Heading>
+                                  <Text as="p" size="1" color="gray" style={{ margin: "4px 0 0" }}>
+                                    {previewEmpTotal - PREVIEW_EMP.futureHeadcount} current · +{PREVIEW_EMP.futureHeadcount} future headcount
+                                  </Text>
+                                </Box>
+                              </Flex>
+                              {/* Segmented bar — full segments including future headcount */}
+                              {(() => {
+                                const allSegments = [
+                                  ...previewEmpRows.map(r => ({ ...r, isFuture: false })),
+                                  { label: "Future headcount", value: PREVIEW_EMP.futureHeadcount, color: "var(--gray-5)", tooltip: null, isFuture: true },
+                                ];
+                                return (
+                                  <>
+                                    <Flex style={{ width: "100%", height: 8, gap: 2 }}>
+                                      {allSegments.map(({ label, value, color, isFuture }, i) => {
+                                        const isOnly = allSegments.length === 1;
+                                        const isFirst = i === 0;
+                                        const isLast = i === allSegments.length - 1;
+                                        const borderRadius = isOnly ? 9999 : isFirst ? "9999px 0 0 9999px" : isLast ? "0 9999px 9999px 0" : 0;
+                                        return (
+                                          <Box
+                                            key={label}
+                                            ref={(el) => { if (el) previewEmpBarRefs.current.set(label, el as HTMLElement); else previewEmpBarRefs.current.delete(label); }}
+                                            style={{ flex: value, height: 8 }}
+                                            onMouseEnter={() => setPreviewEmpHovered(label)}
+                                            onMouseLeave={() => setPreviewEmpHovered(null)}
+                                          >
+                                            <Box style={{
+                                              width: "100%", height: "100%", background: color, borderRadius,
+                                              ...(isFuture ? { backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.6) 4px, rgba(255,255,255,0.6) 5px)" } : {}),
+                                              opacity: previewEmpHovered !== null && previewEmpHovered !== label ? 0.35 : 1,
+                                              transition: "opacity 120ms ease",
+                                              cursor: "default",
+                                            }} />
+                                          </Box>
+                                        );
+                                      })}
+                                    </Flex>
+                                    {/* Legend */}
+                                    <Flex style={{ gap: 2, flexWrap: "wrap", marginTop: 10 }}>
+                                      {allSegments.map(({ label, value, color, isFuture }) => (
+                                        <Flex
+                                          key={label}
+                                          align="center"
+                                          gap="1"
+                                          style={{
+                                            padding: "2px 6px 2px 4px", borderRadius: 9999, cursor: "default",
+                                            opacity: previewEmpHovered !== null && previewEmpHovered !== label ? 0.35 : 1,
+                                            background: previewEmpHovered === label ? "var(--gray-a3)" : "transparent",
+                                            transition: "opacity 120ms ease, background 120ms ease",
+                                          }}
+                                          onMouseEnter={() => setPreviewEmpHovered(label)}
+                                          onMouseLeave={() => setPreviewEmpHovered(null)}
+                                        >
+                                          <Box style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
+                                          <Text size="1" color="gray">{isFuture ? `+${value} future` : label}</Text>
+                                          {!isFuture && <Text size="1" weight="medium" style={{ color: "var(--slate-12)" }}>{value.toLocaleString()}</Text>}
+                                        </Flex>
+                                      ))}
+                                    </Flex>
+                                  </>
+                                );
+                              })()}
+                            </Box>
+
+                            {/* Card 2: Workspace + desk changes */}
+                            <Box style={{ ...GLASS_CARD_STYLE, borderRadius: 16, padding: "20px 24px", background: "white" }}>
+                              <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 20 }}>Workspace changes</Heading>
+
+                              {/* Section: Workspace breakdown */}
+                              <Box style={{ marginBottom: 24 }}>
+                                <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 14 }}>Workspace breakdown</Text>
+                                {/* Column headers */}
+                                <Grid columns="3" style={{ gap: 0, marginBottom: 16 }}>
+                                  <Box />
+                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Current state</Text>
+                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Planned changes</Text>
+                                </Grid>
+                                {/* Assigned desks row */}
+                                <Grid columns="3" style={{ gap: 0, alignItems: "center", marginBottom: 20 }}>
+                                  <Box style={{ paddingRight: 12 }}>
+                                    <Text size="2" style={{ color: "var(--slate-12)" }}>Assigned desks</Text>
+                                    <Text as="div" size="1" color="gray">Employees with assigned desk / total desk spaces</Text>
+                                  </Box>
+                                  {/* Current donut */}
+                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                      <MultiDonutChart segments={[{ value: previewCur.assignedEmp, color: "var(--blue-9)" }]} total={previewCur.assignedSpaces} size={96} thickness={11} />
+                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewCur.assignedEmp}</Text>
+                                        <Text size="1" color="gray">/{previewCur.assignedSpaces}</Text>
+                                      </Box>
+                                    </Box>
+                                    <Text size="1" color="gray">{previewCur.assignedEmp} emp · {previewCur.assignedSpaces} spaces</Text>
+                                  </Flex>
+                                  {/* Planned donut */}
+                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                      <MultiDonutChart segments={[{ value: previewPln.assignedEmp, color: previewOption.color }]} total={previewPln.assignedSpaces} size={96} thickness={11} />
+                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewPln.assignedEmp}</Text>
+                                        <Text size="1" color="gray">/{previewPln.assignedSpaces}</Text>
+                                      </Box>
+                                    </Box>
+                                    <Flex align="center" style={{ gap: 4 }}>
+                                      <Text size="1" color="gray">{previewPln.assignedEmp} emp · {previewPln.assignedSpaces} spaces</Text>
+                                      {previewPln.assignedEmp !== previewCur.assignedEmp && (
+                                        <Text size="1" style={{ color: previewPln.assignedEmp < previewCur.assignedEmp ? "var(--orange-11)" : "var(--green-11)", fontWeight: 500 }}>
+                                          {previewPln.assignedEmp < previewCur.assignedEmp ? `−${previewCur.assignedEmp - previewPln.assignedEmp}` : `+${previewPln.assignedEmp - previewCur.assignedEmp}`}
+                                        </Text>
+                                      )}
+                                    </Flex>
+                                  </Flex>
+                                </Grid>
+                                {/* Coworking row */}
+                                <Grid columns="3" style={{ gap: 0, alignItems: "center" }}>
+                                  <Box style={{ paddingRight: 12 }}>
+                                    <Text size="2" style={{ color: "var(--slate-12)" }}>Coworking spaces</Text>
+                                    <Text as="div" size="1" color="gray">Employees in coworking / total coworking spaces</Text>
+                                  </Box>
+                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                      <MultiDonutChart segments={[{ value: previewCur.coworkingEmp, color: "var(--purple-9)" }]} total={previewCur.coworkingSpaces} size={96} thickness={11} />
+                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewCur.coworkingEmp}</Text>
+                                        <Text size="1" color="gray">/{previewCur.coworkingSpaces}</Text>
+                                      </Box>
+                                    </Box>
+                                    <Text size="1" color="gray">{previewCur.coworkingEmp} emp · {previewCur.coworkingSpaces} spaces</Text>
+                                  </Flex>
+                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                      <MultiDonutChart segments={[{ value: previewPln.coworkingEmp, color: "var(--purple-9)" }]} total={previewPln.coworkingSpaces} size={96} thickness={11} />
+                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewPln.coworkingEmp}</Text>
+                                        <Text size="1" color="gray">/{previewPln.coworkingSpaces}</Text>
+                                      </Box>
+                                    </Box>
+                                    <Flex align="center" style={{ gap: 4 }}>
+                                      <Text size="1" color="gray">{previewPln.coworkingEmp} emp · {previewPln.coworkingSpaces} spaces</Text>
+                                      {previewPln.coworkingEmp !== previewCur.coworkingEmp && (
+                                        <Text size="1" style={{ color: previewPln.coworkingEmp > previewCur.coworkingEmp ? "var(--blue-11)" : "var(--orange-11)", fontWeight: 500 }}>
+                                          {previewPln.coworkingEmp > previewCur.coworkingEmp ? `+${previewPln.coworkingEmp - previewCur.coworkingEmp}` : `−${previewCur.coworkingEmp - previewPln.coworkingEmp}`}
+                                        </Text>
+                                      )}
+                                    </Flex>
+                                  </Flex>
+                                </Grid>
+                              </Box>
+
+                              <Box style={{ height: 1, background: "var(--gray-4)", margin: "0 -24px 24px" }} />
+
+                              {/* Section: Desk allocation by category */}
+                              <Box>
+                                <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 14 }}>Desk allocation by employee category</Text>
+                                <Grid columns="3" style={{ gap: 0, marginBottom: 16 }}>
+                                  <Box />
+                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Current state</Text>
+                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Planned changes</Text>
+                                </Grid>
+                                <Grid columns="3" style={{ gap: 0, alignItems: "start" }}>
+                                  <Box style={{ paddingRight: 12, paddingTop: 6 }}>
+                                    <Text size="2" style={{ color: "var(--slate-12)" }}>Assigned desks</Text>
+                                    <Text as="div" size="1" color="gray">by employee category</Text>
+                                    <Flex direction="column" style={{ gap: 5, marginTop: 12 }}>
+                                      {previewCur.deskByCategory.map((d) => (
+                                        <Flex key={d.label} align="center" style={{ gap: 5 }}>
+                                          <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                                          <Text size="1" color="gray">{d.label}</Text>
+                                        </Flex>
+                                      ))}
+                                    </Flex>
+                                  </Box>
+                                  {/* Current category donut */}
+                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                      <MultiDonutChart segments={previewCur.deskByCategory} total={previewCur.assignedEmp} size={96} thickness={11} />
+                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewCur.assignedEmp}</Text>
+                                        <Text size="1" color="gray">desks</Text>
+                                      </Box>
+                                    </Box>
+                                    <Flex direction="column" align="center" style={{ gap: 2 }}>
+                                      {previewCur.deskByCategory.map((d) => (
+                                        <Text key={d.label} size="1" color="gray">{d.label.split(" ")[0]}: {d.value}</Text>
+                                      ))}
+                                    </Flex>
+                                  </Flex>
+                                  {/* Planned category donut */}
+                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                      <MultiDonutChart segments={previewPln.deskByCategory} total={previewPln.assignedEmp} size={96} thickness={11} />
+                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewPln.assignedEmp}</Text>
+                                        <Text size="1" color="gray">desks</Text>
+                                      </Box>
+                                    </Box>
+                                    <Flex direction="column" align="center" style={{ gap: 2 }}>
+                                      {previewPln.deskByCategory.map((d) => (
+                                        <Text key={d.label} size="1" color="gray">{d.label.split(" ")[0]}: {d.value}</Text>
+                                      ))}
+                                    </Flex>
+                                  </Flex>
+                                </Grid>
+                              </Box>
+                            </Box>
+                          </Flex>
+                      )}
+
+                      {/* ── MAP VIEW ────────────────────────────────────────── */}
+                      {previewView === "map" && (
+                          <Box style={{ animation: "previewFadeUp 180ms ease-out both" }}>
+                            {/* Controls */}
+                            <Flex align="center" justify="between" style={{ marginBottom: 16 }}>
+                              <Text size="2" color="gray">Drag to pan · Scroll to zoom</Text>
+                              <Flex align="center" style={{ gap: 8 }}>
+                                <Flex align="center" style={{ gap: 4, background: "rgba(255,255,255,0.8)", border: "0.5px solid var(--gray-5)", borderRadius: 9999, padding: "3px 6px" }}>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapZoom(z => Math.max(0.5, z - 0.25))} style={{ borderRadius: 9999 }}>
+                                    <MinusIcon />
+                                  </IconButton>
+                                  <Text size="1" weight="medium" style={{ color: "var(--slate-12)", minWidth: 34, textAlign: "center" }}>{Math.round(mapZoom * 100)}%</Text>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapZoom(z => Math.min(3, z + 0.25))} style={{ borderRadius: 9999 }}>
+                                    <PlusIcon />
+                                  </IconButton>
+                                </Flex>
+                                <Flex align="center" style={{ gap: 4, background: "rgba(255,255,255,0.8)", border: "0.5px solid var(--gray-5)", borderRadius: 9999, padding: "3px 8px" }}>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapRotation(r => r - 90)} style={{ borderRadius: 9999 }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                  </IconButton>
+                                  <Text size="1" weight="medium" style={{ color: "var(--slate-12)", minWidth: 28, textAlign: "center" }}>{((mapRotation % 360) + 360) % 360}°</Text>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapRotation(r => r + 90)} style={{ borderRadius: 9999 }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                                  </IconButton>
+                                </Flex>
+                                <button
+                                  onClick={() => { setMapZoom(1); setMapRotation(0); }}
+                                  style={{ padding: "5px 10px", background: "rgba(255,255,255,0.8)", border: "0.5px solid var(--gray-5)", borderRadius: 9999, color: "var(--gray-11)", fontSize: "var(--font-size-1)", fontFamily: "var(--font-body), system-ui", cursor: "pointer" }}
+                                >
+                                  Reset
+                                </button>
+                              </Flex>
+                            </Flex>
+
+                            {/* Zone legend */}
+                            <Flex style={{ gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+                              {Object.entries(ZONE_AA_COLORS).map(([label, color]) => (
+                                <Flex key={label} align="center" style={{ gap: 6 }}>
+                                  <Box style={{ width: 12, height: 12, borderRadius: 3, background: color, border: `1.5px solid ${ZONE_AA_BORDER[label]}` }} />
+                                  <Text size="1" color="gray">{label}</Text>
+                                </Flex>
+                              ))}
+                            </Flex>
+
+                            {/* Two map panels */}
+                            <Grid columns="2" style={{ gap: 16 }}>
+                              {([
+                                { title: "Current state", zones: previewCurrentZones },
+                                { title: "Planned changes", zones: previewPlannedZones },
+                              ] as { title: string; zones: MapZone[] }[]).map(({ title, zones }) => (
+                                <Box key={title}>
+                                  <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 10 }}>{title}</Text>
+                                  <Box style={{ borderRadius: 12, overflow: "hidden", background: "var(--gray-2)", border: "0.5px solid var(--gray-5)", aspectRatio: "1496/760" }}>
+                                    <Box
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        transform: `scale(${mapZoom}) rotate(${mapRotation}deg)`,
+                                        transformOrigin: "center center",
+                                        transition: "transform 280ms ease",
+                                        position: "relative",
+                                      }}
+                                    >
+                                      <img
+                                        src="/map_01.png"
+                                        alt="Floor plan"
+                                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", userSelect: "none" }}
+                                        draggable={false}
+                                      />
+                                      {/* Zone overlays */}
+                                      {zones.map((zone) => (
+                                        <Box
+                                          key={zone.id}
+                                          style={{
+                                            position: "absolute",
+                                            top: `${zone.top}%`,
+                                            left: `${zone.left}%`,
+                                            width: `${zone.width}%`,
+                                            height: `${zone.height}%`,
+                                            background: ZONE_AA_COLORS[zone.label],
+                                            border: `1.5px solid ${ZONE_AA_BORDER[zone.label]}`,
+                                            borderRadius: 4,
+                                            transition: "all 400ms ease",
+                                          }}
+                                        >
+                                          <Text
+                                            size="1"
+                                            style={{
+                                              position: "absolute",
+                                              top: 4,
+                                              left: 5,
+                                              color: ZONE_AA_BORDER[zone.label],
+                                              fontWeight: 600,
+                                              fontSize: 9,
+                                              lineHeight: 1.2,
+                                              maxWidth: "90%",
+                                              pointerEvents: "none",
+                                              userSelect: "none",
+                                            }}
+                                          >
+                                            {zone.label.replace("Enterprise ", "")}
+                                          </Text>
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Grid>
+                          </Box>
+                      )}
+                      </Box>
+                    </Box>
+                  </div>
+                </Box>
+              )}
+
             </Box>
           )}
         </Box>,
