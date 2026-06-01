@@ -1657,35 +1657,38 @@ export default function LandingPage() {
                         </Flex>
                       </Box>
                       <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
-                        <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
+                        <Text as="p" size="2" style={{ margin: 0, lineHeight: 1.65, color: "var(--slate-12)" }}>
                           The Campus assistant analyzes badge-in patterns and segments employees by in-office frequency.
                           Assigned desks are reserved for employees who come in at least{" "}
                           <Text weight="medium" style={{ color: "var(--slate-12)" }}>3 days per week</Text>.
                           Employees with lighter schedules transition to drop-in or coworking zones within the same location—still ensuring a great workspace when they do come in.
                         </Text>
-                        <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
-                          <Flex direction="column" gap="2">
-                            {["Desk assignments reflect actual usage patterns", "Rewards consistent in-person culture", "Frees up desks for future headcount growth"].map((pro) => (
-                              <Flex key={pro} align="start" style={{ gap: 4 }}>
-                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
-                                  <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
-                                </Box>
-                                <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
-                              </Flex>
-                            ))}
-                          </Flex>
-                        </Box>
-                        <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px" }}>
-                          <Flex direction="column" gap="2">
-                            {["Some employees may lose their assigned desk", "Relies on accurate badge-in data availability"].map((con) => (
-                              <Flex key={con} align="start" style={{ gap: 4 }}>
-                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
-                                  <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
-                                </Box>
-                                <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
-                              </Flex>
-                            ))}
-                          </Flex>
+                        <Box>
+                          <Heading as="h3" size="2" style={{ color: "var(--slate-12)", marginBottom: 10 }}>Outcome</Heading>
+                          <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
+                            <Flex direction="column" gap="2">
+                              {["Desk assignments reflect actual usage patterns", "Rewards consistent in-person culture", "Frees up desks for future headcount growth"].map((pro) => (
+                                <Flex key={pro} align="start" style={{ gap: 4 }}>
+                                  <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
+                                    <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
+                                  </Box>
+                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                                </Flex>
+                              ))}
+                            </Flex>
+                          </Box>
+                          <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
+                            <Flex direction="column" gap="2">
+                              {["Some employees may lose their assigned desk", "Relies on accurate badge-in data availability"].map((con) => (
+                                <Flex key={con} align="start" style={{ gap: 4 }}>
+                                  <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
+                                    <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
+                                  </Box>
+                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                                </Flex>
+                              ))}
+                            </Flex>
+                          </Box>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
                           <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
@@ -1707,34 +1710,37 @@ export default function LandingPage() {
                         </Flex>
                       </Box>
                       <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
-                        <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
+                        <Text as="p" size="2" style={{ margin: 0, lineHeight: 1.65, color: "var(--slate-12)" }}>
                           The Campus assistant consolidates all employees within the same allocation area into dedicated floor zones at {recTitle}.
                           Teams sit together in contiguous neighborhoods—Enterprise Products in one zone, Enterprise Solutions in another—maximizing proximity for standups, 1:1s, and spontaneous collaboration.
                           If a team&apos;s headcount exceeds available workspaces here, the assistant surfaces a migration plan to move a subset to the nearest compatible office.
                         </Text>
-                        <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
-                          <Flex direction="column" gap="2">
-                            {["Strong team identity and colocation on office days", "Easy for teammates to find each other", "Simplifies desk management and onboarding"].map((pro) => (
-                              <Flex key={pro} align="start" style={{ gap: 4 }}>
-                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
-                                  <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
-                                </Box>
-                                <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
-                              </Flex>
-                            ))}
-                          </Flex>
-                        </Box>
-                        <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px" }}>
-                          <Flex direction="column" gap="2">
-                            {["May require displacing some teams to other locations", "Needs coordinated agreement across team leaders and planners"].map((con) => (
-                              <Flex key={con} align="start" style={{ gap: 4 }}>
-                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
-                                  <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
-                                </Box>
-                                <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
-                              </Flex>
-                            ))}
-                          </Flex>
+                        <Box>
+                          <Heading as="h3" size="2" style={{ color: "var(--slate-12)", marginBottom: 10 }}>Outcome</Heading>
+                          <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
+                            <Flex direction="column" gap="2">
+                              {["Strong team identity and colocation on office days", "Easy for teammates to find each other", "Simplifies desk management and onboarding"].map((pro) => (
+                                <Flex key={pro} align="start" style={{ gap: 4 }}>
+                                  <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
+                                    <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
+                                  </Box>
+                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                                </Flex>
+                              ))}
+                            </Flex>
+                          </Box>
+                          <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
+                            <Flex direction="column" gap="2">
+                              {["May require displacing some teams to other locations", "Needs coordinated agreement across team leaders and planners"].map((con) => (
+                                <Flex key={con} align="start" style={{ gap: 4 }}>
+                                  <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
+                                    <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
+                                  </Box>
+                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                                </Flex>
+                              ))}
+                            </Flex>
+                          </Box>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
                           <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
@@ -1756,35 +1762,38 @@ export default function LandingPage() {
                         </Flex>
                       </Box>
                       <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
-                        <Text as="p" size="2" color="gray" style={{ margin: 0, lineHeight: 1.65 }}>
+                        <Text as="p" size="2" style={{ margin: 0, lineHeight: 1.65, color: "var(--slate-12)" }}>
                           The Campus assistant mines calendar meeting data and collaboration signals to build a{" "}
                           <Text weight="medium" style={{ color: "var(--slate-12)" }}>weighted collaboration graph</Text>—mapping who works most closely with whom, regardless of org chart.
                           Employees are seated near their most frequent collaborators across teams, so engineers who regularly pair with PMs end up in adjacent desks.
                           The assistant recalculates the graph each quarter and proposes incremental re-seating changes to stay current with how work actually flows.
                         </Text>
-                        <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
-                          <Flex direction="column" gap="2">
-                            {["Optimizes for real-world collaboration patterns", "Bridges cross-functional silos naturally", "Self-updating — adapts automatically each quarter"].map((pro) => (
-                              <Flex key={pro} align="start" style={{ gap: 4 }}>
-                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
-                                  <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
-                                </Box>
-                                <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
-                              </Flex>
-                            ))}
-                          </Flex>
-                        </Box>
-                        <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px" }}>
-                          <Flex direction="column" gap="2">
-                            {["Requires access to calendar metadata (privacy review needed)", "Less intuitive than team-based or frequency-based grouping"].map((con) => (
-                              <Flex key={con} align="start" style={{ gap: 4 }}>
-                                <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0 }}>
-                                  <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
-                                </Box>
-                                <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
-                              </Flex>
-                            ))}
-                          </Flex>
+                        <Box>
+                          <Heading as="h3" size="2" style={{ color: "var(--slate-12)", marginBottom: 10 }}>Outcome</Heading>
+                          <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
+                            <Flex direction="column" gap="2">
+                              {["Optimizes for real-world collaboration patterns", "Bridges cross-functional silos naturally", "Self-updating — adapts automatically each quarter"].map((pro) => (
+                                <Flex key={pro} align="start" style={{ gap: 4 }}>
+                                  <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
+                                    <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
+                                  </Box>
+                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                                </Flex>
+                              ))}
+                            </Flex>
+                          </Box>
+                          <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
+                            <Flex direction="column" gap="2">
+                              {["Requires access to calendar metadata (privacy review needed)", "Less intuitive than team-based or frequency-based grouping"].map((con) => (
+                                <Flex key={con} align="start" style={{ gap: 4 }}>
+                                  <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
+                                    <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
+                                  </Box>
+                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                                </Flex>
+                              ))}
+                            </Flex>
+                          </Box>
                         </Box>
                         <Box style={{ marginTop: "auto", paddingTop: 8 }}>
                           <Button size="3" variant="soft" color="gray" style={{ width: "100%", paddingTop: 4, paddingBottom: 4, marginTop: 16, ...SECONDARY_BTN_STYLE }}>Preview changes</Button>
