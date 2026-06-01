@@ -509,7 +509,7 @@ label {
 
   /* Banner icon container: mobile-only size, position, and radius overrides */
   .banner-icon-container {
-    left: -108px !important;
+    left: -92px !important;
     width: 156px !important;
     height: 158px !important;
     border-radius: 20px !important;
@@ -517,7 +517,7 @@ label {
 
   /* Banner lottie icon: all session size/position changes applied mobile-only */
   .banner-lottie-icon {
-    transform: rotate(-25.06deg) scale(0.365) translateX(110%) translateY(-44%) !important;
+    transform: rotate(-25.06deg) scale(0.365) translateX(105%) translateY(-40%) !important;
   }
 
   /* Banner header: mobile overrides — smaller padding, shorter height, no min-height */
