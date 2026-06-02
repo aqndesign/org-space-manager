@@ -484,10 +484,17 @@ label {
     display: none !important;
   }
 
-  /* Banner lottie icon: shrink to fit the shorter mobile banner (76px tall) */
+  /* Banner icon container: TR corner 16px right of icon right edge (88px + 16px = 104px from banner left) */
+  .banner-icon-container {
+    left: -192px !important;
+  }
+
+  /* Banner lottie icon: 72px, left edge 16px from banner edge */
   .banner-lottie-icon {
     width: 72px !important;
     height: 72px !important;
+    left: 16px !important;
+    transform: translateY(-50%) !important;
   }
 
   /* Banner header: mobile overrides — smaller padding, shorter height, no min-height */
@@ -527,14 +534,12 @@ label {
 
 /* ─── Medium layout (768px – 1100px) ────────────────── */
 @media (min-width: 768px) and (max-width: 1100px) {
-  /* Compact banner — same expand/collapse behavior as mobile */
-  .banner-body {
+  /* Banner matches desktop — full body visible, no compact mode */
+  .banner-see-more {
     display: none !important;
   }
-
-  /* Drop shadow when banner is expanded */
-  .banner-purple-header[data-expanded="true"] {
-    box-shadow: 0 6px 20px rgba(115, 54, 165, 0.30) !important;
+  .banner-white-body {
+    display: none !important;
   }
 
   /* Toggle group stacks below the header title */
