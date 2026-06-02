@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Lottie from "lottie-react";
@@ -842,7 +842,7 @@ function GroupCard({
 
       {/* Plan cards grid */}
       <Box p="5">
-        <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
+        <Grid className="plan-cards-grid" columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
           {plans.map((p) => (
             <PlanCard key={p.id} plan={p} view={view} />
           ))}
@@ -1044,6 +1044,9 @@ const MAP_ZONES: { current: MapZone[]; planned: Record<1 | 2 | 3, MapZone[]> } =
   },
 };
 
+const COLLAPSIBLE_FILTERS = ['evaluation', 'status', 'location', 'aa'] as const;
+type CollapsibleFilter = (typeof COLLAPSIBLE_FILTERS)[number];
+
 export default function LandingPage() {
   const bannerLottieRef = useRef<LottieRefCurrentProps>(null);
 
@@ -1069,23 +1072,24 @@ export default function LandingPage() {
     const root = document.querySelector('.view-toggle-root') as HTMLElement | null;
     if (!root) return;
 
-    const rafId = requestAnimationFrame(() => {
-      const active = root.querySelector<HTMLElement>('[data-state="on"]');
+    const measureIndicator = (r: HTMLElement) => {
+      const active = r.querySelector<HTMLElement>('[data-state="on"]');
       if (!active) return;
-
-      const rr = root.getBoundingClientRect();
+      const rr = r.getBoundingClientRect();
       const ar = active.getBoundingClientRect();
-      root.style.setProperty('--ind-left', `${ar.left - rr.left}px`);
-      root.style.setProperty('--ind-top', `${ar.top - rr.top}px`);
-      root.style.setProperty('--ind-width', `${ar.width}px`);
-      root.style.setProperty('--ind-height', `${ar.height}px`);
+      r.style.setProperty('--ind-left', `${ar.left - rr.left}px`);
+      r.style.setProperty('--ind-top', `${ar.top - rr.top}px`);
+      r.style.setProperty('--ind-width', `${ar.width}px`);
+      r.style.setProperty('--ind-height', `${ar.height}px`);
+    };
+
+    const rafId = requestAnimationFrame(() => {
+      measureIndicator(root);
 
       if (!toggleInitialized.current) {
-        // First paint: place without transition, then unlock transitions
         toggleInitialized.current = true;
         requestAnimationFrame(() => root.setAttribute('data-initialized', 'true'));
       } else {
-        // Subsequent changes: set direction then restart the velocity-tail animation
         root.setAttribute('data-direction', view === 'aa' ? 'right' : 'left');
         root.removeAttribute('data-animating');
         requestAnimationFrame(() => {
@@ -1099,7 +1103,18 @@ export default function LandingPage() {
       }
     });
 
-    return () => cancelAnimationFrame(rafId);
+    // Re-measure when the toggle root resizes (e.g. font load, CSS HMR, viewport change)
+    let roRaf: ReturnType<typeof requestAnimationFrame>;
+    const ro = new ResizeObserver(() => {
+      roRaf = requestAnimationFrame(() => measureIndicator(root));
+    });
+    ro.observe(root);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(roRaf);
+      ro.disconnect();
+    };
   }, [view]);
 
   // ── Agent panel ────────────────────────────────────────────────────────────
@@ -1132,6 +1147,57 @@ export default function LandingPage() {
   }
 
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+
+  // ── Filter bar progressive overflow detection ────────────────────────────
+  // useLayoutEffect collapses one pill at a time before paint (no flicker).
+  // ResizeObserver expands them back when the container grows.
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const collapseWidthsRef = useRef<number[]>([]);
+  const collapsedCountRef = useRef(0);
+  const [collapsedCount, setCollapsedCount] = useState(0);
+  const [filterOverflowOpen, setFilterOverflowOpen] = useState(false);
+
+  // Cascade collapse and expand: runs before paint after each collapsedCount change.
+  useLayoutEffect(() => {
+    const el = filterBarRef.current;
+    if (!el) return;
+    if (el.scrollWidth > el.clientWidth + 2 && collapsedCountRef.current < COLLAPSIBLE_FILTERS.length) {
+      collapseWidthsRef.current[collapsedCountRef.current] = el.scrollWidth;
+      collapsedCountRef.current++;
+      setCollapsedCount(collapsedCountRef.current);
+    } else if (collapsedCountRef.current > 0) {
+      const threshold = collapseWidthsRef.current[collapsedCountRef.current - 1];
+      if (threshold !== undefined && el.clientWidth >= threshold + 20) {
+        collapsedCountRef.current--;
+        setCollapsedCount(collapsedCountRef.current);
+        setFilterOverflowOpen(false);
+      }
+    }
+  }, [collapsedCount]);
+
+  // ResizeObserver: fires on every frame during the CSS transition as the Flex narrows.
+  // No rAF wrapper so checks run synchronously while the element is changing size.
+  useEffect(() => {
+    const el = filterBarRef.current;
+    if (!el) return;
+    const check = () => {
+      if (el.scrollWidth > el.clientWidth + 2 && collapsedCountRef.current < COLLAPSIBLE_FILTERS.length) {
+        collapseWidthsRef.current[collapsedCountRef.current] = el.scrollWidth;
+        collapsedCountRef.current++;
+        setCollapsedCount(collapsedCountRef.current);
+      } else if (collapsedCountRef.current > 0) {
+        const threshold = collapseWidthsRef.current[collapsedCountRef.current - 1];
+        if (threshold !== undefined && el.clientWidth >= threshold + 20) {
+          collapsedCountRef.current--;
+          setCollapsedCount(collapsedCountRef.current);
+          setFilterOverflowOpen(false);
+        }
+      }
+    };
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const [agentInput, setAgentInput] = useState("");
   const [agentMessages, setAgentMessages] = useState<{ role: "user" | "agent"; content: string }[]>([]);
   const [newPlanOpen, setNewPlanOpen] = useState(false);
@@ -1218,6 +1284,12 @@ export default function LandingPage() {
   const [aaFilter, setAAFilter] = useState<Set<AllocationArea>>(new Set());
   const [periodFilter, setPeriodFilter] = useState<QuarterRange | null>(null);
   const hasActiveFilters = statusFilter.size > 0 || locationFilter.size > 0 || aaFilter.size > 0 || periodFilter !== null;
+  const hiddenFilters = new Set<CollapsibleFilter>(COLLAPSIBLE_FILTERS.slice(COLLAPSIBLE_FILTERS.length - collapsedCount));
+  const hasHiddenActiveFilters =
+    (hiddenFilters.has('evaluation') && periodFilter !== null) ||
+    (hiddenFilters.has('status') && statusFilter.size > 0) ||
+    (hiddenFilters.has('location') && locationFilter.size > 0) ||
+    (hiddenFilters.has('aa') && aaFilter.size > 0);
 
   function sendAgentMessage() {
     const content = agentInput.trim();
@@ -1389,34 +1461,35 @@ export default function LandingPage() {
                   transition: "border-radius 350ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 350ms ease",
                 }}
               >
-                {/* Icon container — desktop: original specs; mobile: overridden via CSS */}
+                {/* Icon container — white rotated card (decoration) */}
                 <Box className="banner-icon-container" style={{
                   position: "absolute",
                   left: -124,
-                  top: -23,
+                  top: "calc(50% - 122.5px)",
                   width: 243.64,
                   height: 248.38,
                   background: "white",
-                  borderRadius: 20,
-                  transform: "rotate(25.06deg)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
+                  borderRadius: 28,
+                  transform: "rotate(45deg)",
                   boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
-                }}>
-                  <Lottie
-                    lottieRef={bannerLottieRef}
-                    animationData={calendarAnimation}
-                    loop
-                    className="banner-lottie-icon"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      transform: "rotate(-25.06deg) scale(0.438) translateX(70%) translateY(-31%)",
-                    }}
-                  />
-                </Box>
+                }} />
+
+                {/* Calendar icon — independently positioned, unrotated, always centered on banner midline */}
+                <Lottie
+                  lottieRef={bannerLottieRef}
+                  animationData={calendarAnimation}
+                  loop
+                  className="banner-lottie-icon"
+                  style={{
+                    position: "absolute",
+                    left: "calc(96px - 3%)",
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: 114,
+                    height: 114,
+                    zIndex: 1,
+                  }}
+                />
 
                 {/* Top-right: close button only */}
                 <Box style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}>
@@ -1541,6 +1614,7 @@ export default function LandingPage() {
             <Box style={GLASS_CARD_STYLE}>
               {/* Title + toggle row — stacks vertically on mobile */}
               <Flex
+                className="header-card-title-row"
                 direction={{ initial: "column", sm: "row" }}
                 align={{ initial: "start", sm: "center" }}
                 justify="between"
@@ -1597,28 +1671,86 @@ export default function LandingPage() {
               </Flex>
 
               {/* Filter toolbar — desktop only, hidden on mobile via CSS */}
-              <Box className="filter-bar" style={{ margin: "0 8px 8px", background: "white", borderRadius: 9999, padding: "6px 12px" }}>
-                <Flex gap="2" align="center">
+              <Box
+                className="filter-bar"
+                style={{ margin: "0 8px 8px", background: "white", borderRadius: 9999, padding: "6px 12px", overflow: "hidden" }}
+              >
+                <Flex ref={filterBarRef as React.Ref<HTMLDivElement>} gap="2" align="center" style={{ overflow: "hidden" }}>
                   <PillarPill />
-                  <QuarterRangePill value={periodFilter} onChange={setPeriodFilter} />
-                  <FilterPill
-                    label="Status"
-                    options={["Plan draft", "Policy draft", "Submitted", "Approved", "Live"]}
-                    selected={statusFilter as Set<string>}
-                    onToggle={(v) => setStatusFilter(prev => toggleSet(prev, v as PlanStatus))}
-                  />
-                  <FilterPill
-                    label="Location"
-                    options={availableLocations}
-                    selected={locationFilter as Set<string>}
-                    onToggle={(v) => setLocationFilter(prev => toggleSet(prev, v as WorkLocation))}
-                  />
-                  <FilterPill
-                    label="Allocation area"
-                    options={availableAAs}
-                    selected={aaFilter as Set<string>}
-                    onToggle={(v) => setAAFilter(prev => toggleSet(prev, v as AllocationArea))}
-                  />
+                  {!hiddenFilters.has('evaluation') && <QuarterRangePill value={periodFilter} onChange={setPeriodFilter} />}
+                  {!hiddenFilters.has('status') && (
+                    <FilterPill
+                      label="Status"
+                      options={["Plan draft", "Policy draft", "Submitted", "Approved", "Live"]}
+                      selected={statusFilter as Set<string>}
+                      onToggle={(v) => setStatusFilter(prev => toggleSet(prev, v as PlanStatus))}
+                    />
+                  )}
+                  {!hiddenFilters.has('location') && (
+                    <FilterPill
+                      label="Location"
+                      options={availableLocations}
+                      selected={locationFilter as Set<string>}
+                      onToggle={(v) => setLocationFilter(prev => toggleSet(prev, v as WorkLocation))}
+                    />
+                  )}
+                  {!hiddenFilters.has('aa') && (
+                    <FilterPill
+                      label="Allocation area"
+                      options={availableAAs}
+                      selected={aaFilter as Set<string>}
+                      onToggle={(v) => setAAFilter(prev => toggleSet(prev, v as AllocationArea))}
+                    />
+                  )}
+                  {collapsedCount > 0 && (
+                    <Popover.Root open={filterOverflowOpen} onOpenChange={setFilterOverflowOpen}>
+                      <Popover.Trigger>
+                        <IconButton
+                          variant="soft"
+                          color={hasHiddenActiveFilters ? "blue" : "gray"}
+                          size="1"
+                          radius="full"
+                          aria-label="More filters"
+                        >
+                          <MixerHorizontalIcon />
+                        </IconButton>
+                      </Popover.Trigger>
+                      <Popover.Content size="1" style={{ padding: "12px 14px" }} align="end" sideOffset={8}>
+                        <Flex direction="column" gap="2">
+                          {hiddenFilters.has('evaluation') && (
+                            <Flex direction="column" gap="1">
+                              <Text size="1" color="gray" weight="medium">Evaluation period</Text>
+                              <QuarterRangePill value={periodFilter} onChange={setPeriodFilter} />
+                            </Flex>
+                          )}
+                          {hiddenFilters.has('status') && (
+                            <FilterPill
+                              label="Status"
+                              options={["Plan draft", "Policy draft", "Submitted", "Approved", "Live"]}
+                              selected={statusFilter as Set<string>}
+                              onToggle={(v) => setStatusFilter(prev => toggleSet(prev, v as PlanStatus))}
+                            />
+                          )}
+                          {hiddenFilters.has('location') && (
+                            <FilterPill
+                              label="Location"
+                              options={availableLocations}
+                              selected={locationFilter as Set<string>}
+                              onToggle={(v) => setLocationFilter(prev => toggleSet(prev, v as WorkLocation))}
+                            />
+                          )}
+                          {hiddenFilters.has('aa') && (
+                            <FilterPill
+                              label="Allocation area"
+                              options={availableAAs}
+                              selected={aaFilter as Set<string>}
+                              onToggle={(v) => setAAFilter(prev => toggleSet(prev, v as AllocationArea))}
+                            />
+                          )}
+                        </Flex>
+                      </Popover.Content>
+                    </Popover.Root>
+                  )}
                   {hasActiveFilters && (
                     <Button
                       variant="ghost"

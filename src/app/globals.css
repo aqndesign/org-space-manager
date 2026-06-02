@@ -111,9 +111,8 @@ h4.rt-Heading {
 .view-toggle-item {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: var(--space-1);
-  padding-right: var(--space-2);
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   border-radius: 9999px;
   font-size: var(--font-size-2);
   font-family: var(--font-body), system-ui, sans-serif;
@@ -122,7 +121,6 @@ h4.rt-Heading {
   cursor: pointer;
   border: none;
   background: transparent;
-  /* Only transition color — background is owned by the ::before indicator */
   transition: color 150ms ease;
   white-space: nowrap;
   position: relative;
@@ -141,35 +139,14 @@ h4.rt-Heading {
 
 /* ─── Toggle icon wrapper ────────────────────────────── */
 .seg-icon-wrap {
-  width: 24px;
-  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
   flex-shrink: 0;
-  background: transparent;
-}
-
-@keyframes segIconCircleIn {
-  from {
-    transform: scale(0.9);
-    opacity: 0.75;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
 }
 
 .view-toggle-item[data-state="on"] .seg-icon-wrap {
-  background: rgba(38, 87, 232, 0.20);
-  animation: segIconCircleIn 150ms ease forwards;
   color: #2657E8;
-}
-
-.view-toggle-item[data-state="off"] .seg-icon-wrap {
-  background: transparent;
 }
 
 /* ─── Data viz text tokens ──────────────────────────── */
@@ -507,17 +484,10 @@ label {
     display: none !important;
   }
 
-  /* Banner icon container: mobile-only size, position, and radius overrides */
-  .banner-icon-container {
-    left: -92px !important;
-    width: 156px !important;
-    height: 158px !important;
-    border-radius: 20px !important;
-  }
-
-  /* Banner lottie icon: all session size/position changes applied mobile-only */
+  /* Banner lottie icon: shrink to fit the shorter mobile banner (76px tall) */
   .banner-lottie-icon {
-    transform: rotate(-25.06deg) scale(0.365) translateX(105%) translateY(-40%) !important;
+    width: 72px !important;
+    height: 72px !important;
   }
 
   /* Banner header: mobile overrides — smaller padding, shorter height, no min-height */
@@ -547,14 +517,41 @@ label {
   }
 }
 
-/* ─── Desktop layout ─────────────────────────────────── */
+/* ─── Desktop layout (all ≥768px) ───────────────────── */
 @media (min-width: 768px) {
   /* Hide mobile-only filter button on desktop */
   .filter-btn-mobile {
     display: none !important;
   }
+}
 
-  /* "See more" / white section are mobile-only */
+/* ─── Medium layout (768px – 1100px) ────────────────── */
+@media (min-width: 768px) and (max-width: 1100px) {
+  /* Compact banner — same expand/collapse behavior as mobile */
+  .banner-body {
+    display: none !important;
+  }
+
+  /* Drop shadow when banner is expanded */
+  .banner-purple-header[data-expanded="true"] {
+    box-shadow: 0 6px 20px rgba(115, 54, 165, 0.30) !important;
+  }
+
+  /* Toggle group stacks below the header title */
+  .header-card-title-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  /* Plan cards always single-column */
+  .plan-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ─── Wide desktop layout (≥1101px) ─────────────────── */
+@media (min-width: 1101px) {
+  /* "See more" / white section are medium/mobile-only */
   .banner-see-more {
     display: none !important;
   }
@@ -563,7 +560,7 @@ label {
     display: none !important;
   }
 
-  /* Purple section description always visible on desktop */
+  /* Purple section description always visible on wide desktop */
   .banner-body {
     display: block !important;
   }
