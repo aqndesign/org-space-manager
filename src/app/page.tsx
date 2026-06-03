@@ -1469,7 +1469,7 @@ export default function LandingPage() {
                   width: 243.64,
                   height: 248.38,
                   background: "white",
-                  borderRadius: 28,
+                  borderRadius: "28px 32px 28px 28px",
                   transform: "rotate(45deg)",
                   boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
                 }} />
