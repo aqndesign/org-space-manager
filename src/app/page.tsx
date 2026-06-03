@@ -1940,7 +1940,7 @@ export default function LandingPage() {
           {recPhase === "content" && (
             <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", zIndex: 1, overflow: "hidden" }}>
               {/* Modal header */}
-              <Box style={{ padding: "28px 36px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid var(--gray-5)", flexShrink: 0, animation: "recHeaderIn 250ms ease-in-out 350ms both" }}>
+              <Box style={{ padding: "28px 16px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid var(--gray-5)", flexShrink: 0, animation: "recHeaderIn 250ms ease-in-out 350ms both" }}>
                 <Flex align="start" justify="between">
                   <Flex align="start" style={{ gap: 8 }}>
                     <Box style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #2657E8, #6421CA)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1964,8 +1964,8 @@ export default function LandingPage() {
 
               {/* ── Main level: options grid ──────────────────────────── */}
               {!previewOption && <ScrollArea style={{ flex: 1 }}>
-                <Box style={{ padding: "28px 36px 40px" }}>
-                  <Grid columns={{ initial: "1", md: "3" }} style={{ alignItems: "stretch", gap: 16 }}>
+                <Box style={{ padding: 16, display: "flex", flexDirection: "column", minHeight: "100%" }}>
+                  <Grid columns={{ initial: "1", md: "3" }} style={{ alignItems: "stretch", gap: 16, flex: 1 }}>
 
                     {/* Option 1: In-Person Frequency Priority */}
                     <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--blue-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
@@ -1982,33 +1982,33 @@ export default function LandingPage() {
                       </Box>
                       <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
                         <Text as="p" size="2" style={{ margin: 0, lineHeight: 1.65, color: "var(--slate-12)" }}>
-                          The Campus assistant analyzes badge-in patterns and segments employees by in-office frequency.
-                          Assigned desks are reserved for employees who come in at least{" "}
+                          Employees are segmented by badge-in frequency.
+                          Assigned desks go to those who come in at least{" "}
                           <Text weight="medium" style={{ color: "var(--slate-12)" }}>3 days per week</Text>.
-                          Employees with lighter schedules transition to drop-in or coworking zones within the same location—still ensuring a great workspace when they do come in.
+                          Everyone else shifts to drop-in or coworking zones at the same location.
                         </Text>
-                        <Box>
+                        <Box style={{ marginTop: 8 }}>
                           <Heading as="h3" size="2" style={{ color: "var(--slate-12)", marginBottom: 10 }}>Outcome</Heading>
-                          <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
+                          <Box style={{ background: "var(--green-2)", borderRadius: 12, padding: "12px 14px" }}>
                             <Flex direction="column" gap="2">
                               {["Desk assignments reflect actual usage patterns", "Rewards consistent in-person culture", "Frees up desks for future headcount growth"].map((pro) => (
                                 <Flex key={pro} align="start" style={{ gap: 4 }}>
                                   <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
                                     <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
                                   </Box>
-                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                                  <Text size="2" style={{ color: "var(--slate-12)" }}>{pro}</Text>
                                 </Flex>
                               ))}
                             </Flex>
                           </Box>
-                          <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
+                          <Box style={{ background: "var(--red-2)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
                             <Flex direction="column" gap="2">
                               {["Some employees may lose their assigned desk", "Relies on accurate badge-in data availability"].map((con) => (
                                 <Flex key={con} align="start" style={{ gap: 4 }}>
                                   <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
                                     <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
                                   </Box>
-                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                                  <Text size="2" style={{ color: "var(--slate-12)" }}>{con}</Text>
                                 </Flex>
                               ))}
                             </Flex>
@@ -2035,32 +2035,32 @@ export default function LandingPage() {
                       </Box>
                       <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
                         <Text as="p" size="2" style={{ margin: 0, lineHeight: 1.65, color: "var(--slate-12)" }}>
-                          The Campus assistant consolidates all employees within the same allocation area into dedicated floor zones at {recTitle}.
-                          Teams sit together in contiguous neighborhoods—Enterprise Products in one zone, Enterprise Solutions in another—maximizing proximity for standups, 1:1s, and spontaneous collaboration.
-                          If a team&apos;s headcount exceeds available workspaces here, the assistant surfaces a migration plan to move a subset to the nearest compatible office.
+                          Employees in the same allocation area are grouped into dedicated floor zones at {recTitle}.
+                          Teams sit in contiguous neighborhoods, maximizing proximity for standups and collaboration.
+                          Overflow headcount is redistributed to the nearest compatible office.
                         </Text>
-                        <Box>
+                        <Box style={{ marginTop: 8 }}>
                           <Heading as="h3" size="2" style={{ color: "var(--slate-12)", marginBottom: 10 }}>Outcome</Heading>
-                          <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
+                          <Box style={{ background: "var(--green-2)", borderRadius: 12, padding: "12px 14px" }}>
                             <Flex direction="column" gap="2">
                               {["Strong team identity and colocation on office days", "Easy for teammates to find each other", "Simplifies desk management and onboarding"].map((pro) => (
                                 <Flex key={pro} align="start" style={{ gap: 4 }}>
                                   <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
                                     <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
                                   </Box>
-                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                                  <Text size="2" style={{ color: "var(--slate-12)" }}>{pro}</Text>
                                 </Flex>
                               ))}
                             </Flex>
                           </Box>
-                          <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
+                          <Box style={{ background: "var(--red-2)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
                             <Flex direction="column" gap="2">
                               {["May require displacing some teams to other locations", "Needs coordinated agreement across team leaders and planners"].map((con) => (
                                 <Flex key={con} align="start" style={{ gap: 4 }}>
                                   <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
                                     <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
                                   </Box>
-                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                                  <Text size="2" style={{ color: "var(--slate-12)" }}>{con}</Text>
                                 </Flex>
                               ))}
                             </Flex>
@@ -2087,33 +2087,32 @@ export default function LandingPage() {
                       </Box>
                       <Flex direction="column" gap="4" style={{ padding: "20px 24px", flex: 1, background: "white", borderRadius: 16, margin: "0 4px 4px" }}>
                         <Text as="p" size="2" style={{ margin: 0, lineHeight: 1.65, color: "var(--slate-12)" }}>
-                          The Campus assistant mines calendar meeting data and collaboration signals to build a{" "}
-                          <Text weight="medium" style={{ color: "var(--slate-12)" }}>weighted collaboration graph</Text>—mapping who works most closely with whom, regardless of org chart.
-                          Employees are seated near their most frequent collaborators across teams, so engineers who regularly pair with PMs end up in adjacent desks.
-                          The assistant recalculates the graph each quarter and proposes incremental re-seating changes to stay current with how work actually flows.
+                          Seating is arranged by cross-functional collaboration patterns, not org chart.
+                          Employees land near their most frequent collaborators across teams—regardless of pillar or allocation area.
+                          Assignments refresh each quarter to stay current with how work actually flows.
                         </Text>
-                        <Box>
+                        <Box style={{ marginTop: 8 }}>
                           <Heading as="h3" size="2" style={{ color: "var(--slate-12)", marginBottom: 10 }}>Outcome</Heading>
-                          <Box style={{ border: "1px solid var(--green-6)", borderRadius: 12, padding: "12px 14px" }}>
+                          <Box style={{ background: "var(--green-2)", borderRadius: 12, padding: "12px 14px" }}>
                             <Flex direction="column" gap="2">
                               {["Optimizes for real-world collaboration patterns", "Bridges cross-functional silos naturally", "Self-updating — adapts automatically each quarter"].map((pro) => (
                                 <Flex key={pro} align="start" style={{ gap: 4 }}>
                                   <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
                                     <CheckCircledIcon width={15} height={15} style={{ color: "var(--green-10)" }} />
                                   </Box>
-                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{pro}</Text>
+                                  <Text size="2" style={{ color: "var(--slate-12)" }}>{pro}</Text>
                                 </Flex>
                               ))}
                             </Flex>
                           </Box>
-                          <Box style={{ border: "1px solid var(--red-6)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
+                          <Box style={{ background: "var(--red-2)", borderRadius: 12, padding: "12px 14px", marginTop: 8 }}>
                             <Flex direction="column" gap="2">
                               {["Requires access to calendar metadata (privacy review needed)", "Less intuitive than team-based or frequency-based grouping"].map((con) => (
                                 <Flex key={con} align="start" style={{ gap: 4 }}>
                                   <Box style={{ display: "inline-flex", alignItems: "center", height: 20, flexShrink: 0, marginTop: 2 }}>
                                     <Cross2Icon width={13} height={13} style={{ color: "var(--red-10)" }} />
                                   </Box>
-                                  <Text size="2" style={{ color: "var(--slate-11)" }}>{con}</Text>
+                                  <Text size="2" style={{ color: "var(--slate-12)" }}>{con}</Text>
                                 </Flex>
                               ))}
                             </Flex>
@@ -2167,8 +2166,8 @@ export default function LandingPage() {
                     </Flex>
                   </Box>
                   <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--gray-6) transparent" }}>
-                    <Box style={{ padding: "80px 0 40px" }}>
-                      <Box style={{ padding: "0 36px" }}>
+                    <Box style={{ padding: "80px 0 16px" }}>
+                      <Box style={{ padding: "0 16px" }}>
 
                       {/* ── DATA VIEW ──────────────────────────────────────── */}
                       {previewView === "data" && previewPln && (
@@ -2179,9 +2178,6 @@ export default function LandingPage() {
                               <Flex justify="between" align="start" style={{ marginBottom: 16 }}>
                                 <Box>
                                   <Heading as="h3" size="3" style={{ color: "var(--slate-12)" }}>Employee population</Heading>
-                                  <Text as="p" size="1" color="gray" style={{ margin: "4px 0 0" }}>
-                                    {previewEmpTotal - PREVIEW_EMP.futureHeadcount} current · +{PREVIEW_EMP.futureHeadcount} future headcount
-                                  </Text>
                                 </Box>
                               </Flex>
                               {/* Segmented bar — full segments including future headcount */}
@@ -2208,7 +2204,6 @@ export default function LandingPage() {
                                           >
                                             <Box style={{
                                               width: "100%", height: "100%", background: color, borderRadius,
-                                              ...(isFuture ? { backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.6) 4px, rgba(255,255,255,0.6) 5px)" } : {}),
                                               opacity: previewEmpHovered !== null && previewEmpHovered !== label ? 0.35 : 1,
                                               transition: "opacity 120ms ease",
                                               cursor: "default",
@@ -2225,7 +2220,7 @@ export default function LandingPage() {
                                           align="center"
                                           gap="1"
                                           style={{
-                                            padding: "2px 6px 2px 4px", borderRadius: 9999, cursor: "default",
+                                            padding: "2px 8px", borderRadius: 9999, cursor: "default",
                                             opacity: previewEmpHovered !== null && previewEmpHovered !== label ? 0.35 : 1,
                                             background: previewEmpHovered === label ? "var(--gray-a3)" : "transparent",
                                             transition: "opacity 120ms ease, background 120ms ease",
@@ -2233,9 +2228,9 @@ export default function LandingPage() {
                                           onMouseEnter={() => setPreviewEmpHovered(label)}
                                           onMouseLeave={() => setPreviewEmpHovered(null)}
                                         >
-                                          <Box style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
-                                          <Text size="1" color="gray">{isFuture ? `+${value} future` : label}</Text>
-                                          {!isFuture && <Text size="1" weight="medium" style={{ color: "var(--slate-12)" }}>{value.toLocaleString()}</Text>}
+                                          <Box style={{ width: 12, height: 12, borderRadius: 2, background: color, flexShrink: 0 }} />
+                                          <Text size="1" color="gray" style={{ marginInline: 4 }}>{isFuture ? "Future headcount" : label}</Text>
+                                          <Text size="1" weight="medium" style={{ color: "var(--slate-12)" }}>{value.toLocaleString()}</Text>
                                         </Flex>
                                       ))}
                                     </Flex>
