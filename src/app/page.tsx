@@ -1255,14 +1255,17 @@ export default function LandingPage() {
   function closeRec() {
     previewOptionRef.current = null;
     setPreviewOption(null);
-    setRecPhase("expanding");
-    setRecIsExpanded(false);
-    setContentFaded(false);
+    setRecPhase("closing");                          // step 1: cards + header exit
     setTimeout(() => {
-      setRecPhase("idle");
-      setRecRect(null);
-      setRecTitle(null);
-    }, 280);
+      setRecPhase("expanding");                      // step 2: modal frame shrinks — page stays hidden
+      setRecIsExpanded(false);
+      setTimeout(() => {
+        setRecPhase("idle");                         // step 3: portal unmounts…
+        setRecRect(null);
+        setRecTitle(null);
+        setContentFaded(false);                      // …then page fades in (visible now that modal is gone)
+      }, 280);
+    }, 380);                                         // opt1 exits last: 160ms delay + 200ms anim = 360ms + 20ms grace
   }
 
   function openPreview(num: 1 | 2 | 3, label: string, color: string) {
@@ -1962,13 +1965,17 @@ export default function LandingPage() {
                 </Flex>
               </Box>
 
+              {/* ── Body: no container-level fade — each card owns its own exit animation */}
+              <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+
+
               {/* ── Main level: options grid ──────────────────────────── */}
               {!previewOption && <ScrollArea style={{ flex: 1 }}>
                 <Box style={{ padding: 16, display: "flex", flexDirection: "column", minHeight: "100%" }}>
                   <Grid columns={{ initial: "1", md: "3" }} style={{ alignItems: "stretch", gap: 16, flex: 1 }}>
 
                     {/* Option 1: In-Person Frequency Priority */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--blue-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: "recItemIn 200ms ease-out 80ms both" }}>
+                    <Flex key={recPhase === "closing" ? "opt1-c" : "opt1-o"} direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--blue-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: recPhase === "closing" ? "recItemOut 200ms ease-in 160ms both" : "recItemIn 200ms ease-out 80ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--blue-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
@@ -2021,7 +2028,7 @@ export default function LandingPage() {
                     </Flex>
 
                     {/* Option 2: Team Colocation */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--purple-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: "recItemIn 200ms ease-out 180ms both" }}>
+                    <Flex key={recPhase === "closing" ? "opt2-c" : "opt2-o"} direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--purple-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: recPhase === "closing" ? "recItemOut 200ms ease-in 80ms both" : "recItemIn 200ms ease-out 180ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--purple-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
@@ -2073,7 +2080,7 @@ export default function LandingPage() {
                     </Flex>
 
                     {/* Option 3: Collaboration Graph Clustering */}
-                    <Flex direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--teal-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: "recItemIn 200ms ease-out 280ms both" }}>
+                    <Flex key={recPhase === "closing" ? "opt3-c" : "opt3-o"} direction="column" style={{ ...GLASS_CARD_STYLE, background: "color-mix(in srgb, color-mix(in srgb, var(--teal-3) 56%, white) 72%, transparent)", borderRadius: 16, animation: recPhase === "closing" ? "recItemOut 200ms ease-in 0ms both" : "recItemIn 200ms ease-out 280ms both" }}>
                       <Box style={{ padding: "20px 24px 16px", background: "transparent", borderBottom: "none" }}>
                         <Flex align="center" gap="3">
                           <Box style={{ width: 40, height: 40, borderRadius: 12, background: "var(--teal-11)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
@@ -2500,6 +2507,7 @@ export default function LandingPage() {
                 </Box>
               )}
 
+              </div>{/* ── end body wrapper ── */}
             </Box>
           )}
         </Box>,
