@@ -1015,31 +1015,38 @@ const ZONE_AA_BORDER: Record<string, string> = {
 
 type MapZone = { id: string; label: string; top: number; left: number; width: number; height: number };
 
+// Zones are aligned to the real desk neighborhoods on floorplan_01.png:
+// Products → top desk farm, Ticketing → bottom desk farm,
+// Analytics → left desk column, Solutions → right desk column.
+// The building core (meeting rooms, elevators, stairs) in the center is unassigned.
 const MAP_ZONES: { current: MapZone[]; planned: Record<1 | 2 | 3, MapZone[]> } = {
   current: [
-    { id: "ep", label: "Enterprise Products",  top: 11, left: 28, width: 22, height: 40 },
-    { id: "es", label: "Enterprise Solutions",  top: 11, left: 50, width: 19, height: 40 },
-    { id: "et", label: "Enterprise Ticketing",  top: 54, left: 28, width: 19, height: 26 },
-    { id: "ea", label: "Enterprise Analytics",  top: 54, left: 47, width: 22, height: 26 },
+    { id: "ep", label: "Enterprise Products",  top:  1, left: 10, width: 62, height: 14 },
+    { id: "es", label: "Enterprise Solutions",  top: 18, left: 89, width: 10, height: 68 },
+    { id: "et", label: "Enterprise Ticketing",  top: 85, left:  7, width: 65, height: 14 },
+    { id: "ea", label: "Enterprise Analytics",  top: 18, left:  1, width: 11, height: 68 },
   ],
   planned: {
+    // In-person time priority — fewer assigned desks, so neighborhoods contract.
     1: [
-      { id: "ep", label: "Enterprise Products",  top: 11, left: 28, width: 17, height: 40 },
-      { id: "es", label: "Enterprise Solutions",  top: 11, left: 45, width: 19, height: 40 },
-      { id: "et", label: "Enterprise Ticketing",  top: 54, left: 28, width: 15, height: 26 },
-      { id: "ea", label: "Enterprise Analytics",  top: 54, left: 43, width: 26, height: 26 },
+      { id: "ep", label: "Enterprise Products",  top:  1, left: 16, width: 48, height: 14 },
+      { id: "es", label: "Enterprise Solutions",  top: 24, left: 89, width: 10, height: 54 },
+      { id: "et", label: "Enterprise Ticketing",  top: 85, left: 14, width: 52, height: 14 },
+      { id: "ea", label: "Enterprise Analytics",  top: 24, left:  1, width: 11, height: 54 },
     ],
+    // Team colocation priority — full contiguous neighborhoods at max extent.
     2: [
-      { id: "ep", label: "Enterprise Products",  top:  9, left: 26, width: 24, height: 44 },
-      { id: "es", label: "Enterprise Solutions",  top:  9, left: 50, width: 21, height: 44 },
-      { id: "et", label: "Enterprise Ticketing",  top: 53, left: 26, width: 24, height: 29 },
-      { id: "ea", label: "Enterprise Analytics",  top: 53, left: 50, width: 21, height: 29 },
+      { id: "ep", label: "Enterprise Products",  top:  1, left:  9, width: 63, height: 15 },
+      { id: "es", label: "Enterprise Solutions",  top: 17, left: 89, width: 10, height: 70 },
+      { id: "et", label: "Enterprise Ticketing",  top: 84, left:  7, width: 65, height: 15 },
+      { id: "ea", label: "Enterprise Analytics",  top: 17, left:  1, width: 11, height: 70 },
     ],
+    // XFN collaboration priority — bands shift to interleave teams near the core.
     3: [
-      { id: "ep", label: "Enterprise Products",  top: 10, left: 27, width: 28, height: 38 },
-      { id: "es", label: "Enterprise Solutions",  top: 10, left: 55, width: 14, height: 38 },
-      { id: "et", label: "Enterprise Ticketing",  top: 52, left: 27, width: 18, height: 30 },
-      { id: "ea", label: "Enterprise Analytics",  top: 52, left: 45, width: 24, height: 30 },
+      { id: "ep", label: "Enterprise Products",  top:  1, left: 10, width: 50, height: 14 },
+      { id: "es", label: "Enterprise Solutions",  top: 18, left: 89, width: 10, height: 68 },
+      { id: "et", label: "Enterprise Ticketing",  top: 85, left: 22, width: 50, height: 14 },
+      { id: "ea", label: "Enterprise Analytics",  top: 18, left:  1, width: 11, height: 68 },
     ],
   },
 };
@@ -1206,7 +1213,7 @@ export default function LandingPage() {
   // ── Recommendations full-screen expansion ─────────────────────────────────
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const [recTitle, setRecTitle] = useState<string | null>(null);
-  const [recPhase, setRecPhase] = useState<"idle" | "expanding" | "content">("idle");
+  const [recPhase, setRecPhase] = useState<"idle" | "expanding" | "content" | "closing">("idle");
   const [recIsExpanded, setRecIsExpanded] = useState(false);
   const [recRect, setRecRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const [contentFaded, setContentFaded] = useState(false);
@@ -1940,7 +1947,7 @@ export default function LandingPage() {
           }}
         >
           <BlobCanvas />
-          {recPhase === "content" && (
+          {(recPhase === "content" || recPhase === "closing") && (
             <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", zIndex: 1, overflow: "hidden" }}>
               {/* Modal header */}
               <Box style={{ padding: "28px 16px 24px", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)", borderBottom: "0.5px solid var(--gray-5)", flexShrink: 0, animation: "recHeaderIn 250ms ease-in-out 350ms both" }}>
@@ -2437,12 +2444,12 @@ export default function LandingPage() {
                             {/* Two map panels */}
                             <Grid columns="2" style={{ gap: 16 }}>
                               {([
-                                { title: "Current state", zones: previewCurrentZones },
-                                { title: "Planned changes", zones: previewPlannedZones },
-                              ] as { title: string; zones: MapZone[] }[]).map(({ title, zones }) => (
+                                { title: "Current state", zones: previewCurrentZones, img: "/floorplan_01.png" },
+                                { title: "Planned changes", zones: previewPlannedZones, img: "/floorplan_01.png" },
+                              ] as { title: string; zones: MapZone[]; img: string }[]).map(({ title, zones, img }) => (
                                 <Box key={title}>
                                   <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 10 }}>{title}</Text>
-                                  <Box style={{ borderRadius: 12, overflow: "hidden", background: "var(--gray-2)", border: "0.5px solid var(--gray-5)", aspectRatio: "1496/760" }}>
+                                  <Box style={{ borderRadius: 12, overflow: "hidden", background: "var(--gray-2)", border: "0.5px solid var(--gray-5)", aspectRatio: "2816/1536" }}>
                                     <Box
                                       style={{
                                         width: "100%",
@@ -2454,8 +2461,8 @@ export default function LandingPage() {
                                       }}
                                     >
                                       <img
-                                        src="/map_01.png"
-                                        alt="Floor plan"
+                                        src={img}
+                                        alt={`${title} floor plan`}
                                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", userSelect: "none" }}
                                         draggable={false}
                                       />
