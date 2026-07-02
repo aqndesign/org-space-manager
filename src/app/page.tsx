@@ -1013,43 +1013,274 @@ const ZONE_AA_BORDER: Record<string, string> = {
   "Enterprise Analytics": "rgba(245,158,11,0.5)",
 };
 
-type MapZone = { id: string; label: string; top: number; left: number; width: number; height: number };
+// ── Preview: desk clusters measured from floorplan_01.png ────────────────────
+// Each cluster is one physical desk pod (bench) drawn on the plan. x/y/w/h hug
+// the drawn desk block (% of the 2816×1536 image) — chairs excluded — and
+// cols×rows is the pod's seat grid. The floor's center (meeting rooms, core,
+// kitchens) intentionally has no clusters, so zones can never cover rooms.
+type DeskCluster = { id: string; band: "top" | "bottom" | "left" | "right"; x: number; y: number; w: number; h: number; cols: number; rows: number };
 
-// Zones are aligned to the real desk neighborhoods on floorplan_01.png:
-// Products → top desk farm, Ticketing → bottom desk farm,
-// Analytics → left desk column, Solutions → right desk column.
-// The building core (meeting rooms, elevators, stairs) in the center is unassigned.
-const MAP_ZONES: { current: MapZone[]; planned: Record<1 | 2 | 3, MapZone[]> } = {
-  current: [
-    { id: "ep", label: "Enterprise Products",  top:  1, left: 10, width: 62, height: 14 },
-    { id: "es", label: "Enterprise Solutions",  top: 18, left: 89, width: 10, height: 68 },
-    { id: "et", label: "Enterprise Ticketing",  top: 85, left:  7, width: 65, height: 14 },
-    { id: "ea", label: "Enterprise Analytics",  top: 18, left:  1, width: 11, height: 68 },
-  ],
+const DESK_CLUSTERS: DeskCluster[] = [
+  // Top desk farm — double benches, 2 cols × 3 rows (T8a/T8b flank a planter spine)
+  { id: "T1",  band: "top", x:  8.70, y: 2.3, w: 3.00, h: 11.0, cols: 2, rows: 3 },
+  { id: "T2",  band: "top", x: 13.00, y: 2.3, w: 3.00, h: 11.0, cols: 2, rows: 3 },
+  { id: "T3",  band: "top", x: 17.05, y: 2.3, w: 3.00, h: 11.0, cols: 2, rows: 3 },
+  { id: "T4",  band: "top", x: 21.30, y: 2.3, w: 3.00, h: 11.0, cols: 2, rows: 3 },
+  { id: "T5",  band: "top", x: 25.85, y: 2.3, w: 3.00, h: 11.0, cols: 2, rows: 3 },
+  { id: "T6",  band: "top", x: 30.30, y: 2.3, w: 3.00, h: 11.0, cols: 2, rows: 3 },
+  { id: "T7",  band: "top", x: 34.85, y: 2.3, w: 3.00, h: 11.0, cols: 2, rows: 3 },
+  { id: "T8a", band: "top", x: 39.20, y: 2.3, w: 1.10, h: 11.0, cols: 1, rows: 3 },
+  { id: "T8b", band: "top", x: 42.90, y: 2.3, w: 1.10, h: 11.0, cols: 1, rows: 3 },
+  { id: "T9",  band: "top", x: 45.65, y: 2.3, w: 2.40, h: 11.0, cols: 2, rows: 3 },
+  { id: "T10", band: "top", x: 52.00, y: 2.3, w: 2.30, h: 11.0, cols: 2, rows: 3 },
+  { id: "T11", band: "top", x: 56.40, y: 2.3, w: 2.35, h: 11.0, cols: 2, rows: 3 },
+  { id: "T12", band: "top", x: 61.00, y: 2.3, w: 2.30, h: 11.0, cols: 2, rows: 3 },
+  { id: "T13", band: "top", x: 84.90, y: 2.3, w: 2.70, h: 11.0, cols: 2, rows: 3 },
+  { id: "T14", band: "top", x: 89.40, y: 2.3, w: 1.20, h: 11.0, cols: 1, rows: 3 },
+  // Bottom desk farm — quads, 2 cols × 2 rows
+  { id: "B1",  band: "bottom", x:  2.20, y: 90.2, w: 4.10, h: 6.6, cols: 2, rows: 2 },
+  { id: "B2",  band: "bottom", x:  8.40, y: 90.2, w: 4.10, h: 6.6, cols: 2, rows: 2 },
+  { id: "B3",  band: "bottom", x: 14.60, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B4",  band: "bottom", x: 20.80, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B5",  band: "bottom", x: 27.00, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B6",  band: "bottom", x: 38.50, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B7",  band: "bottom", x: 44.70, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B8",  band: "bottom", x: 51.00, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B9",  band: "bottom", x: 57.20, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B10", band: "bottom", x: 69.60, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B11", band: "bottom", x: 75.70, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B12", band: "bottom", x: 81.80, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  { id: "B13", band: "bottom", x: 87.90, y: 90.2, w: 4.00, h: 6.6, cols: 2, rows: 2 },
+  // Left desk column — rows of 3, chairs above/below (L1 is a half pod)
+  { id: "L1", band: "left", x: 1.20, y: 17.0, w: 6.10, h: 1.6, cols: 3, rows: 1 },
+  { id: "L2", band: "left", x: 1.20, y: 23.3, w: 6.10, h: 2.9, cols: 3, rows: 2 },
+  { id: "L3", band: "left", x: 1.20, y: 31.5, w: 6.10, h: 2.8, cols: 3, rows: 2 },
+  { id: "L4", band: "left", x: 1.20, y: 40.0, w: 6.10, h: 3.5, cols: 3, rows: 2 },
+  { id: "L5", band: "left", x: 1.20, y: 48.4, w: 6.10, h: 3.2, cols: 3, rows: 2 },
+  { id: "L6", band: "left", x: 1.20, y: 56.1, w: 6.10, h: 3.0, cols: 3, rows: 2 },
+  { id: "L7", band: "left", x: 1.20, y: 66.3, w: 6.10, h: 3.1, cols: 3, rows: 2 },
+  { id: "L8", band: "left", x: 1.20, y: 73.7, w: 6.10, h: 2.9, cols: 3, rows: 2 },
+  { id: "L9", band: "left", x: 1.20, y: 81.7, w: 6.10, h: 2.9, cols: 3, rows: 2 },
+  // Right desk column — rows of 3, interrupted mid-column by the AA conference room
+  { id: "R1", band: "right", x: 92.40, y: 20.8, w: 6.00, h: 2.8, cols: 3, rows: 2 },
+  { id: "R2", band: "right", x: 92.40, y: 28.9, w: 6.00, h: 2.8, cols: 3, rows: 2 },
+  { id: "R3", band: "right", x: 92.40, y: 36.5, w: 6.00, h: 2.8, cols: 3, rows: 2 },
+  { id: "R4", band: "right", x: 92.40, y: 44.2, w: 6.00, h: 2.8, cols: 3, rows: 2 },
+  { id: "R5", band: "right", x: 92.40, y: 66.5, w: 6.00, h: 2.8, cols: 3, rows: 2 },
+  { id: "R6", band: "right", x: 92.40, y: 74.0, w: 6.00, h: 2.8, cols: 3, rows: 2 },
+  { id: "R7", band: "right", x: 92.40, y: 81.4, w: 6.00, h: 2.8, cols: 3, rows: 2 },
+];
+
+// Which team occupies each pod, per scenario. Pods left out are open/coworking.
+type TeamAssignment = Record<string, string | undefined>;
+
+const podIds = (prefix: string, from: number, to: number) =>
+  Array.from({ length: to - from + 1 }, (_, i) => `${prefix}${from + i}`);
+const TOP_MAIN_PODS = [...podIds("T", 1, 7), "T8a", "T8b", ...podIds("T", 9, 12)];
+const assignPods = (spec: [string[], string][]): TeamAssignment =>
+  Object.fromEntries(spec.flatMap(([ids, team]) => ids.map((id) => [id, team] as const)));
+
+const CLUSTER_TEAMS: { current: TeamAssignment; planned: Record<1 | 2 | 3, TeamAssignment> } = {
+  current: assignPods([
+    [TOP_MAIN_PODS, "Enterprise Products"],
+    [podIds("L", 1, 9), "Enterprise Analytics"],
+    [podIds("R", 1, 7), "Enterprise Solutions"],
+    [podIds("B", 1, 9), "Enterprise Ticketing"],
+  ]),
   planned: {
-    // In-person time priority — fewer assigned desks, so neighborhoods contract.
-    1: [
-      { id: "ep", label: "Enterprise Products",  top:  1, left: 16, width: 48, height: 14 },
-      { id: "es", label: "Enterprise Solutions",  top: 24, left: 89, width: 10, height: 54 },
-      { id: "et", label: "Enterprise Ticketing",  top: 85, left: 14, width: 52, height: 14 },
-      { id: "ea", label: "Enterprise Analytics",  top: 24, left:  1, width: 11, height: 54 },
-    ],
-    // Team colocation priority — full contiguous neighborhoods at max extent.
-    2: [
-      { id: "ep", label: "Enterprise Products",  top:  1, left:  9, width: 63, height: 15 },
-      { id: "es", label: "Enterprise Solutions",  top: 17, left: 89, width: 10, height: 70 },
-      { id: "et", label: "Enterprise Ticketing",  top: 84, left:  7, width: 65, height: 15 },
-      { id: "ea", label: "Enterprise Analytics",  top: 17, left:  1, width: 11, height: 70 },
-    ],
-    // XFN collaboration priority — bands shift to interleave teams near the core.
-    3: [
-      { id: "ep", label: "Enterprise Products",  top:  1, left: 10, width: 50, height: 14 },
-      { id: "es", label: "Enterprise Solutions",  top: 18, left: 89, width: 10, height: 68 },
-      { id: "et", label: "Enterprise Ticketing",  top: 85, left: 22, width: 50, height: 14 },
-      { id: "ea", label: "Enterprise Analytics",  top: 18, left:  1, width: 11, height: 68 },
-    ],
+    // In-person time priority — neighborhoods contract, freeing pods for drop-in.
+    1: assignPods([
+      [podIds("T", 1, 7), "Enterprise Products"],
+      [podIds("L", 1, 6), "Enterprise Analytics"],
+      [podIds("R", 1, 4), "Enterprise Solutions"],
+      [podIds("B", 1, 6), "Enterprise Ticketing"],
+    ]),
+    // Team colocation priority — every pod assigned, Solutions annexes the top-right pods.
+    2: assignPods([
+      [TOP_MAIN_PODS, "Enterprise Products"],
+      [podIds("L", 1, 9), "Enterprise Analytics"],
+      [[...podIds("R", 1, 7), "T13", "T14"], "Enterprise Solutions"],
+      [podIds("B", 1, 13), "Enterprise Ticketing"],
+    ]),
+    // XFN collaboration priority — teams interleave across bands.
+    3: assignPods([
+      [podIds("T", 1, 6), "Enterprise Products"],
+      [["T7", "T8a", "T8b", ...podIds("T", 9, 12)], "Enterprise Solutions"],
+      [podIds("L", 1, 4), "Enterprise Analytics"],
+      [podIds("L", 5, 9), "Enterprise Products"],
+      [podIds("R", 1, 4), "Enterprise Ticketing"],
+      [podIds("R", 5, 7), "Enterprise Solutions"],
+      [podIds("B", 1, 6), "Enterprise Analytics"],
+      [podIds("B", 7, 13), "Enterprise Ticketing"],
+    ]),
   },
 };
+
+type TeamBlock = { team: string; x: number; y: number; w: number; h: number };
+type TeamDesk = { team: string; x: number; y: number; w: number; h: number; name: string; open: boolean };
+
+// Unified zone blocks: bounding boxes of contiguous same-team pod runs within a
+// band. A run breaks at unassigned pods and at large gaps (printer nooks, the
+// AA room, wall dividers), so blocks never stretch over non-desk space.
+function computeTeamBlocks(assign: TeamAssignment): TeamBlock[] {
+  const blocks: TeamBlock[] = [];
+  for (const band of ["top", "bottom", "left", "right"] as const) {
+    const horiz = band === "top" || band === "bottom";
+    const pods = DESK_CLUSTERS.filter((c) => c.band === band).sort((a, b) => (horiz ? a.x - b.x : a.y - b.y));
+    const gapLimit = horiz ? 4.5 : 6.5;
+    const padX = horiz ? 0.8 : 0.4;   // horizontal bands have chairs at pod sides
+    const padY = horiz ? 0.5 : 1.2;   // vertical bands have chairs above/below rows
+    let run: DeskCluster[] = [];
+    let team: string | undefined;
+    const flush = () => {
+      if (run.length && team) {
+        const x0 = Math.min(...run.map((c) => c.x));
+        const y0 = Math.min(...run.map((c) => c.y));
+        const x1 = Math.max(...run.map((c) => c.x + c.w));
+        const y1 = Math.max(...run.map((c) => c.y + c.h));
+        blocks.push({ team, x: x0 - padX, y: y0 - padY, w: x1 - x0 + padX * 2, h: y1 - y0 + padY * 2 });
+      }
+      run = [];
+      team = undefined;
+    };
+    for (const c of pods) {
+      const t = assign[c.id];
+      if (!t) { flush(); continue; }
+      const prev = run[run.length - 1];
+      const gap = prev ? (horiz ? c.x - (prev.x + prev.w) : c.y - (prev.y + prev.h)) : 0;
+      if (team !== t || gap > gapLimit) flush();
+      team = t;
+      run.push(c);
+    }
+    flush();
+  }
+  return blocks;
+}
+
+const EMP_FIRST = ["Ava", "Liam", "Maya", "Noah", "Zoe", "Ethan", "Ivy", "Lucas", "Nora", "Owen", "Mia", "Eli", "Ruby", "Jack", "Lena", "Theo", "Isla", "Finn", "Aria", "Cole", "Nina", "Rhys", "Tara", "Jude"];
+const EMP_LAST = ["Tran", "Kimura", "Patel", "Nguyen", "Chen", "Garcia", "Silva", "Khan", "Sato", "Lopez", "Mori", "Shah", "Park", "Diaz", "Wong", "Reyes", "Cruz", "Ito", "Vu", "Han", "Osei", "Bell", "Nair", "Cho"];
+const EMPLOYEE_NAMES = Array.from(
+  { length: 288 },
+  (_, i) => `${EMP_FIRST[i % EMP_FIRST.length]} ${EMP_LAST[(i * 5 + Math.floor(i / 24) * 7 + 3) % EMP_LAST.length]}`,
+);
+
+// Per-desk highlights: split each assigned pod into its seat grid. A slice of
+// seats stays open so the zoomed-in view reads as a believable seating chart.
+function computeTeamDesks(assign: TeamAssignment): TeamDesk[] {
+  const desks: TeamDesk[] = [];
+  let seat = 0;
+  for (const c of DESK_CLUSTERS) {
+    const team = assign[c.id];
+    if (!team) continue;
+    const cw = c.w / c.cols;
+    const ch = c.h / c.rows;
+    for (let r = 0; r < c.rows; r++) {
+      for (let col = 0; col < c.cols; col++) {
+        const open = seat % 9 === 5;
+        desks.push({
+          team,
+          x: c.x + col * cw + cw * 0.07,
+          y: c.y + r * ch + ch * 0.1,
+          w: cw * 0.86,
+          h: ch * 0.8,
+          name: EMPLOYEE_NAMES[seat % EMPLOYEE_NAMES.length],
+          open,
+        });
+        seat++;
+      }
+    }
+  }
+  return desks;
+}
+
+const TEAM_BLOCKS = {
+  current: computeTeamBlocks(CLUSTER_TEAMS.current),
+  planned: {
+    1: computeTeamBlocks(CLUSTER_TEAMS.planned[1]),
+    2: computeTeamBlocks(CLUSTER_TEAMS.planned[2]),
+    3: computeTeamBlocks(CLUSTER_TEAMS.planned[3]),
+  },
+};
+const TEAM_DESKS = {
+  current: computeTeamDesks(CLUSTER_TEAMS.current),
+  planned: {
+    1: computeTeamDesks(CLUSTER_TEAMS.planned[1]),
+    2: computeTeamDesks(CLUSTER_TEAMS.planned[2]),
+    3: computeTeamDesks(CLUSTER_TEAMS.planned[3]),
+  },
+};
+
+// Letterboxes children to the floor plan's aspect ratio within whatever space
+// the host box gets — needed because the split sections resize freely.
+function FitBox({ children, onClick, style }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties }) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = hostRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const r = el.getBoundingClientRect();
+      const ratio = 2816 / 1536;
+      let w = r.width, h = w / ratio;
+      if (h > r.height) { h = r.height; w = h * ratio; }
+      setSize(w > 40 ? { w, h } : null);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div ref={hostRef} onClick={onClick} style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative", ...style }}>
+      {size && <div style={{ width: size.w, height: size.h, position: "relative", flexShrink: 0 }}>{children}</div>}
+    </div>
+  );
+}
+
+// Floor plan image + zone overlays. Blocks and desks crossfade based on
+// deskMode, so zooming in swaps unified team zones for per-desk highlights.
+function FloorMapSurface({ blocks, desks, deskMode }: { blocks: TeamBlock[]; desks?: TeamDesk[] | null; deskMode?: boolean }) {
+  return (
+    <>
+      <img
+        src="/floorplan_01.png"
+        alt="Floor plan"
+        draggable={false}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", userSelect: "none", pointerEvents: "none" }}
+      />
+      <div style={{ position: "absolute", inset: 0, opacity: deskMode ? 0 : 1, transition: "opacity 220ms ease", pointerEvents: "none" }}>
+        {blocks.map((b, i) => (
+          <div
+            key={`${b.team}-${i}`}
+            style={{ position: "absolute", top: `${b.y}%`, left: `${b.x}%`, width: `${b.w}%`, height: `${b.h}%`, background: ZONE_AA_COLORS[b.team], border: `1.5px solid ${ZONE_AA_BORDER[b.team]}`, borderRadius: 6 }}
+          >
+            <span style={{ position: "absolute", top: 3, left: 5, right: 4, color: ZONE_AA_BORDER[b.team], fontWeight: 600, fontSize: 9, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", userSelect: "none" }}>
+              {b.team.replace("Enterprise ", "")}
+            </span>
+          </div>
+        ))}
+      </div>
+      {desks && (
+        <div style={{ position: "absolute", inset: 0, opacity: deskMode ? 1 : 0, transition: "opacity 220ms ease", pointerEvents: deskMode ? "auto" : "none" }}>
+          {desks.map((dk, i) => (
+            <div
+              key={i}
+              title={dk.open ? "Open desk" : `${dk.name} · ${dk.team.replace("Enterprise ", "")}`}
+              style={{
+                position: "absolute",
+                top: `${dk.y}%`,
+                left: `${dk.x}%`,
+                width: `${dk.w}%`,
+                height: `${dk.h}%`,
+                background: dk.open ? "rgba(120,127,140,0.14)" : ZONE_AA_COLORS[dk.team],
+                border: dk.open ? "1px dashed rgba(120,127,140,0.55)" : `1px solid ${ZONE_AA_BORDER[dk.team]}`,
+                borderRadius: 2,
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
 
 const COLLAPSIBLE_FILTERS = ['evaluation', 'status', 'location', 'aa'] as const;
 type CollapsibleFilter = (typeof COLLAPSIBLE_FILTERS)[number];
@@ -1223,15 +1454,40 @@ export default function LandingPage() {
   const [previewView, setPreviewView] = useState<"data" | "map">("data");
   const [previewEmpHovered, setPreviewEmpHovered] = useState<string | null>(null);
   const previewEmpBarRefs = useRef<Map<string, HTMLElement>>(new Map());
-  const [mapZoom, setMapZoom] = useState(1);
-  const [mapRotation, setMapRotation] = useState(0);
   const previewOptionRef = useRef<{ num: 1 | 2 | 3; label: string; color: string } | null>(null);
+
+  // ── Preview sub-header height — the floor-map card must clear it, unlike the
+  // Summary view which intentionally scrolls underneath its blur ──────────────
+  const subHeaderRef = useRef<HTMLDivElement>(null);
+  const [subHeaderH, setSubHeaderH] = useState(76);
+  useLayoutEffect(() => {
+    const el = subHeaderRef.current;
+    if (!el || !previewOption) return;
+    setSubHeaderH(el.offsetHeight);
+    const ro = new ResizeObserver(() => setSubHeaderH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [previewOption]);
+
+  // ── Floor map: resizable split + click-to-expand pan/zoom state ────────────
+  const [splitPct, setSplitPct] = useState(50);
+  const splitRef = useRef<HTMLDivElement>(null);
+  const [expandedPanel, setExpandedPanel] = useState<"current" | "planned" | null>(null);
+  const expandedPanelRef = useRef<"current" | "planned" | null>(null);
+  const [expZoom, setExpZoom] = useState(1);
+  const [expRotation, setExpRotation] = useState(0);
+  const [expPan, setExpPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panDragRef = useRef<{ px: number; py: number; bx: number; by: number } | null>(null);
+  const expCanvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (recPhase === "idle") return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (previewOptionRef.current) {
+        if (expandedPanelRef.current) {
+          collapseMap();
+        } else if (previewOptionRef.current) {
           previewOptionRef.current = null;
           setPreviewOption(null);
         } else {
@@ -1243,6 +1499,20 @@ export default function LandingPage() {
     return () => window.removeEventListener("keydown", handler);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recPhase]);
+
+  // Wheel-zoom inside the expanded floor map. Attached manually because React
+  // registers wheel listeners as passive, which would forbid preventDefault.
+  useEffect(() => {
+    if (!expandedPanel) return;
+    const el = expCanvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setExpZoom((z) => Math.min(4, Math.max(0.5, z * Math.exp(-e.deltaY * 0.0016))));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [expandedPanel]);
 
   function openRec(title: string) {
     const el = contentAreaRef.current;
@@ -1280,13 +1550,67 @@ export default function LandingPage() {
     previewOptionRef.current = opt;
     setPreviewOption(opt);
     setPreviewView("data");
-    setMapZoom(1);
-    setMapRotation(0);
+    setSplitPct(50);
+    collapseMap();
   }
 
   function closePreview() {
     previewOptionRef.current = null;
     setPreviewOption(null);
+    collapseMap();
+  }
+
+  // ── Floor map interactions ─────────────────────────────────────────────────
+  function expandMap(panel: "current" | "planned") {
+    expandedPanelRef.current = panel;
+    setExpandedPanel(panel);
+    setExpZoom(1);
+    setExpRotation(0);
+    setExpPan({ x: 0, y: 0 });
+  }
+
+  function collapseMap() {
+    expandedPanelRef.current = null;
+    setExpandedPanel(null);
+    setExpZoom(1);
+    setExpRotation(0);
+    setExpPan({ x: 0, y: 0 });
+    setIsPanning(false);
+    panDragRef.current = null;
+  }
+
+  function onMapPanStart(e: React.PointerEvent<HTMLDivElement>) {
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* inactive pointer id — drag still works via event bubbling */ }
+    panDragRef.current = { px: e.clientX, py: e.clientY, bx: expPan.x, by: expPan.y };
+    setIsPanning(true);
+  }
+
+  function onMapPanMove(e: React.PointerEvent<HTMLDivElement>) {
+    const p = panDragRef.current;
+    if (!p) return;
+    setExpPan({ x: p.bx + (e.clientX - p.px), y: p.by + (e.clientY - p.py) });
+  }
+
+  function onMapPanEnd() {
+    panDragRef.current = null;
+    setIsPanning(false);
+  }
+
+  function onSplitDragStart(e: React.PointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const host = splitRef.current;
+    if (!host) return;
+    const rect = host.getBoundingClientRect();
+    const move = (ev: PointerEvent) => {
+      const pct = ((ev.clientX - rect.left) / rect.width) * 100;
+      setSplitPct(Math.min(72, Math.max(28, pct)));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
   }
 
   const [statusFilter, setStatusFilter] = useState<Set<PlanStatus>>(new Set());
@@ -1362,8 +1686,13 @@ export default function LandingPage() {
     { label: "Contingent workers", value: PREVIEW_EMP.contingent, color: "var(--orange-9)", tooltip: null },
     { label: "Interns", value: PREVIEW_EMP.interns, color: "var(--green-9)", tooltip: null },
   ];
-  const previewCurrentZones = MAP_ZONES.current;
-  const previewPlannedZones = previewOption ? MAP_ZONES.planned[previewOption.num] : MAP_ZONES.current;
+  const previewCurrentBlocks = TEAM_BLOCKS.current;
+  const previewPlannedBlocks = previewOption ? TEAM_BLOCKS.planned[previewOption.num] : TEAM_BLOCKS.current;
+  const expandedBlocks = expandedPanel === "current" ? previewCurrentBlocks : previewPlannedBlocks;
+  const expandedDesks = expandedPanel === "current"
+    ? TEAM_DESKS.current
+    : previewOption ? TEAM_DESKS.planned[previewOption.num] : TEAM_DESKS.current;
+  const deskDetail = expZoom >= 1.75;
 
   return (
     <Box style={{ height: "100vh", display: "flex", flexDirection: "column", position: "relative", background: "#FCFCFD" }}>
@@ -2146,7 +2475,7 @@ export default function LandingPage() {
               {previewOption && (
                 <Box style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", position: "relative", animation: "previewSlideIn 200ms ease-out both" }}>
                   {/* Sub-header — outside scroll area so backdrop-filter correctly blurs scrolling content behind it */}
-                  <Box style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100, padding: "10px 16px 10px 20px", background: "rgba(255,255,255,0.6)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "none", borderRadius: 0, borderBottom: "0.5px solid var(--gray-5)", boxShadow: "inset 0 4px 10px rgba(255,255,255,0.4)" }}>
+                  <Box ref={subHeaderRef as React.Ref<HTMLDivElement>} style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100, padding: "10px 16px 10px 20px", background: "rgba(255,255,255,0.6)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "none", borderRadius: 0, borderBottom: "0.5px solid var(--gray-5)", boxShadow: "inset 0 4px 10px rgba(255,255,255,0.4)" }}>
                     <Flex align="center" justify="between">
                       <Flex align="center" style={{ gap: 8 }}>
                         <IconButton variant="soft" color="gray" size="3" onClick={closePreview} aria-label="Back" style={{ flexShrink: 0, width: 32, height: 32 }}>
@@ -2179,12 +2508,13 @@ export default function LandingPage() {
                       </ToggleGroup.Root>
                     </Flex>
                   </Box>
+                  {previewView === "data" && (
                   <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--gray-6) transparent" }}>
                     <Box style={{ padding: "80px 0 16px" }}>
                       <Box style={{ padding: "0 16px" }}>
 
                       {/* ── DATA VIEW ──────────────────────────────────────── */}
-                      {previewView === "data" && previewPln && (
+                      {previewPln && (
                           <Flex direction="column" style={{ gap: 16, animation: "previewFadeUp 180ms ease-out both" }}>
 
                             {/* Card 1: Employee population */}
@@ -2397,120 +2727,113 @@ export default function LandingPage() {
                           </Flex>
                       )}
 
-                      {/* ── MAP VIEW ────────────────────────────────────────── */}
-                      {previewView === "map" && (
-                          <Box style={{ animation: "previewFadeUp 180ms ease-out both" }}>
-                            {/* Controls */}
-                            <Flex align="center" justify="between" style={{ marginBottom: 16 }}>
-                              <Text size="2" color="gray">Drag to pan · Scroll to zoom</Text>
-                              <Flex align="center" style={{ gap: 8 }}>
+                      </Box>
+                    </Box>
+                  </div>
+                  )}
+
+                  {/* ── MAP VIEW — full-height card with resizable split ─── */}
+                  {previewView === "map" && (
+                    <Box style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", padding: `${subHeaderH + 12}px 16px 16px`, animation: "previewFadeUp 180ms ease-out both" }}>
+                      <Box style={{ flex: 1, minHeight: 0, position: "relative", display: "flex", flexDirection: "column", background: "white", borderRadius: 16, border: "0.5px solid var(--gray-5)", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", overflow: "hidden" }}>
+
+                        {/* Legend */}
+                        <Flex align="center" style={{ gap: 16, flexWrap: "wrap", padding: "12px 20px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0 }}>
+                          {Object.entries(ZONE_AA_COLORS).map(([label, color]) => (
+                            <Flex key={label} align="center" style={{ gap: 6 }}>
+                              <Box style={{ width: 12, height: 12, borderRadius: 3, background: color, border: `1.5px solid ${ZONE_AA_BORDER[label]}` }} />
+                              <Text size="1" color="gray">{label}</Text>
+                            </Flex>
+                          ))}
+                          <Text size="1" color="gray" style={{ marginLeft: "auto" }}>Click a map to expand</Text>
+                        </Flex>
+
+                        {/* Resizable split: current | planned */}
+                        <div ref={splitRef} style={{ flex: 1, minHeight: 0, display: "flex" }}>
+                          <Box style={{ width: `calc(${splitPct}% - 6px)`, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                            <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", padding: "12px 20px 0", flexShrink: 0 }}>Current state</Text>
+                            <FitBox onClick={() => expandMap("current")} style={{ cursor: "zoom-in", padding: 12 }}>
+                              <FloorMapSurface blocks={previewCurrentBlocks} />
+                            </FitBox>
+                          </Box>
+                          <div
+                            role="separator"
+                            aria-orientation="vertical"
+                            onPointerDown={onSplitDragStart}
+                            style={{ width: 12, flexShrink: 0, cursor: "col-resize", position: "relative", touchAction: "none" }}
+                          >
+                            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: "var(--gray-4)" }} />
+                            <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 4, height: 44, borderRadius: 9999, background: "var(--gray-6)" }} />
+                          </div>
+                          <Box style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                            <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", padding: "12px 20px 0", flexShrink: 0 }}>Planned changes</Text>
+                            <FitBox onClick={() => expandMap("planned")} style={{ cursor: "zoom-in", padding: 12 }}>
+                              <FloorMapSurface blocks={previewPlannedBlocks} />
+                            </FitBox>
+                          </Box>
+                        </div>
+
+                        {/* ── Expanded map — covers the card; pan/zoom toolbar lives here ── */}
+                        {expandedPanel && (
+                          <Box style={{ position: "absolute", inset: 0, zIndex: 20, background: "white", display: "flex", flexDirection: "column", animation: "previewFadeUp 160ms ease-out both" }}>
+                            <Flex align="center" justify="between" style={{ padding: "10px 16px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, gap: 12 }}>
+                              <Flex align="center" style={{ gap: 10, minWidth: 0 }}>
+                                <IconButton variant="soft" color="gray" size="2" onClick={collapseMap} aria-label="Back to side-by-side maps" style={{ width: 28, height: 28 }}>
+                                  <ChevronLeftIcon width={14} height={14} />
+                                </IconButton>
+                                <Text size="2" weight="medium" style={{ color: "var(--slate-12)", whiteSpace: "nowrap" }}>
+                                  {expandedPanel === "current" ? "Current state" : "Planned changes"}
+                                </Text>
+                                <Text size="1" color="gray" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {deskDetail ? "Showing individual desk assignments — hover a desk" : "Drag to pan · Scroll to zoom · Zoom in to see desks"}
+                                </Text>
+                              </Flex>
+                              <Flex align="center" style={{ gap: 8, flexShrink: 0 }}>
                                 <Flex align="center" style={{ gap: 4, background: "rgba(255,255,255,0.8)", border: "0.5px solid var(--gray-5)", borderRadius: 9999, padding: "3px 6px" }}>
-                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapZoom(z => Math.max(0.5, z - 0.25))} style={{ borderRadius: 9999 }}>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setExpZoom((z) => Math.max(0.5, z - 0.25))} style={{ borderRadius: 9999 }} aria-label="Zoom out">
                                     <MinusIcon />
                                   </IconButton>
-                                  <Text size="1" weight="medium" style={{ color: "var(--slate-12)", minWidth: 34, textAlign: "center" }}>{Math.round(mapZoom * 100)}%</Text>
-                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapZoom(z => Math.min(3, z + 0.25))} style={{ borderRadius: 9999 }}>
+                                  <Text size="1" weight="medium" style={{ color: "var(--slate-12)", minWidth: 34, textAlign: "center" }}>{Math.round(expZoom * 100)}%</Text>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setExpZoom((z) => Math.min(4, z + 0.25))} style={{ borderRadius: 9999 }} aria-label="Zoom in">
                                     <PlusIcon />
                                   </IconButton>
                                 </Flex>
                                 <Flex align="center" style={{ gap: 4, background: "rgba(255,255,255,0.8)", border: "0.5px solid var(--gray-5)", borderRadius: 9999, padding: "3px 8px" }}>
-                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapRotation(r => r - 90)} style={{ borderRadius: 9999 }}>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setExpRotation((r) => r - 90)} style={{ borderRadius: 9999 }} aria-label="Rotate counterclockwise">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                                   </IconButton>
-                                  <Text size="1" weight="medium" style={{ color: "var(--slate-12)", minWidth: 28, textAlign: "center" }}>{((mapRotation % 360) + 360) % 360}°</Text>
-                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setMapRotation(r => r + 90)} style={{ borderRadius: 9999 }}>
+                                  <Text size="1" weight="medium" style={{ color: "var(--slate-12)", minWidth: 28, textAlign: "center" }}>{((expRotation % 360) + 360) % 360}°</Text>
+                                  <IconButton variant="ghost" color="gray" size="1" onClick={() => setExpRotation((r) => r + 90)} style={{ borderRadius: 9999 }} aria-label="Rotate clockwise">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                                   </IconButton>
                                 </Flex>
                                 <button
-                                  onClick={() => { setMapZoom(1); setMapRotation(0); }}
+                                  onClick={() => { setExpZoom(1); setExpRotation(0); setExpPan({ x: 0, y: 0 }); }}
                                   style={{ padding: "5px 10px", background: "rgba(255,255,255,0.8)", border: "0.5px solid var(--gray-5)", borderRadius: 9999, color: "var(--gray-11)", fontSize: "var(--font-size-1)", fontFamily: "var(--font-body), system-ui", cursor: "pointer" }}
                                 >
                                   Reset
                                 </button>
                               </Flex>
                             </Flex>
-
-                            {/* Zone legend */}
-                            <Flex style={{ gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
-                              {Object.entries(ZONE_AA_COLORS).map(([label, color]) => (
-                                <Flex key={label} align="center" style={{ gap: 6 }}>
-                                  <Box style={{ width: 12, height: 12, borderRadius: 3, background: color, border: `1.5px solid ${ZONE_AA_BORDER[label]}` }} />
-                                  <Text size="1" color="gray">{label}</Text>
-                                </Flex>
-                              ))}
-                            </Flex>
-
-                            {/* Two map panels */}
-                            <Grid columns="2" style={{ gap: 16 }}>
-                              {([
-                                { title: "Current state", zones: previewCurrentZones, img: "/floorplan_01.png" },
-                                { title: "Planned changes", zones: previewPlannedZones, img: "/floorplan_01.png" },
-                              ] as { title: string; zones: MapZone[]; img: string }[]).map(({ title, zones, img }) => (
-                                <Box key={title}>
-                                  <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 10 }}>{title}</Text>
-                                  <Box style={{ borderRadius: 12, overflow: "hidden", background: "var(--gray-2)", border: "0.5px solid var(--gray-5)", aspectRatio: "2816/1536" }}>
-                                    <Box
-                                      style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        transform: `scale(${mapZoom}) rotate(${mapRotation}deg)`,
-                                        transformOrigin: "center center",
-                                        transition: "transform 280ms ease",
-                                        position: "relative",
-                                      }}
-                                    >
-                                      <img
-                                        src={img}
-                                        alt={`${title} floor plan`}
-                                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", userSelect: "none" }}
-                                        draggable={false}
-                                      />
-                                      {/* Zone overlays */}
-                                      {zones.map((zone) => (
-                                        <Box
-                                          key={zone.id}
-                                          style={{
-                                            position: "absolute",
-                                            top: `${zone.top}%`,
-                                            left: `${zone.left}%`,
-                                            width: `${zone.width}%`,
-                                            height: `${zone.height}%`,
-                                            background: ZONE_AA_COLORS[zone.label],
-                                            border: `1.5px solid ${ZONE_AA_BORDER[zone.label]}`,
-                                            borderRadius: 4,
-                                            transition: "all 400ms ease",
-                                          }}
-                                        >
-                                          <Text
-                                            size="1"
-                                            style={{
-                                              position: "absolute",
-                                              top: 4,
-                                              left: 5,
-                                              color: ZONE_AA_BORDER[zone.label],
-                                              fontWeight: 600,
-                                              fontSize: 9,
-                                              lineHeight: 1.2,
-                                              maxWidth: "90%",
-                                              pointerEvents: "none",
-                                              userSelect: "none",
-                                            }}
-                                          >
-                                            {zone.label.replace("Enterprise ", "")}
-                                          </Text>
-                                        </Box>
-                                      ))}
-                                    </Box>
-                                  </Box>
-                                </Box>
-                              ))}
-                            </Grid>
+                            <div
+                              ref={expCanvasRef}
+                              onPointerDown={onMapPanStart}
+                              onPointerMove={onMapPanMove}
+                              onPointerUp={onMapPanEnd}
+                              onPointerCancel={onMapPanEnd}
+                              style={{ flex: 1, minHeight: 0, position: "relative", overflow: "hidden", cursor: isPanning ? "grabbing" : "grab", touchAction: "none", background: "var(--gray-1)" }}
+                            >
+                              <FitBox style={{ position: "absolute", inset: 0, padding: 16 }}>
+                                <div style={{ position: "absolute", inset: 0, transform: `translate(${expPan.x}px, ${expPan.y}px) scale(${expZoom}) rotate(${expRotation}deg)`, transformOrigin: "center center", transition: isPanning ? "none" : "transform 220ms ease" }}>
+                                  <FloorMapSurface blocks={expandedBlocks} desks={expandedDesks} deskMode={deskDetail} />
+                                </div>
+                              </FitBox>
+                            </div>
                           </Box>
-                      )}
+                        )}
                       </Box>
                     </Box>
-                  </div>
+                  )}
                 </Box>
               )}
 
