@@ -515,7 +515,7 @@ function PlanCard({ plan, view }: { plan: Plan; view: "location" | "aa" }) {
 
   return (
     <Tooltip content="See plan details">
-    <Link href={`/plans/${plan.id}`} style={{ textDecoration: "none" }}>
+    <Link href={`/plans/${plan.id}?from=${view === "aa" ? "aa" : "location"}`} style={{ textDecoration: "none" }}>
       <Card
         variant="surface"
         style={{ cursor: "pointer", height: "100%", background: "white", borderRadius: 12 }}
@@ -999,6 +999,13 @@ const PREVIEW_WORKSPACE: { current: WsState; planned: Record<1 | 2 | 3, WsState>
   },
 };
 
+// Cause line for the AI summary in the workspace-changes card, per option.
+const REC_CHANGE_CAUSE: Record<1 | 2 | 3, string> = {
+  1: "employees badging in fewer than 3 days per week move to drop-in seating instead of holding a dedicated desk",
+  2: "seats consolidate into contiguous team neighborhoods, and desks that fall outside each team's zone are released",
+  3: "desks re-anchor around each person's most frequent collaborators, and seats with low cross-team overlap are released",
+};
+
 // ── Preview: map zone data ────────────────────────────────────────────────────
 const ZONE_AA_COLORS: Record<string, string> = {
   "Enterprise Products": "rgba(38,87,232,0.28)",
@@ -1363,10 +1370,15 @@ export default function LandingPage() {
 
   // After the panel mounts, wait one rAF so the browser has painted the
   // initial (scaled-down) frame, then flip to visible to start the transition.
+  // The timeout is a fallback for hidden/background tabs where rAF never fires.
   useEffect(() => {
     if (agentOpen) {
       const id = requestAnimationFrame(() => setAgentPanelVisible(true));
-      return () => cancelAnimationFrame(id);
+      const fallback = setTimeout(() => setAgentPanelVisible(true), 80);
+      return () => {
+        cancelAnimationFrame(id);
+        clearTimeout(fallback);
+      };
     }
   }, [agentOpen]);
 
@@ -1678,6 +1690,8 @@ export default function LandingPage() {
   // Derived preview values (computed outside JSX to avoid IIFE)
   const previewCur = PREVIEW_WORKSPACE.current;
   const previewPln = previewOption ? PREVIEW_WORKSPACE.planned[previewOption.num] : null;
+  const previewAssignedDelta = previewPln ? previewPln.assignedEmp - previewCur.assignedEmp : 0;
+  const previewCoworkDelta = previewPln ? previewPln.coworkingEmp - previewCur.coworkingEmp : 0;
   const previewEmpTotal = PREVIEW_EMP.fullTime + PREVIEW_EMP.inboundEmbeds + PREVIEW_EMP.outboundEmbeds + PREVIEW_EMP.contingent + PREVIEW_EMP.interns + PREVIEW_EMP.futureHeadcount;
   const previewEmpRows: { label: string; value: number; color: string; tooltip: string | null }[] = [
     { label: "Full-time", value: PREVIEW_EMP.fullTime, color: "var(--blue-9)", tooltip: null },
@@ -2585,114 +2599,120 @@ export default function LandingPage() {
 
                             {/* Card 2: Workspace + desk changes */}
                             <Box style={{ ...GLASS_CARD_STYLE, borderRadius: 16, padding: "20px 24px", background: "white" }}>
-                              <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 20 }}>Workspace changes</Heading>
+                              <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 16 }}>Workspace changes</Heading>
+
+                              {/* AI summary — what changes and what causes it */}
+                              <Flex style={{ gap: 10, alignItems: "flex-start", padding: "12px 14px", background: "linear-gradient(135deg, var(--blue-2), var(--purple-2))", border: "0.5px solid var(--blue-4)", borderRadius: 12, marginBottom: 24 }}>
+                                <Box style={{ width: 24, height: 24, borderRadius: 8, background: "linear-gradient(135deg, #2657E8, #6421CA)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="12" height="12" style={{ color: "white" }}>
+                                    <path fill="currentColor" d="M11.925 2.044c-.397-1.1-1.952-1.1-2.35 0L7.693 7.243a.75.75 0 0 1-.45.45L2.044 9.574c-1.1.398-1.1 1.953 0 2.351l5.2 1.882a.75.75 0 0 1 .45.45l1.88 5.199c.399 1.1 1.954 1.1 2.351 0l1.882-5.2a.75.75 0 0 1 .45-.45l5.199-1.88c1.1-.399 1.1-1.954 0-2.352l-5.2-1.881a.75.75 0 0 1-.45-.45l-1.88-5.2ZM19.5 15.375a.806.806 0 0 0-.754.521l-.641 1.699a.875.875 0 0 1-.51.51l-1.699.641a.806.806 0 0 0 0 1.508l1.7.641c.234.089.42.275.509.51l.641 1.699a.806.806 0 0 0 1.508 0l.641-1.7a.875.875 0 0 1 .51-.509l1.699-.641a.806.806 0 0 0 0-1.508l-1.7-.641a.875.875 0 0 1-.509-.51l-.641-1.699a.806.806 0 0 0-.754-.521Z" />
+                                  </svg>
+                                </Box>
+                                <Box>
+                                  <Text as="div" size="1" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 2 }}>What changes in this plan</Text>
+                                  <Text as="p" size="1" style={{ color: "var(--gray-11)", margin: 0, lineHeight: 1.6 }}>
+                                    <Text weight="medium" style={{ color: "var(--slate-12)" }}>{Math.abs(previewAssignedDelta)} employees</Text>
+                                    {" "}shift from assigned desks ({previewCur.assignedEmp} → {previewPln.assignedEmp}) to coworking seating ({previewCur.coworkingEmp} → {previewPln.coworkingEmp}) because {REC_CHANGE_CAUSE[previewOption.num]}. Capacity itself doesn’t change — {previewCur.assignedSpaces} desk spaces and {previewCur.coworkingSpaces} coworking spaces remain.
+                                  </Text>
+                                </Box>
+                              </Flex>
 
                               {/* Section: Workspace breakdown */}
                               <Box style={{ marginBottom: 24 }}>
-                                <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 14 }}>Workspace breakdown</Text>
-                                {/* Column headers */}
-                                <Grid columns="3" style={{ gap: 0, marginBottom: 16 }}>
-                                  <Box />
-                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Current state</Text>
-                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Planned changes</Text>
-                                </Grid>
-                                {/* Assigned desks row */}
-                                <Grid columns="3" style={{ gap: 0, alignItems: "center", marginBottom: 20 }}>
-                                  <Box style={{ paddingRight: 12 }}>
-                                    <Text size="2" style={{ color: "var(--slate-12)" }}>Assigned desks</Text>
-                                    <Text as="div" size="1" color="gray">Employees with assigned desk / total desk spaces</Text>
-                                  </Box>
-                                  {/* Current donut */}
-                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
-                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
-                                      <MultiDonutChart segments={[{ value: previewCur.assignedEmp, color: "var(--blue-9)" }]} total={previewCur.assignedSpaces} size={96} thickness={11} />
-                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewCur.assignedEmp}</Text>
-                                        <Text size="1" color="gray">/{previewCur.assignedSpaces}</Text>
+                                <Heading as="h4" size="2" style={{ color: "var(--slate-12)", marginBottom: 16 }}>Workspace breakdown</Heading>
+
+                                {/* Assigned desks — title stacked above the viz pair */}
+                                <Box style={{ marginBottom: 24 }}>
+                                  <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)" }}>Assigned desks</Text>
+                                  <Text as="div" size="1" color="gray" style={{ marginBottom: 14 }}>Employees with an assigned desk · {previewCur.assignedSpaces} desk spaces total (unchanged)</Text>
+                                  <Grid columns="2" style={{ gap: 16 }}>
+                                    <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                      <Text size="1" weight="medium" style={{ color: "var(--gray-11)" }}>Current state</Text>
+                                      <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                        <MultiDonutChart segments={[{ value: previewCur.assignedEmp, color: "var(--blue-9)" }]} total={previewCur.assignedSpaces} size={96} thickness={11} />
+                                        <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                          <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewCur.assignedEmp}</Text>
+                                          <Text size="1" color="gray">emp</Text>
+                                        </Box>
                                       </Box>
-                                    </Box>
-                                    <Text size="1" color="gray">{previewCur.assignedEmp} emp · {previewCur.assignedSpaces} spaces</Text>
-                                  </Flex>
-                                  {/* Planned donut */}
-                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
-                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
-                                      <MultiDonutChart segments={[{ value: previewPln.assignedEmp, color: previewOption.color }]} total={previewPln.assignedSpaces} size={96} thickness={11} />
-                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewPln.assignedEmp}</Text>
-                                        <Text size="1" color="gray">/{previewPln.assignedSpaces}</Text>
-                                      </Box>
-                                    </Box>
-                                    <Flex align="center" style={{ gap: 4 }}>
-                                      <Text size="1" color="gray">{previewPln.assignedEmp} emp · {previewPln.assignedSpaces} spaces</Text>
-                                      {previewPln.assignedEmp !== previewCur.assignedEmp && (
-                                        <Text size="1" style={{ color: previewPln.assignedEmp < previewCur.assignedEmp ? "var(--orange-11)" : "var(--green-11)", fontWeight: 500 }}>
-                                          {previewPln.assignedEmp < previewCur.assignedEmp ? `−${previewCur.assignedEmp - previewPln.assignedEmp}` : `+${previewPln.assignedEmp - previewCur.assignedEmp}`}
-                                        </Text>
-                                      )}
+                                      <Text size="1" color="gray">{previewCur.assignedEmp} employees assigned</Text>
                                     </Flex>
-                                  </Flex>
-                                </Grid>
-                                {/* Coworking row */}
-                                <Grid columns="3" style={{ gap: 0, alignItems: "center" }}>
-                                  <Box style={{ paddingRight: 12 }}>
-                                    <Text size="2" style={{ color: "var(--slate-12)" }}>Coworking spaces</Text>
-                                    <Text as="div" size="1" color="gray">Employees in coworking / total coworking spaces</Text>
-                                  </Box>
-                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
-                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
-                                      <MultiDonutChart segments={[{ value: previewCur.coworkingEmp, color: "var(--purple-9)" }]} total={previewCur.coworkingSpaces} size={96} thickness={11} />
-                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewCur.coworkingEmp}</Text>
-                                        <Text size="1" color="gray">/{previewCur.coworkingSpaces}</Text>
+                                    <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                      <Text size="1" weight="medium" style={{ color: "var(--gray-11)" }}>Planned changes</Text>
+                                      <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                        <MultiDonutChart segments={[{ value: previewPln.assignedEmp, color: previewOption.color }]} total={previewPln.assignedSpaces} size={96} thickness={11} />
+                                        <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                          <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewPln.assignedEmp}</Text>
+                                          <Text size="1" color="gray">emp</Text>
+                                        </Box>
                                       </Box>
-                                    </Box>
-                                    <Text size="1" color="gray">{previewCur.coworkingEmp} emp · {previewCur.coworkingSpaces} spaces</Text>
-                                  </Flex>
-                                  <Flex direction="column" align="center" style={{ gap: 6 }}>
-                                    <Box style={{ position: "relative", width: 96, height: 96 }}>
-                                      <MultiDonutChart segments={[{ value: previewPln.coworkingEmp, color: "var(--purple-9)" }]} total={previewPln.coworkingSpaces} size={96} thickness={11} />
-                                      <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                                        <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewPln.coworkingEmp}</Text>
-                                        <Text size="1" color="gray">/{previewPln.coworkingSpaces}</Text>
-                                      </Box>
-                                    </Box>
-                                    <Flex align="center" style={{ gap: 4 }}>
-                                      <Text size="1" color="gray">{previewPln.coworkingEmp} emp · {previewPln.coworkingSpaces} spaces</Text>
-                                      {previewPln.coworkingEmp !== previewCur.coworkingEmp && (
-                                        <Text size="1" style={{ color: previewPln.coworkingEmp > previewCur.coworkingEmp ? "var(--blue-11)" : "var(--orange-11)", fontWeight: 500 }}>
-                                          {previewPln.coworkingEmp > previewCur.coworkingEmp ? `+${previewPln.coworkingEmp - previewCur.coworkingEmp}` : `−${previewCur.coworkingEmp - previewPln.coworkingEmp}`}
-                                        </Text>
-                                      )}
+                                      <Flex align="center" style={{ gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
+                                        <Text size="1" color="gray">{previewPln.assignedEmp} employees assigned</Text>
+                                        {previewAssignedDelta !== 0 && (
+                                          <Text size="1" style={{ background: previewAssignedDelta < 0 ? "var(--orange-3)" : "var(--green-3)", color: previewAssignedDelta < 0 ? "var(--orange-11)" : "var(--green-11)", borderRadius: 9999, padding: "1px 8px", fontWeight: 500 }}>
+                                            {previewAssignedDelta < 0 ? "−" : "+"}{Math.abs(previewAssignedDelta)} employees
+                                          </Text>
+                                        )}
+                                      </Flex>
                                     </Flex>
-                                  </Flex>
-                                </Grid>
+                                  </Grid>
+                                </Box>
+
+                                {/* Coworking spaces — title stacked above the viz pair */}
+                                <Box>
+                                  <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)" }}>Coworking spaces</Text>
+                                  <Text as="div" size="1" color="gray" style={{ marginBottom: 14 }}>Employees in coworking · {previewCur.coworkingSpaces} coworking spaces total (unchanged)</Text>
+                                  <Grid columns="2" style={{ gap: 16 }}>
+                                    <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                      <Text size="1" weight="medium" style={{ color: "var(--gray-11)" }}>Current state</Text>
+                                      <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                        <MultiDonutChart segments={[{ value: previewCur.coworkingEmp, color: "var(--purple-9)" }]} total={previewCur.coworkingSpaces} size={96} thickness={11} />
+                                        <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                          <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewCur.coworkingEmp}</Text>
+                                          <Text size="1" color="gray">emp</Text>
+                                        </Box>
+                                      </Box>
+                                      <Text size="1" color="gray">{previewCur.coworkingEmp} employees in coworking</Text>
+                                    </Flex>
+                                    <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                      <Text size="1" weight="medium" style={{ color: "var(--gray-11)" }}>Planned changes</Text>
+                                      <Box style={{ position: "relative", width: 96, height: 96 }}>
+                                        <MultiDonutChart segments={[{ value: previewPln.coworkingEmp, color: "var(--purple-9)" }]} total={previewPln.coworkingSpaces} size={96} thickness={11} />
+                                        <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                          <Text className="data-viz-sm" style={{ fontSize: 16 }}>{previewPln.coworkingEmp}</Text>
+                                          <Text size="1" color="gray">emp</Text>
+                                        </Box>
+                                      </Box>
+                                      <Flex align="center" style={{ gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
+                                        <Text size="1" color="gray">{previewPln.coworkingEmp} employees in coworking</Text>
+                                        {previewCoworkDelta !== 0 && (
+                                          <Text size="1" style={{ background: previewCoworkDelta > 0 ? "var(--blue-3)" : "var(--orange-3)", color: previewCoworkDelta > 0 ? "var(--blue-11)" : "var(--orange-11)", borderRadius: 9999, padding: "1px 8px", fontWeight: 500 }}>
+                                            {previewCoworkDelta > 0 ? "+" : "−"}{Math.abs(previewCoworkDelta)} employees
+                                          </Text>
+                                        )}
+                                      </Flex>
+                                    </Flex>
+                                  </Grid>
+                                </Box>
                               </Box>
 
                               <Box style={{ height: 1, background: "var(--gray-4)", margin: "0 -24px 24px" }} />
 
                               {/* Section: Desk allocation by category */}
                               <Box>
-                                <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)", marginBottom: 14 }}>Desk allocation by employee category</Text>
-                                <Grid columns="3" style={{ gap: 0, marginBottom: 16 }}>
-                                  <Box />
-                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Current state</Text>
-                                  <Text size="1" weight="medium" style={{ color: "var(--gray-11)", textAlign: "center" }}>Planned changes</Text>
-                                </Grid>
-                                <Grid columns="3" style={{ gap: 0, alignItems: "start" }}>
-                                  <Box style={{ paddingRight: 12, paddingTop: 6 }}>
-                                    <Text size="2" style={{ color: "var(--slate-12)" }}>Assigned desks</Text>
-                                    <Text as="div" size="1" color="gray">by employee category</Text>
-                                    <Flex direction="column" style={{ gap: 5, marginTop: 12 }}>
-                                      {previewCur.deskByCategory.map((d) => (
-                                        <Flex key={d.label} align="center" style={{ gap: 5 }}>
-                                          <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
-                                          <Text size="1" color="gray">{d.label}</Text>
-                                        </Flex>
-                                      ))}
+                                <Heading as="h4" size="2" style={{ color: "var(--slate-12)", marginBottom: 4 }}>Desk allocation by employee category</Heading>
+                                <Text as="div" size="1" color="gray" style={{ marginBottom: 10 }}>Who holds the assigned desks in each state</Text>
+                                <Flex align="center" style={{ gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
+                                  {previewCur.deskByCategory.map((d) => (
+                                    <Flex key={d.label} align="center" style={{ gap: 5 }}>
+                                      <Box style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                                      <Text size="1" color="gray">{d.label}</Text>
                                     </Flex>
-                                  </Box>
-                                  {/* Current category donut */}
+                                  ))}
+                                </Flex>
+                                <Grid columns="2" style={{ gap: 16 }}>
                                   <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Text size="1" weight="medium" style={{ color: "var(--gray-11)" }}>Current state</Text>
                                     <Box style={{ position: "relative", width: 96, height: 96 }}>
                                       <MultiDonutChart segments={previewCur.deskByCategory} total={previewCur.assignedEmp} size={96} thickness={11} />
                                       <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -2706,8 +2726,8 @@ export default function LandingPage() {
                                       ))}
                                     </Flex>
                                   </Flex>
-                                  {/* Planned category donut */}
                                   <Flex direction="column" align="center" style={{ gap: 6 }}>
+                                    <Text size="1" weight="medium" style={{ color: "var(--gray-11)" }}>Planned changes</Text>
                                     <Box style={{ position: "relative", width: 96, height: 96 }}>
                                       <MultiDonutChart segments={previewPln.deskByCategory} total={previewPln.assignedEmp} size={96} thickness={11} />
                                       <Box style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>

@@ -359,6 +359,78 @@ export const PLANS: Plan[] = [
   },
 ];
 
+/* ─── Mock employees for the plan detail roster ──────────────────────────── */
+
+export type EmployeeDeskStatus = "Assigned desk" | "Coworking" | "Drop-in";
+
+export interface MockEmployee {
+  id: string;
+  name: string;
+  role: string;
+  category: "Full-time" | "Part-time" | "Intern" | "Contingent";
+  /** Badged-in days over the 130-work-day evaluation period */
+  badgeDays: number;
+  currentStatus: EmployeeDeskStatus;
+}
+
+const EMPLOYEE_FIRST = ["Ava", "Liam", "Maya", "Noah", "Zoe", "Ethan", "Ivy", "Lucas", "Nora", "Owen", "Mia", "Eli", "Ruby", "Jack", "Lena", "Theo", "Isla", "Finn", "Aria", "Cole", "Nina", "Rhys", "Tara", "Jude", "Sana", "Marco", "Priya", "Dev", "Kai", "Elena"];
+const EMPLOYEE_LAST = ["Tran", "Kimura", "Patel", "Nguyen", "Chen", "Garcia", "Silva", "Khan", "Sato", "Lopez", "Mori", "Shah", "Park", "Diaz", "Wong", "Reyes", "Cruz", "Ito", "Vu", "Han", "Osei", "Bell", "Nair", "Cho", "Ali", "Romero", "Iyer", "Kaur", "Lim", "Novak"];
+const EMPLOYEE_ROLES = ["Software Engineer", "Product Designer", "Data Scientist", "Product Manager", "Engineering Manager", "Research Scientist", "TPM", "Content Designer", "QA Engineer", "Data Engineer", "UX Researcher", "Solutions Architect"];
+
+// Small deterministic PRNG so the roster is stable per plan across renders.
+function mulberry32(seed: number) {
+  let a = seed;
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashString(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+export function getEmployeesForPlan(planId: string, count = 24): MockEmployee[] {
+  const rand = mulberry32(hashString(planId));
+  const employees: MockEmployee[] = [];
+  const usedNames = new Set<string>();
+  for (let i = 0; i < count; i++) {
+    let name = "";
+    do {
+      name = `${EMPLOYEE_FIRST[Math.floor(rand() * EMPLOYEE_FIRST.length)]} ${EMPLOYEE_LAST[Math.floor(rand() * EMPLOYEE_LAST.length)]}`;
+    } while (usedNames.has(name));
+    usedNames.add(name);
+
+    const catRoll = rand();
+    const category: MockEmployee["category"] =
+      catRoll < 0.78 ? "Full-time" : catRoll < 0.86 ? "Part-time" : catRoll < 0.94 ? "Intern" : "Contingent";
+    const statusRoll = rand();
+    const currentStatus: EmployeeDeskStatus =
+      statusRoll < 0.55 ? "Assigned desk" : statusRoll < 0.85 ? "Coworking" : "Drop-in";
+    // Assigned-desk holders skew toward higher attendance, but with enough
+    // spread that some fall below typical IPT thresholds (and vice versa).
+    const base = currentStatus === "Assigned desk" ? 0.55 : 0.35;
+    const badgeDays = Math.min(130, Math.round((base + rand() * 0.45) * 130));
+
+    employees.push({
+      id: `${planId}-emp-${i}`,
+      name,
+      role: EMPLOYEE_ROLES[Math.floor(rand() * EMPLOYEE_ROLES.length)],
+      category,
+      badgeDays,
+      currentStatus,
+    });
+  }
+  return employees;
+}
+
 export function addPlan(plan: Plan): void {
   PLANS.push(plan);
 }
