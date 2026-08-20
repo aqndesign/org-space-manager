@@ -1790,14 +1790,15 @@ export default function LandingPage() {
           {/* Scrollable content — right edge retracts to make room for the panel */}
           <Box className="scrollable-content" style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", opacity: contentFaded ? 0 : 1, pointerEvents: contentFaded ? "none" : undefined, transition: "opacity 250ms ease-in-out, right 300ms ease-in-out" }}>
         <Box
-          px={{ initial: "4", sm: "6" }}
-          py={{ initial: "4", sm: "6" }}
+          px="2"
+          pt="2"
+          pb={{ initial: "4", sm: "6" }}
           style={{
             maxWidth: 1400,
             margin: "0 auto",
           }}
         >
-          <Flex direction="column" gap="5">
+          <Flex direction="column" gap="4">
             {/* Planning season banner */}
             {bannerVisible && (
             <Box style={{ position: "relative", borderRadius: 20 }}>

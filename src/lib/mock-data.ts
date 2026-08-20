@@ -371,6 +371,9 @@ export interface MockEmployee {
   /** Badged-in days over the 130-work-day evaluation period */
   badgeDays: number;
   currentStatus: EmployeeDeskStatus;
+  yearsExp: number;
+  team: string;
+  manager: string;
 }
 
 const EMPLOYEE_FIRST = ["Ava", "Liam", "Maya", "Noah", "Zoe", "Ethan", "Ivy", "Lucas", "Nora", "Owen", "Mia", "Eli", "Ruby", "Jack", "Lena", "Theo", "Isla", "Finn", "Aria", "Cole", "Nina", "Rhys", "Tara", "Jude", "Sana", "Marco", "Priya", "Dev", "Kai", "Elena"];
@@ -397,15 +400,25 @@ function hashString(s: string): number {
   return h >>> 0;
 }
 
+const EMPLOYEE_TEAMS = ["Platform", "Growth", "Core Services", "Data & Insights", "Experience", "Infrastructure"];
+
 export function getEmployeesForPlan(planId: string, count = 24): MockEmployee[] {
   const rand = mulberry32(hashString(planId));
   const employees: MockEmployee[] = [];
   const usedNames = new Set<string>();
+
+  // A small bench of managers, stable per plan.
+  const managers: string[] = [];
+  while (managers.length < 6) {
+    const m = `${EMPLOYEE_FIRST[Math.floor(rand() * EMPLOYEE_FIRST.length)]} ${EMPLOYEE_LAST[Math.floor(rand() * EMPLOYEE_LAST.length)]}`;
+    if (!managers.includes(m)) managers.push(m);
+  }
+
   for (let i = 0; i < count; i++) {
     let name = "";
     do {
       name = `${EMPLOYEE_FIRST[Math.floor(rand() * EMPLOYEE_FIRST.length)]} ${EMPLOYEE_LAST[Math.floor(rand() * EMPLOYEE_LAST.length)]}`;
-    } while (usedNames.has(name));
+    } while (usedNames.has(name) || managers.includes(name));
     usedNames.add(name);
 
     const catRoll = rand();
@@ -418,6 +431,7 @@ export function getEmployeesForPlan(planId: string, count = 24): MockEmployee[] 
     // spread that some fall below typical IPT thresholds (and vice versa).
     const base = currentStatus === "Assigned desk" ? 0.55 : 0.35;
     const badgeDays = Math.min(130, Math.round((base + rand() * 0.45) * 130));
+    const teamIdx = Math.floor(rand() * EMPLOYEE_TEAMS.length);
 
     employees.push({
       id: `${planId}-emp-${i}`,
@@ -426,6 +440,9 @@ export function getEmployeesForPlan(planId: string, count = 24): MockEmployee[] 
       category,
       badgeDays,
       currentStatus,
+      yearsExp: category === "Intern" ? 0 : 1 + Math.floor(rand() * 14),
+      team: EMPLOYEE_TEAMS[teamIdx],
+      manager: managers[teamIdx % managers.length],
     });
   }
   return employees;

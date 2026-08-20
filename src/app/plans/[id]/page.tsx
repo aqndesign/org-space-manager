@@ -8,6 +8,7 @@ import {
   Button,
   Callout,
   Checkbox,
+  Dialog,
   Flex,
   Grid,
   Heading,
@@ -21,18 +22,19 @@ import {
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
+import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import {
   ChevronLeftIcon,
   Cross2Icon,
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon,
+  EnterFullScreenIcon,
   InfoCircledIcon,
-  MixerHorizontalIcon,
   PaperPlaneIcon,
   PersonIcon,
   ResetIcon,
 } from "@radix-ui/react-icons";
-import { getEmployeesForPlan, getPlanById, MockEmployee } from "@/lib/mock-data";
+import { EmployeeDeskStatus, getEmployeesForPlan, getPlanById, MockEmployee } from "@/lib/mock-data";
 import { DeskPolicy, IPTPolicy, Plan } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BlobCanvas } from "@/components/BlobCanvas";
@@ -51,11 +53,129 @@ const GLASS_CARD_STYLE: React.CSSProperties = {
   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92)",
 };
 
+// Content cards sit on the white workspace, so they get a visible hairline
+// border instead of the glass treatment.
 const WHITE_CARD_STYLE: React.CSSProperties = {
-  ...GLASS_CARD_STYLE,
   background: "white",
+  border: "0.5px solid var(--gray-5)",
+  borderRadius: 16,
+  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+  overflow: "hidden",
   padding: "20px 24px",
 };
+
+const avatarUrl = (name: string) =>
+  `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+
+function PolicyDocIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+      <path fill="currentColor" d="M19.556 13.193c.288-.093.6-.093.888 0 .207.067.365.182.494.29.122.104.257.239.397.38l1.053 1.052c.14.14.275.276.379.398.081.095.166.209.231.346l.059.147.03.109c.061.257.052.527-.03.78a1.452 1.452 0 0 1-.29.492 7.19 7.19 0 0 1-.38.398l-4.8 4.8c-.106.106-.235.242-.397.34-.128.08-.269.137-.416.172-.183.045-.37.04-.521.04H15.2c-.198 0-.39 0-.549-.012a1.452 1.452 0 0 1-.553-.144 1.44 1.44 0 0 1-.63-.629 1.452 1.452 0 0 1-.143-.553c-.013-.16-.012-.35-.012-.55v-1.052c0-.15-.005-.339.04-.522a1.44 1.44 0 0 1 .171-.415c.1-.162.235-.291.341-.398l4.8-4.8c.14-.14.276-.275.398-.379.128-.108.287-.223.493-.29ZM17.6 1.25c.407 0 .759-.001 1.046.022.297.025.592.079.875.223.424.216.768.56.984.984.144.283.198.578.223.875.023.287.022.639.022 1.046v7.034c0 .078 0 .152-.002.223l-.049-.013c-.46-.11-.939-.11-1.398 0l-.228.063c-.48.156-.82.413-1.022.585-.182.155-.368.344-.49.466l-4.8 4.8c-.054.054-.35.33-.569.685a2.996 2.996 0 0 0-.296.64l-.063.227c-.097.406-.083.81-.083.887v1.053c0 .173-.002.438.018.676.02.242.071.616.256 1.024H6.4c-.407 0-.759.001-1.046-.023a2.292 2.292 0 0 1-.875-.222 2.25 2.25 0 0 1-.984-.983 2.292 2.292 0 0 1-.223-.875c-.023-.288-.022-.64-.022-1.047V4.4c0-.407-.001-.759.022-1.046.025-.297.079-.592.223-.875a2.25 2.25 0 0 1 .984-.984c.283-.144.578-.198.875-.223.287-.023.639-.022 1.046-.022h11.2ZM8 15.281a.719.719 0 0 0 0 1.438h3a.719.719 0 1 0 0-1.438H8Zm0-4a.719.719 0 0 0 0 1.438h5.5a.719.719 0 1 0 0-1.438H8Zm0-4A.719.719 0 0 0 8 8.72h8a.719.719 0 1 0 0-1.438H8Z"/>
+    </svg>
+  );
+}
+
+// How many policy decisions differ from the plan's saved values.
+function countPolicyChanges(plan: Plan, deskPolicy: DeskPolicy, iptPolicy: IPTPolicy): number {
+  let n = 0;
+  for (const k of Object.keys(deskPolicy) as (keyof DeskPolicy)[]) {
+    if (deskPolicy[k] !== plan.deskPolicy[k]) n++;
+  }
+  if (iptPolicy.minimumWorkDays !== plan.iptPolicy.minimumWorkDays) n++;
+  if (iptPolicy.allowanceNonAssigned !== plan.iptPolicy.allowanceNonAssigned) n++;
+  for (const k of Object.keys(iptPolicy.allowedStatuses) as (keyof IPTPolicy["allowedStatuses"])[]) {
+    if (iptPolicy.allowedStatuses[k] !== plan.iptPolicy.allowedStatuses[k]) n++;
+  }
+  return n;
+}
+
+type AssessmentTab = "all" | "employee" | "workspace" | "impact" | "employees";
+// Icon-only when the policy panel is expanded (tight width); labels otherwise.
+const ASSESSMENT_TABS: { value: AssessmentTab; label: string; icon: React.ReactNode; iconActive: React.ReactNode }[] = [
+  {
+    value: "all",
+    label: "All assessments",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.688" d="M3.5 4.5h3" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M10.75 4.5h9.75" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.688" d="M3.5 12h3" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M10.75 12h9.75" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.688" d="M3.5 19.5h3" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M10.75 19.5h9.75" />
+      </svg>
+    ),
+    iconActive: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path fill="currentColor" d="M6.5 18.656a.844.844 0 0 1 0 1.688h-3a.844.844 0 0 1 0-1.688h3Zm14 .094a.75.75 0 0 1 0 1.5h-9.75a.75.75 0 0 1 0-1.5h9.75Zm-14-7.594a.844.844 0 0 1 0 1.688h-3a.844.844 0 0 1 0-1.688h3Zm14 .094a.75.75 0 0 1 0 1.5h-9.75a.75.75 0 0 1 0-1.5h9.75Zm-14-7.594a.844.844 0 0 1 0 1.688h-3a.844.844 0 0 1 0-1.688h3Zm14 .094a.75.75 0 0 1 0 1.5h-9.75a.75.75 0 0 1 0-1.5h9.75Z" />
+      </svg>
+    ),
+  },
+  {
+    value: "employee",
+    label: "Employee",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <circle cx="12" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
+        <path stroke="currentColor" strokeWidth="1.5" d="M10.608 14.209c.425-.139.87-.209 1.317-.209h.15c.447 0 .892.07 1.317.209l.081.026a3.935 3.935 0 0 1 2.566 2.66l.104.366c.071.248.107.505.107.763v.204c0 .703-.57 1.272-1.272 1.272H9.022c-.703 0-1.272-.57-1.272-1.272v-.204c0-.258.036-.515.107-.763l.104-.366a3.934 3.934 0 0 1 2.566-2.66l.081-.026Z" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M17.464 10.875a2.635 2.635 0 1 0 1.148-4.996M6.537 10.875A2.635 2.635 0 1 1 5.389 5.88M19.75 19.5h1.711a1.29 1.29 0 0 0 1.29-1.29v-.309c0-.147-.023-.294-.068-.435l-.047-.15a3.097 3.097 0 0 0-2.188-2.063l-.383-.098a5.006 5.006 0 0 0-.782-.134M4.25 19.5H2.54a1.29 1.29 0 0 1-1.29-1.29v-.309c0-.147.023-.294.068-.435l.047-.15a3.097 3.097 0 0 1 2.187-2.063l.384-.098c.257-.065.518-.11.781-.134" />
+      </svg>
+    ),
+    iconActive: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path fill="currentColor" d="M8.25 7a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM11.925 13.25c-.526 0-1.05.083-1.55.246l-.08.026A4.685 4.685 0 0 0 7.24 16.69l-.105.366c-.09.315-.135.64-.135.969v.204c0 1.117.905 2.022 2.021 2.022h5.957A2.022 2.022 0 0 0 17 18.228v-.204a3.53 3.53 0 0 0-.136-.97l-.105-.365a4.684 4.684 0 0 0-3.054-3.167l-.082-.026a5.008 5.008 0 0 0-1.548-.246h-.15ZM15.902 10.512A5.23 5.23 0 0 0 17.25 7c0-.511-.073-1.005-.21-1.473a3.385 3.385 0 1 1-1.138 4.985ZM17.862 20.25c.402-.572.638-1.27.638-2.022v-.204c0-.468-.066-.932-.194-1.382l-.104-.365a6.184 6.184 0 0 0-.892-1.864 5.756 5.756 0 0 1 1.362-.163h.156c.48 0 .957.06 1.421.178l.384.098a3.845 3.845 0 0 1 2.717 2.564l.047.149c.068.214.103.438.103.662v.31a2.04 2.04 0 0 1-2.04 2.039h-3.598ZM2.54 20.25h3.597a3.506 3.506 0 0 1-.637-2.022v-.204c0-.468.065-.932.193-1.382l.104-.365a6.183 6.183 0 0 1 .892-1.864 5.762 5.762 0 0 0-1.36-.163h-.157c-.48 0-.957.06-1.421.178l-.384.098A3.847 3.847 0 0 0 .65 17.09l-.047.149a2.188 2.188 0 0 0-.103.662v.31a2.04 2.04 0 0 0 2.04 2.039ZM5.365 11.899a3.38 3.38 0 0 0 2.732-1.387A5.23 5.23 0 0 1 6.75 7c0-.511.073-1.005.21-1.473A3.385 3.385 0 1 0 5.365 11.9Z" />
+      </svg>
+    ),
+  },
+  {
+    value: "workspace",
+    label: "Workspace",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path stroke="currentColor" strokeWidth="1.5" d="M14 22V3.5A1.5 1.5 0 0 0 12.5 2H6a1.5 1.5 0 0 0-1.5 1.5V22M14 17.25h5.5M14 12h5.5" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M2 22h20" />
+        <path stroke="currentColor" strokeWidth="1.5" d="M14 6.75h4a1.5 1.5 0 0 1 1.5 1.5v13.625" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M9.25 17.975v.05M9.25 13.975v.05M9.25 9.975v.05M9.25 5.975v.05" />
+      </svg>
+    ),
+    iconActive: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path fill="currentColor" fillRule="evenodd" d="M3.75 3.5A2.25 2.25 0 0 1 6 1.25h6.5a2.25 2.25 0 0 1 2.25 2.25V6H18a2.25 2.25 0 0 1 2.25 2.25v13H22a.75.75 0 0 1 0 1.5H2a.75.75 0 0 1 0-1.5h1.75V3.5Zm11 17.75h4V18h-4v3.25Zm0-4.75h4v-3.75h-4v3.75Zm0-5.25h4v-3A.75.75 0 0 0 18 7.5h-3.25v3.75Zm-4.5 6.725a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 1 1-2 0v-.05a1 1 0 0 1 1-1Zm1-3a1 1 0 1 0-2 0v.05a1 1 0 1 0 2 0v-.05Zm-1-5a1 1 0 0 1 1 1v.05a1 1 0 0 1-2 0v-.05a1 1 0 0 1 1-1Z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+  {
+    value: "impact",
+    label: "Projected impact",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M11.758 2.993H14.8c.42 0 .63 0 .79.081a.75.75 0 0 1 .329.328c.081.16.081.37.081.79v3.3M20 3v17" />
+        <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M15.25 3.75 9.843 9.157A8 8 0 0 1 4.186 11.5H4M16 12v8M12 14v6M8 16v4M4 17.75V20" />
+      </svg>
+    ),
+    iconActive: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path fill="currentColor" d="M4 17a.75.75 0 0 1 .75.75V20a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 4 17Zm4-1.75a.75.75 0 0 1 .75.75v4a.75.75 0 0 1-1.5 0v-4a.75.75 0 0 1 .75-.75Zm4-2a.75.75 0 0 1 .75.75v6a.75.75 0 0 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm4-2a.75.75 0 0 1 .75.75v8a.75.75 0 0 1-1.5 0v-8a.75.75 0 0 1 .75-.75Zm4-9a.75.75 0 0 1 .75.75v17a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Zm-4.91-.006c.093.002.183.004.264.01.172.015.373.049.577.152.282.144.512.374.656.656.103.204.137.405.151.577.014.162.012.356.012.553V7.44a.876.876 0 0 1-1.494.62l-1.628-1.628-3.255 3.255a8.75 8.75 0 0 1-6.186 2.563H4a.75.75 0 0 1 0-1.5h.187a7.25 7.25 0 0 0 5.125-2.123l3.255-3.256-1.408-1.408a1.009 1.009 0 0 1 0-1.426l.073-.066c.154-.126.342-.203.54-.223l.1-.006H14.8l.29.002Z" />
+      </svg>
+    ),
+  },
+  {
+    value: "employees",
+    label: "Employees",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <circle cx="12" cy="10.25" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+        <path stroke="currentColor" strokeWidth="1.5" d="m3.875 19.787 1.425-1.76a6.55 6.55 0 0 1 2.657-1.96l.419-.167a9.083 9.083 0 0 1 3.373-.65h.502c1.155 0 2.3.22 3.373.65l.42.167a6.548 6.548 0 0 1 2.656 1.96l1.425 1.76" />
+        <path stroke="currentColor" strokeWidth="1.5" d="M3.5 5A1.5 1.5 0 0 1 5 3.5h14A1.5 1.5 0 0 1 20.5 5v14a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V5Z" />
+      </svg>
+    ),
+    iconActive: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={16} height={16} aria-hidden>
+        <path fill="currentColor" fillRule="evenodd" d="M5 2.75A2.25 2.25 0 0 0 2.75 5v14A2.25 2.25 0 0 0 5 21.25h14A2.25 2.25 0 0 0 21.25 19V5A2.25 2.25 0 0 0 19 2.75H5Zm14.75 15.913a1.5 1.5 0 0 0-.334-.944l-.133-.165a7.296 7.296 0 0 0-2.961-2.183l-.42-.168a9.834 9.834 0 0 0-3.651-.703h-.502c-1.25 0-2.49.239-3.652.703l-.419.168a7.295 7.295 0 0 0-2.96 2.184l-.134.164a1.5 1.5 0 0 0-.334.944V19c0 .414.336.75.75.75h14a.75.75 0 0 0 .75-.75v-.337ZM12 7.5a2.75 2.75 0 1 0 0 5.5 2.75 2.75 0 0 0 0-5.5Z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+];
 
 /* ─── Stat tile ──────────────────────────────────────── */
 function StatTile({
@@ -98,6 +218,7 @@ function PolicyPanel({
   onSubmit,
   collapsed,
   onToggleCollapse,
+  changedCount,
 }: {
   plan: Plan;
   deskPolicy: DeskPolicy;
@@ -108,6 +229,7 @@ function PolicyPanel({
   onSubmit: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  changedCount: number;
 }) {
   const isReadOnly = plan.status === "Submitted" || plan.status === "Approved" || plan.status === "Live";
 
@@ -122,18 +244,38 @@ function PolicyPanel({
 
   if (collapsed) {
     return (
-      <button className="policy-rail" onClick={onToggleCollapse} aria-expanded={false} aria-label="Expand desk assignment criteria">
-        <MixerHorizontalIcon style={{ flexShrink: 0 }} />
-        <span className="policy-rail-label">Desk assignment criteria</span>
-        <span className="policy-rail-end">
-          <DoubleArrowRightIcon width={13} height={13} />
-        </span>
-      </button>
+      <Flex direction="column" align="center" style={{ height: "100%", background: "white" }}>
+        {/* Strip header — expand control mirrors the expanded header's collapse button */}
+        <Flex align="center" justify="center" style={{ padding: "16px 0 14px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, alignSelf: "stretch" }}>
+          <Tooltip content="Expand desk assignment criteria" side="right">
+            <IconButton variant="ghost" color="gray" size="1" onClick={onToggleCollapse} aria-expanded={false} aria-label="Expand desk assignment criteria">
+              <DoubleArrowRightIcon width={13} height={13} />
+            </IconButton>
+          </Tooltip>
+        </Flex>
+        {/* Header icon with a badge counting decisions the user has updated */}
+        <Tooltip
+          content={changedCount > 0 ? `Desk assignment criteria — ${changedCount} decision${changedCount === 1 ? "" : "s"} updated` : "Desk assignment criteria"}
+          side="right"
+        >
+          <Box style={{ position: "relative", color: "var(--slate-12)", marginTop: 14 }}>
+            <PolicyDocIcon size={20} />
+            {changedCount > 0 && (
+              <Box
+                aria-label={`${changedCount} decisions updated`}
+                style={{ position: "absolute", top: -7, right: -9, minWidth: 16, height: 16, borderRadius: 9999, background: "var(--blue-9)", color: "white", fontSize: 10, fontWeight: 600, lineHeight: "16px", textAlign: "center", padding: "0 4px", boxShadow: "0 0 0 2px white" }}
+              >
+                {changedCount}
+              </Box>
+            )}
+          </Box>
+        </Tooltip>
+      </Flex>
     );
   }
 
   return (
-    <Box className="policy-card-fit" style={{ ...WHITE_CARD_STYLE, padding: 0 }}>
+    <Flex direction="column" style={{ height: "100%", minWidth: 280, background: "white" }}>
       {/* Panel header — title + sub-header stay fixed; everything below scrolls */}
       <Flex align="start" justify="between" style={{ padding: "16px 20px 14px 24px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, gap: 8 }}>
         <Box>
@@ -300,7 +442,7 @@ function PolicyPanel({
           </Button>
         </Flex>
       </Box>
-    </Box>
+    </Flex>
   );
 }
 
@@ -334,6 +476,76 @@ function computeNewStatus(
   return { status: emp.currentStatus, change: null };
 }
 
+/* ─── Roster rows: policy outcome + manual leader overrides ── */
+type RosterRow = MockEmployee & {
+  finalStatus: EmployeeDeskStatus;
+  change: "gains" | "loses" | null;
+  overridden: boolean;
+};
+
+function buildRosterRows(
+  plan: Plan,
+  iptPolicy: IPTPolicy,
+  deskPolicy: DeskPolicy,
+  overrides: Record<string, EmployeeDeskStatus>,
+): RosterRow[] {
+  return getEmployeesForPlan(plan.id).map((e) => {
+    const auto = computeNewStatus(e, iptPolicy, deskPolicy);
+    const manual = overrides[e.id];
+    const finalStatus = manual ?? auto.status;
+    const change =
+      finalStatus === e.currentStatus
+        ? null
+        : finalStatus === "Assigned desk"
+          ? "gains"
+          : e.currentStatus === "Assigned desk"
+            ? "loses"
+            : null;
+    return { ...e, finalStatus, change, overridden: manual != null };
+  });
+}
+
+function NewStatusCell({ row }: { row: RosterRow }) {
+  return (
+    <Flex align="center" style={{ gap: 6 }}>
+      <DeskStatusPill status={row.finalStatus} />
+      {row.overridden && (
+        <Badge color="amber" variant="soft" radius="full">Manual</Badge>
+      )}
+      {!row.overridden && row.change === "loses" && (
+        <Text size="1" style={{ color: "var(--orange-11)", fontWeight: 500 }}>▾ loses desk</Text>
+      )}
+      {!row.overridden && row.change === "gains" && (
+        <Text size="1" style={{ color: "var(--green-11)", fontWeight: 500 }}>▴ gains desk</Text>
+      )}
+    </Flex>
+  );
+}
+
+// Leader override controls: flip the desk decision manually, or clear it.
+function RosterActions({ row, onOverride }: { row: RosterRow; onOverride: (id: string, status: EmployeeDeskStatus | null) => void }) {
+  return (
+    <Flex align="center" style={{ gap: 6 }}>
+      {row.finalStatus === "Assigned desk" ? (
+        <Button size="1" variant="soft" color="gray" onClick={() => onOverride(row.id, "Coworking")} style={{ color: "var(--slate-12)" }}>
+          Move to coworking
+        </Button>
+      ) : (
+        <Button size="1" variant="soft" onClick={() => onOverride(row.id, "Assigned desk")}>
+          Assign desk
+        </Button>
+      )}
+      {row.overridden && (
+        <Tooltip content="Clear manual override">
+          <IconButton size="1" variant="ghost" color="gray" onClick={() => onOverride(row.id, null)} aria-label="Clear manual override">
+            <ResetIcon />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Flex>
+  );
+}
+
 /* ─── Employee roster table card ─────────────────────── */
 function EmployeeRoster({
   plan,
@@ -341,25 +553,37 @@ function EmployeeRoster({
   iptPolicy,
   deskPolicy,
   compact,
+  overrides,
+  onOverride,
+  onExpand,
 }: {
   plan: Plan;
   entry: "location" | "aa";
   iptPolicy: IPTPolicy;
   deskPolicy: DeskPolicy;
   compact: boolean;
+  overrides: Record<string, EmployeeDeskStatus>;
+  onOverride: (id: string, status: EmployeeDeskStatus | null) => void;
+  onExpand: () => void;
 }) {
-  const employees = getEmployeesForPlan(plan.id);
-  const rows = employees.map((e) => ({ ...e, next: computeNewStatus(e, iptPolicy, deskPolicy) }));
-  const losing = rows.filter((r) => r.next.change === "loses").length;
-  const gaining = rows.filter((r) => r.next.change === "gains").length;
+  const rows = buildRosterRows(plan, iptPolicy, deskPolicy, overrides);
+  const losing = rows.filter((r) => r.change === "loses").length;
+  const gaining = rows.filter((r) => r.change === "gains").length;
   const scope = entry === "aa" ? plan.allocationArea : plan.workLocation;
   const avatarSize = compact ? 24 : 30;
 
   return (
     <Box style={WHITE_CARD_STYLE}>
-      <Flex align="baseline" justify="between" style={{ gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
+      <Flex align="center" justify="between" style={{ gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
         <Heading as="h3" size="3" style={{ color: "var(--slate-12)" }}>Employees — {scope}</Heading>
-        <Text size="1" color="gray">{rows.length} shown</Text>
+        <Flex align="center" style={{ gap: 10 }}>
+          <Text size="1" color="gray">{rows.length} shown</Text>
+          <Tooltip content="Expand to full screen">
+            <IconButton variant="ghost" color="gray" size="1" onClick={onExpand} aria-label="Expand employee table to full screen">
+              <EnterFullScreenIcon />
+            </IconButton>
+          </Tooltip>
+        </Flex>
       </Flex>
       <Text as="div" size="1" color="gray" style={{ marginBottom: 12 }}>
         Desk status under this plan&apos;s policy (IPT threshold {((iptPolicy.minimumWorkDays / 130) * 100).toFixed(0)}%)
@@ -381,6 +605,7 @@ function EmployeeRoster({
               <Table.ColumnHeaderCell>Badge-in</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Current status</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>New status</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -392,7 +617,7 @@ function EmployeeRoster({
                     <Flex align="center" style={{ gap: 8 }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={`https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(r.name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
+                        src={avatarUrl(r.name)}
                         alt=""
                         width={avatarSize}
                         height={avatarSize}
@@ -418,15 +643,10 @@ function EmployeeRoster({
                     <DeskStatusPill status={r.currentStatus} />
                   </Table.Cell>
                   <Table.Cell>
-                    <Flex align="center" style={{ gap: 6 }}>
-                      <DeskStatusPill status={r.next.status} />
-                      {r.next.change === "loses" && (
-                        <Text size="1" style={{ color: "var(--orange-11)", fontWeight: 500 }}>▾ loses desk</Text>
-                      )}
-                      {r.next.change === "gains" && (
-                        <Text size="1" style={{ color: "var(--green-11)", fontWeight: 500 }}>▴ gains desk</Text>
-                      )}
-                    </Flex>
+                    <NewStatusCell row={r} />
+                  </Table.Cell>
+                  <Table.Cell>
+                    <RosterActions row={r} onOverride={onOverride} />
                   </Table.Cell>
                 </Table.Row>
               );
@@ -438,8 +658,108 @@ function EmployeeRoster({
   );
 }
 
+/* ─── Full-page employee modal ───────────────────────── */
+function RosterDialog({
+  open,
+  onOpenChange,
+  plan,
+  entry,
+  iptPolicy,
+  deskPolicy,
+  overrides,
+  onOverride,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  plan: Plan;
+  entry: "location" | "aa";
+  iptPolicy: IPTPolicy;
+  deskPolicy: DeskPolicy;
+  overrides: Record<string, EmployeeDeskStatus>;
+  onOverride: (id: string, status: EmployeeDeskStatus | null) => void;
+}) {
+  const rows = buildRosterRows(plan, iptPolicy, deskPolicy, overrides);
+  const losing = rows.filter((r) => r.change === "loses").length;
+  const gaining = rows.filter((r) => r.change === "gains").length;
+  const scope = entry === "aa" ? plan.allocationArea : plan.workLocation;
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content style={{ maxWidth: "min(1280px, 96vw)", width: "96vw", height: "88vh", padding: 0, borderRadius: 16, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <Flex align="start" justify="between" style={{ padding: "16px 24px 14px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, gap: 12 }}>
+          <Box>
+            <Dialog.Title size="4" style={{ marginBottom: 2 }}>Employees — {scope}</Dialog.Title>
+            <Dialog.Description size="1" color="gray">
+              Full employee profiles with desk-status decisions under this plan&apos;s policy (IPT threshold {((iptPolicy.minimumWorkDays / 130) * 100).toFixed(0)}%)
+            </Dialog.Description>
+          </Box>
+          <Flex align="center" style={{ gap: 8, flexShrink: 0 }}>
+            <Badge color="orange" variant="soft" radius="full">{losing} lose desk</Badge>
+            <Badge color="green" variant="soft" radius="full">{gaining} gain desk</Badge>
+            <Dialog.Close>
+              <IconButton variant="soft" color="gray" size="2" aria-label="Close full-screen employee table">
+                <Cross2Icon />
+              </IconButton>
+            </Dialog.Close>
+          </Flex>
+        </Flex>
+        <Box style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "4px 24px 24px" }}>
+          <Table.Root size="2" style={{ whiteSpace: "nowrap" }}>
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeaderCell>Employee</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Title</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Experience</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Current team</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Current manager</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Category</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Badge-in</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Current status</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>New status</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {rows.map((r) => (
+                <Table.Row key={r.id} align="center">
+                  <Table.RowHeaderCell>
+                    <Flex align="center" style={{ gap: 8 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={avatarUrl(r.name)}
+                        alt=""
+                        width={30}
+                        height={30}
+                        style={{ borderRadius: 9999, flexShrink: 0, background: "var(--gray-3)" }}
+                      />
+                      <Text size="2" weight="medium" style={{ color: "var(--slate-12)" }}>{r.name}</Text>
+                    </Flex>
+                  </Table.RowHeaderCell>
+                  <Table.Cell><Text size="2" color="gray">{r.role}</Text></Table.Cell>
+                  <Table.Cell><Text size="2" color="gray">{r.yearsExp === 0 ? "<1 yr" : `${r.yearsExp} yrs`}</Text></Table.Cell>
+                  <Table.Cell><Text size="2" color="gray">{r.team}</Text></Table.Cell>
+                  <Table.Cell><Text size="2" color="gray">{r.manager}</Text></Table.Cell>
+                  <Table.Cell><Text size="2" color="gray">{r.category}</Text></Table.Cell>
+                  <Table.Cell>
+                    <Text size="2" style={{ color: r.badgeDays >= iptPolicy.minimumWorkDays ? "var(--slate-12)" : "var(--orange-11)" }}>
+                      {r.badgeDays}/130 · {Math.round((r.badgeDays / 130) * 100)}%
+                    </Text>
+                  </Table.Cell>
+                  <Table.Cell><DeskStatusPill status={r.currentStatus} /></Table.Cell>
+                  <Table.Cell><NewStatusCell row={r} /></Table.Cell>
+                  <Table.Cell><RosterActions row={r} onOverride={onOverride} /></Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
+        </Box>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+}
+
 /* ─── Assessment content (main column) ───────────────── */
-function AssessmentContent({ plan, deskPolicy, iptPolicy }: { plan: Plan; deskPolicy: DeskPolicy; iptPolicy: IPTPolicy }) {
+function AssessmentContent({ plan, deskPolicy, iptPolicy, tab }: { plan: Plan; deskPolicy: DeskPolicy; iptPolicy: IPTPolicy; tab: AssessmentTab }) {
   const totalEmployees =
     plan.employeeAssessment.fullTime +
     plan.employeeAssessment.partTime +
@@ -475,6 +795,7 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy }: { plan: Plan; deskPo
       )}
 
       {/* Employee assessment */}
+      {(tab === "all" || tab === "employee") && (
       <Box style={WHITE_CARD_STYLE}>
         <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 2 }}>Employee assessment</Heading>
         <Text as="div" size="1" color="gray" style={{ marginBottom: 16 }}>Current headcount breakdown for this location and allocation area</Text>
@@ -492,8 +813,10 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy }: { plan: Plan; deskPo
           </Text>
         </Flex>
       </Box>
+      )}
 
       {/* Workspace assessment */}
+      {(tab === "all" || tab === "workspace") && (
       <Box style={WHITE_CARD_STYLE}>
         <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 2 }}>Workspace assessment</Heading>
         <Text as="div" size="1" color="gray" style={{ marginBottom: 16 }}>Current desk and space inventory at this location</Text>
@@ -515,9 +838,10 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy }: { plan: Plan; deskPo
           <StatTile label="Reservable spaces" value={plan.workspaceAssessment.reservable} tooltip="Spaces available for advance booking" />
         </Grid>
       </Box>
+      )}
 
       {/* Dynamic projection — only shown when policy has values */}
-      {plan.status !== "Plan draft" && (deskPolicy.assignPlannedGrowth !== null || deskPolicy.specialArrangementInterns !== null) && (
+      {(tab === "all" || tab === "impact") && plan.status !== "Plan draft" && (deskPolicy.assignPlannedGrowth !== null || deskPolicy.specialArrangementInterns !== null) && (
         <Box style={WHITE_CARD_STYLE}>
           <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 2 }}>Projected impact</Heading>
           <Text as="div" size="1" color="gray" style={{ marginBottom: 16 }}>How your current policy decisions will affect desk allocation</Text>
@@ -640,6 +964,48 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   // Policy panel collapses whenever the assistant opens (and re-expands when
   // it closes); the user can still toggle it manually in between.
   const [policyCollapsed, setPolicyCollapsed] = useState(false);
+
+  // Draggable divider between the policy section and the content section.
+  const [policyW, setPolicyW] = useState(360);
+  const [splitDragging, setSplitDragging] = useState(false);
+
+  // ── Assessment tabs + roster overrides + full-page roster modal ────────────
+  const [assessmentTab, setAssessmentTab] = useState<AssessmentTab>("all");
+  // Tab labels appear only once the policy panel is ~80% collapsed (240ms of
+  // the 300ms width transition); they hide right away when it re-expands.
+  const [showTabLabels, setShowTabLabels] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowTabLabels(policyCollapsed), policyCollapsed ? 240 : 0);
+    return () => clearTimeout(t);
+  }, [policyCollapsed]);
+  const [overrides, setOverrides] = useState<Record<string, EmployeeDeskStatus>>({});
+  const [rosterOpen, setRosterOpen] = useState(false);
+
+  function handleOverride(id: string, status: EmployeeDeskStatus | null) {
+    setOverrides((prev) => {
+      const next = { ...prev };
+      if (status === null) delete next[id];
+      else next[id] = status;
+      return next;
+    });
+  }
+
+  function onSplitDragStart(e: React.PointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const base = policyW;
+    setSplitDragging(true);
+    const move = (ev: PointerEvent) => {
+      setPolicyW(Math.min(520, Math.max(280, base + (ev.clientX - startX))));
+    };
+    const up = () => {
+      setSplitDragging(false);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
   const agentCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -783,44 +1149,120 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
       <Box style={{ flex: 1, overflow: "hidden", borderRadius: "24px 24px 0 0", position: "relative", zIndex: 1, background: "#F0F0F3" }}>
         <BlobCanvas />
 
-        {/* Scrollable content — right edge retracts to make room for the panel */}
+        {/* Single workspace card — policy panel and content share it, split by a
+            draggable divider; right edge retracts to make room for the panel */}
         <Box
-          className="scrollable-content"
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            bottom: 0,
-            right: agentPanelVisible ? 376 : 0,
-            overflowY: "auto",
+            top: 8,
+            left: 8,
+            bottom: 8,
+            right: agentPanelVisible ? 376 : 8,
             transition: "right 300ms ease-in-out",
+            ...GLASS_CARD_STYLE,
+            background: "white",
+            display: "flex",
+            overflow: "hidden",
           }}
         >
-          <Box px={{ initial: "4", sm: "5" }} py={{ initial: "4", sm: "5" }} style={{ maxWidth: 1400, margin: "0 auto" }}>
-            <Flex direction={{ initial: "column", md: "row" }} gap="4" align="start">
-              {/* Left: policy card */}
-              <Box className="policy-col" data-collapsed={policyCollapsed ? "true" : "false"}>
-                <PolicyPanel
-                  plan={plan}
-                  deskPolicy={deskPolicy}
-                  setDeskPolicy={setDeskPolicy}
-                  iptPolicy={iptPolicy}
-                  setIptPolicy={setIptPolicy}
-                  onSaveDraft={() => alert("Changes saved!")}
-                  onSubmit={() => alert("Policy submitted for planner review!")}
-                  collapsed={policyCollapsed}
-                  onToggleCollapse={() => setPolicyCollapsed((c) => !c)}
-                />
-              </Box>
+          {/* Left: policy section */}
+          <Box
+            style={{
+              width: policyCollapsed ? 48 : policyW,
+              flexShrink: 0,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              transition: splitDragging ? "none" : "width 300ms ease-in-out",
+            }}
+          >
+            <PolicyPanel
+              plan={plan}
+              deskPolicy={deskPolicy}
+              setDeskPolicy={setDeskPolicy}
+              iptPolicy={iptPolicy}
+              setIptPolicy={setIptPolicy}
+              onSaveDraft={() => alert("Changes saved!")}
+              onSubmit={() => alert("Policy submitted for planner review!")}
+              collapsed={policyCollapsed}
+              onToggleCollapse={() => setPolicyCollapsed((c) => !c)}
+              changedCount={countPolicyChanges(plan, deskPolicy, iptPolicy)}
+            />
+          </Box>
 
-              {/* Main column */}
-              <Flex direction="column" gap="4" style={{ flex: 1, minWidth: 0 }}>
-                <AssessmentContent plan={plan} deskPolicy={deskPolicy} iptPolicy={iptPolicy} />
-                <EmployeeRoster plan={plan} entry={entry} iptPolicy={iptPolicy} deskPolicy={deskPolicy} compact={agentOpen} />
-              </Flex>
+          {/* Divider — draggable while the policy section is expanded */}
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            onPointerDown={policyCollapsed ? undefined : onSplitDragStart}
+            style={{ width: 9, flexShrink: 0, position: "relative", cursor: policyCollapsed ? "default" : "col-resize", touchAction: "none" }}
+          >
+            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: "var(--gray-4)" }} />
+            {!policyCollapsed && (
+              <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 4, height: 44, borderRadius: 9999, background: "var(--gray-6)" }} />
+            )}
+          </div>
+
+          {/* Right: scrollable content */}
+          <Box style={{ flex: 1, minWidth: 0, overflowY: "auto", background: "white" }}>
+            {/* Assessment tabs — sticky so they stay reachable while scrolling */}
+            <Box style={{ position: "sticky", top: 0, zIndex: 5, background: "white", borderBottom: "0.5px solid var(--gray-4)", padding: "12px 16px" }}>
+              <ToggleGroup.Root
+                type="single"
+                value={assessmentTab}
+                onValueChange={(v) => { if (v) setAssessmentTab(v as AssessmentTab); }}
+                className="preview-toggle-root assessment-tabs"
+                aria-label="Assessment sections"
+              >
+                {ASSESSMENT_TABS.map((t) => {
+                  const active = assessmentTab === t.value;
+                  const item = (
+                    <ToggleGroup.Item
+                      key={t.value}
+                      value={t.value}
+                      className="preview-toggle-item"
+                      data-state={active ? "on" : "off"}
+                      aria-label={t.label}
+                    >
+                      <span style={{ flexShrink: 0, display: "inline-flex" }}>{active ? t.iconActive : t.icon}</span>
+                      {showTabLabels && <span className="tab-label">{t.label}</span>}
+                    </ToggleGroup.Item>
+                  );
+                  // Icon-only tabs get an explanatory tooltip.
+                  return showTabLabels ? item : <Tooltip key={t.value} content={t.label}>{item}</Tooltip>;
+                })}
+              </ToggleGroup.Root>
+            </Box>
+            <Flex direction="column" gap="4" p="4">
+              <AssessmentContent plan={plan} deskPolicy={deskPolicy} iptPolicy={iptPolicy} tab={assessmentTab} />
+              {(assessmentTab === "all" || assessmentTab === "employees") && (
+                <EmployeeRoster
+                  plan={plan}
+                  entry={entry}
+                  iptPolicy={iptPolicy}
+                  deskPolicy={deskPolicy}
+                  compact={agentOpen}
+                  overrides={overrides}
+                  onOverride={handleOverride}
+                  onExpand={() => setRosterOpen(true)}
+                />
+              )}
             </Flex>
           </Box>
         </Box>
+
+        {/* Full-page employee modal */}
+        <RosterDialog
+          open={rosterOpen}
+          onOpenChange={setRosterOpen}
+          plan={plan}
+          entry={entry}
+          iptPolicy={iptPolicy}
+          deskPolicy={deskPolicy}
+          overrides={overrides}
+          onOverride={handleOverride}
+        />
 
         {/* Agent panel */}
         {agentOpen && (
