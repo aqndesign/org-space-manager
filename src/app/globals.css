@@ -308,6 +308,16 @@ h4.rt-Heading {
   to { opacity: 1; }
 }
 
+/* ─── Plan details: assessment stat tiles ───────────── */
+/* Column count follows the card's actual width, not the viewport — the
+   content column is squeezed by the policy panel, drag divider, and agent
+   panel, so viewport breakpoints would keep too many columns. */
+.stat-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+
 /* ─── Liquid-glass scrollbars ───────────────────────── */
 /* Translucent pill thumb on a transparent track. The 4px transparent border
    with background-clip keeps a symmetric gutter on both sides of the thumb,

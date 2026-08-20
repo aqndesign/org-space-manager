@@ -10,7 +10,6 @@ import {
   Checkbox,
   Dialog,
   Flex,
-  Grid,
   Heading,
   IconButton,
   RadioGroup,
@@ -799,13 +798,13 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy, tab }: { plan: Plan; d
       <Box style={WHITE_CARD_STYLE}>
         <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 2 }}>Employee assessment</Heading>
         <Text as="div" size="1" color="gray" style={{ marginBottom: 16 }}>Current headcount breakdown for this location and allocation area</Text>
-        <Grid columns={{ initial: "2", md: "3", lg: "5" }} gap="3">
+        <div className="stat-tile-grid">
           <StatTile label="Full-time" value={plan.employeeAssessment.fullTime} color="blue" />
           <StatTile label="Part-time" value={plan.employeeAssessment.partTime} color="blue" />
           <StatTile label="Interns" value={plan.employeeAssessment.interns} tooltip="May qualify for special desk arrangement" />
           <StatTile label="Contingent workers" value={plan.employeeAssessment.contingent} />
           <StatTile label="Other" value={plan.employeeAssessment.other} />
-        </Grid>
+        </div>
         <Flex align="center" gap="2" p="3" style={{ background: "var(--blue-2)", borderRadius: 12, marginTop: 12 }}>
           <PersonIcon color="var(--blue-9)" />
           <Text size="2" style={{ color: "var(--blue-11)" }}>
@@ -820,7 +819,7 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy, tab }: { plan: Plan; d
       <Box style={WHITE_CARD_STYLE}>
         <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 2 }}>Workspace assessment</Heading>
         <Text as="div" size="1" color="gray" style={{ marginBottom: 16 }}>Current desk and space inventory at this location</Text>
-        <Grid columns={{ initial: "2", md: "4" }} gap="3">
+        <div className="stat-tile-grid">
           <StatTile
             label="Assigned desks"
             value={plan.workspaceAssessment.assignedDesks}
@@ -836,7 +835,7 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy, tab }: { plan: Plan; d
           />
           <StatTile label="Drop-in spaces" value={plan.workspaceAssessment.dropIn} tooltip="Flexible unassigned seats" />
           <StatTile label="Reservable spaces" value={plan.workspaceAssessment.reservable} tooltip="Spaces available for advance booking" />
-        </Grid>
+        </div>
       </Box>
       )}
 
@@ -845,7 +844,7 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy, tab }: { plan: Plan; d
         <Box style={WHITE_CARD_STYLE}>
           <Heading as="h3" size="3" style={{ color: "var(--slate-12)", marginBottom: 2 }}>Projected impact</Heading>
           <Text as="div" size="1" color="gray" style={{ marginBottom: 16 }}>How your current policy decisions will affect desk allocation</Text>
-          <Grid columns={{ initial: "1", md: "3" }} gap="3">
+          <div className="stat-tile-grid">
             <StatTile
               label="Projected desks needed"
               value={projectedNeed}
@@ -865,7 +864,7 @@ function AssessmentContent({ plan, deskPolicy, iptPolicy, tab }: { plan: Plan; d
               color="blue"
               tooltip="Minimum in-person time required to be eligible for a desk assignment"
             />
-          </Grid>
+          </div>
 
           {surplus < 0 ? (
             <Callout.Root color="orange" variant="soft" style={{ borderRadius: 12, marginTop: 12 }}>
