@@ -89,7 +89,11 @@ function countPolicyChanges(plan: Plan, deskPolicy: DeskPolicy, iptPolicy: IPTPo
 }
 
 type AssessmentTab = "all" | "employee" | "workspace" | "impact" | "employees";
-// Icon-only when the policy panel is expanded (tight width); labels otherwise.
+// Minimum tab-bar width (px, incl. its 16px side paddings) at which all five
+// labels fit untruncated (widest, "Projected impact", needs ~150px/item);
+// below it the tabs fall back to icon-only.
+const TAB_LABEL_MIN_WIDTH = 760;
+// Icon-only when the tab bar is too narrow for labels; labels once they fit.
 const ASSESSMENT_TABS: { value: AssessmentTab; label: string; icon: React.ReactNode; iconActive: React.ReactNode }[] = [
   {
     value: "all",
@@ -970,13 +974,19 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
 
   // ── Assessment tabs + roster overrides + full-page roster modal ────────────
   const [assessmentTab, setAssessmentTab] = useState<AssessmentTab>("all");
-  // Tab labels appear only once the policy panel is ~80% collapsed (240ms of
-  // the 300ms width transition); they hide right away when it re-expands.
+  // Tab labels show whenever the bar is wide enough to fit them untruncated,
+  // measured live: the policy panel, drag divider, and assistant all animate
+  // the bar's width (300ms), so labels fade in/out as it crosses the threshold
+  // mid-transition — same cadence as the old collapse-delay timer.
+  const tabsBarRef = useRef<HTMLDivElement | null>(null);
   const [showTabLabels, setShowTabLabels] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setShowTabLabels(policyCollapsed), policyCollapsed ? 240 : 0);
-    return () => clearTimeout(t);
-  }, [policyCollapsed]);
+    const el = tabsBarRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setShowTabLabels(el.offsetWidth >= TAB_LABEL_MIN_WIDTH));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const [overrides, setOverrides] = useState<Record<string, EmployeeDeskStatus>>({});
   const [rosterOpen, setRosterOpen] = useState(false);
 
@@ -1206,7 +1216,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
           {/* Right: scrollable content */}
           <Box style={{ flex: 1, minWidth: 0, overflowY: "auto", background: "white" }}>
             {/* Assessment tabs — sticky so they stay reachable while scrolling */}
-            <Box style={{ position: "sticky", top: 0, zIndex: 5, background: "white", borderBottom: "0.5px solid var(--gray-4)", padding: "12px 16px" }}>
+            <Box ref={tabsBarRef} style={{ position: "sticky", top: 0, zIndex: 5, background: "white", borderBottom: "0.5px solid var(--gray-4)", padding: "12px 16px" }}>
               <ToggleGroup.Root
                 type="single"
                 value={assessmentTab}
