@@ -281,9 +281,7 @@ export function NewPlanModal({ open, onOpenChange, existingPlans, onCreate }: Pr
           py="5"
           style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #fafafa 100%)", borderBottom: "1px solid var(--gray-4)" }}
         >
-          <Dialog.Title style={{ marginBottom: 0 }}>
-            <Heading size="4">New desk policy plan</Heading>
-          </Dialog.Title>
+          <Dialog.Title size="4" style={{ marginBottom: 0 }}>New desk policy plan</Dialog.Title>
           <Text size="2" color="gray">
             Create a new plan draft for a location and allocation area
           </Text>
