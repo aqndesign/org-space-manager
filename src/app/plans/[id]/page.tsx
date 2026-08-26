@@ -20,6 +20,7 @@ import {
 } from "@radix-ui/themes";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import {
+  CheckIcon,
   ChevronLeftIcon,
   Cross2Icon,
   DoubleArrowLeftIcon,
@@ -31,7 +32,7 @@ import {
   ResetIcon,
 } from "@radix-ui/react-icons";
 import { EmployeeDeskStatus, getEmployeesForPlan, getPlanById, MockEmployee } from "@/lib/mock-data";
-import { DeskPolicy, IPTPolicy, Plan } from "@/lib/types";
+import { DeskPolicy, IPTPolicy, Plan, PlanStatus } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BlobCanvas } from "@/components/BlobCanvas";
 
@@ -898,6 +899,13 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   const [assistantCollapsed, setAssistantCollapsed] = useState(false);
   const [criteriaOpen, setCriteriaOpen] = useState(false);
 
+  // Dev-only role switcher: preview the page as either persona. The plan
+  // status lives in state so role actions (publish/submit/approve) can
+  // advance the lifecycle in the prototype without touching mock data.
+  const [role, setRole] = useState<"leader" | "planner">("leader");
+  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [planStatus, setPlanStatus] = useState<PlanStatus>(plan?.status ?? "Plan draft");
+
   // Draggable divider between the assistant section and the content section.
   const [assistantW, setAssistantW] = useState(360);
   const [splitDragging, setSplitDragging] = useState(false);
@@ -979,12 +987,13 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   // from the location's data. Full-time and part-time staff who meet a 75%
   // in-office bar come first; remaining capacity is granted in priority
   // order — planned growth, then interns, then inbound embeds.
-  function optimizeAllCriteria(): string {
+  function optimizeAllCriteria(statusOverride?: PlanStatus): string {
     if (!plan) return "";
-    if (plan.status === "Submitted" || plan.status === "Approved" || plan.status === "Live") {
-      return `This plan is ${plan.status.toLowerCase()}, so its criteria are locked. You can review the decisions from the button at the bottom right, but re-optimizing would need a new plan revision.`;
+    const status = statusOverride ?? planStatus;
+    if (status === "Submitted" || status === "Approved" || status === "Live") {
+      return `This plan is ${status.toLowerCase()}, so its criteria are locked. You can review the decisions from the button at the bottom right, but re-optimizing would need a new plan revision.`;
     }
-    if (plan.status === "Plan draft") {
+    if (status === "Plan draft") {
       return "This plan is still a draft — a space planner needs to publish it before the desk assignment policy can be configured. I'll make the criteria decisions as soon as that happens.";
     }
     const ea = plan.employeeAssessment;
@@ -1065,6 +1074,22 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
     startThinking(() => computeReply(content));
   }
 
+  // ── Plan lifecycle actions (role-gated in the header) ──
+  function handleSubmit() {
+    setPlanStatus("Submitted");
+    alert("Policy submitted for planner review!");
+  }
+  // Publishing hands the plan to the org leader for policy decisions — the
+  // assistant follows up right away with its optimal configuration.
+  function handlePublish() {
+    setPlanStatus("Policy draft");
+    startThinking(() => optimizeAllCriteria("Policy draft"));
+  }
+  function handleApprove() {
+    setPlanStatus("Approved");
+    alert("Plan approved! The desk policy is locked for implementation.");
+  }
+
   if (!plan) {
     return (
       <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
@@ -1074,7 +1099,11 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   const changedCount = countPolicyChanges(plan, deskPolicy, iptPolicy);
-  const isReadOnly = plan.status === "Submitted" || plan.status === "Approved" || plan.status === "Live";
+  const isReadOnly = planStatus === "Submitted" || planStatus === "Approved" || planStatus === "Live";
+  // The org leader can act only while the plan is published and unsubmitted.
+  const leaderLocked = isReadOnly || planStatus === "Plan draft";
+  // The plan with the live (possibly dev-advanced) status, for display.
+  const viewPlan: Plan = { ...plan, status: planStatus };
 
   return (
     <Box style={{ height: "100vh", display: "flex", flexDirection: "column", position: "relative", background: "#FCFCFD" }}>
@@ -1107,31 +1136,44 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
             <Flex direction="column" style={{ minWidth: 0 }}>
               <Flex align="center" gap="2">
                 <Heading size={{ initial: "3", sm: "4" }} style={{ whiteSpace: "nowrap" }}>{plan.allocationArea}</Heading>
-                <StatusBadge status={plan.status} />
+                <StatusBadge status={planStatus} />
               </Flex>
               <Text size="1" color="gray" style={{ whiteSpace: "nowrap" }}>
                 {plan.workLocation} · {plan.fiscalYear} {plan.quarter}
               </Text>
             </Flex>
           </Flex>
-          {/* Plan actions — Submit is the primary action, furthest right */}
+          {/* Plan actions — role-dependent; the primary action sits furthest right */}
           <Flex align="center" gap="2">
             <Button variant="soft" color="gray" size="2" style={{ color: "var(--slate-12)" }}>
               <ResetIcon /> History
             </Button>
-            <Button
-              variant="soft"
-              color="gray"
-              size="2"
-              onClick={() => alert("Changes saved!")}
-              disabled={isReadOnly}
-              style={{ color: isReadOnly ? undefined : "var(--slate-12)" }}
-            >
-              Save changes
-            </Button>
-            <Button size="2" className="btn-primary" onClick={() => alert("Policy submitted for planner review!")} disabled={isReadOnly}>
-              Submit policy
-            </Button>
+            {role === "leader" ? (
+              <>
+                <Button
+                  variant="soft"
+                  color="gray"
+                  size="2"
+                  onClick={() => alert("Changes saved!")}
+                  disabled={leaderLocked}
+                  style={{ color: leaderLocked ? undefined : "var(--slate-12)" }}
+                >
+                  Save changes
+                </Button>
+                <Button size="2" className="btn-primary" onClick={handleSubmit} disabled={leaderLocked}>
+                  Submit policy
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="2" className="btn-primary" onClick={handlePublish} disabled={planStatus !== "Plan draft"}>
+                  Publish plan
+                </Button>
+                <Button size="2" className="btn-primary" onClick={handleApprove} disabled={planStatus !== "Submitted"}>
+                  Approve plan
+                </Button>
+              </>
+            )}
           </Flex>
         </Flex>
       </Box>
@@ -1357,10 +1399,10 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               </ToggleGroup.Root>
             </Box>
             <Flex direction="column" gap="4" p="4">
-              <AssessmentContent plan={plan} deskPolicy={deskPolicy} iptPolicy={iptPolicy} tab={assessmentTab} />
+              <AssessmentContent plan={viewPlan} deskPolicy={deskPolicy} iptPolicy={iptPolicy} tab={assessmentTab} />
               {(assessmentTab === "all" || assessmentTab === "employees") && (
                 <EmployeeRoster
-                  plan={plan}
+                  plan={viewPlan}
                   entry={entry}
                   iptPolicy={iptPolicy}
                   deskPolicy={deskPolicy}
@@ -1378,13 +1420,88 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
         <RosterDialog
           open={rosterOpen}
           onOpenChange={setRosterOpen}
-          plan={plan}
+          plan={viewPlan}
           entry={entry}
           iptPolicy={iptPolicy}
           deskPolicy={deskPolicy}
           overrides={overrides}
           onOverride={handleOverride}
         />
+
+        {/* Dev-only role switcher — floats above the criteria button; the
+            criteria pop-up (z 30) covers it while open */}
+        <Box
+          className="criteria-popup"
+          data-open={roleMenuOpen ? "true" : "false"}
+          aria-hidden={!roleMenuOpen}
+          style={{
+            position: "absolute",
+            right: 24,
+            bottom: 144,
+            width: 264,
+            zIndex: 20,
+            background: "white",
+            border: "0.5px solid var(--gray-5)",
+            borderRadius: 14,
+            boxShadow: "0 16px 40px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06)",
+            padding: 6,
+          }}
+        >
+          <Text as="div" size="1" color="gray" weight="medium" style={{ padding: "6px 10px 4px" }}>
+            Viewing as — development only
+          </Text>
+          {(
+            [
+              { value: "leader", label: "Org leader", desc: "Configures and submits the desk policy" },
+              { value: "planner", label: "Space planner (admin)", desc: "Publishes plans, approves submissions" },
+            ] as { value: "leader" | "planner"; label: string; desc: string }[]
+          ).map((r) => (
+            <button
+              key={r.value}
+              className="role-option"
+              onClick={() => {
+                setRole(r.value);
+                setRoleMenuOpen(false);
+              }}
+              aria-pressed={role === r.value}
+            >
+              <Flex align="center" justify="between" gap="2">
+                <Box>
+                  <Text as="div" size="2" weight="medium" style={{ color: "var(--slate-12)" }}>{r.label}</Text>
+                  <Text as="div" size="1" color="gray">{r.desc}</Text>
+                </Box>
+                {role === r.value && <CheckIcon color="var(--blue-11)" />}
+              </Flex>
+            </button>
+          ))}
+        </Box>
+        <Tooltip content={`Dev: switch role (viewing as ${role === "leader" ? "org leader" : "space planner"})`} side="left">
+          <button
+            className="criteria-fab"
+            onClick={() => setRoleMenuOpen((o) => !o)}
+            aria-expanded={roleMenuOpen}
+            aria-label="Switch role (development only)"
+            style={{
+              position: "absolute",
+              right: 28,
+              bottom: 88,
+              width: 44,
+              height: 44,
+              borderRadius: 9999,
+              border: "none",
+              background: "var(--slate-12)",
+              color: "white",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 20,
+              boxShadow: "0 6px 18px rgba(0, 0, 0, 0.3)",
+            }}
+          >
+            <PersonIcon width={18} height={18} />
+          </button>
+        </Tooltip>
 
         {/* Desk assignment criteria — pop-up above the floating button */}
         <Box
