@@ -7,18 +7,15 @@ import {
   Box,
   Button,
   Callout,
-  Checkbox,
   Dialog,
   Flex,
   Heading,
   IconButton,
-  RadioGroup,
   ScrollArea,
   Separator,
   Table,
   Text,
   TextArea,
-  TextField,
   Tooltip,
 } from "@radix-ui/themes";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
@@ -210,84 +207,29 @@ function StatTile({
   );
 }
 
-/* ─── Policy panel (left card) ───────────────────────── */
+/* ─── Desk assignment criteria (bottom-right pop-up) ── */
+/* Review-only: the assistant owns policy changes, so the pop-up renders the
+   current decisions as static text rather than form controls. */
 function PolicyPanel({
-  plan,
   deskPolicy,
-  setDeskPolicy,
   iptPolicy,
-  setIptPolicy,
-  onSaveDraft,
-  onSubmit,
-  collapsed,
-  onToggleCollapse,
-  changedCount,
+  onClose,
 }: {
-  plan: Plan;
   deskPolicy: DeskPolicy;
-  setDeskPolicy: (p: DeskPolicy) => void;
   iptPolicy: IPTPolicy;
-  setIptPolicy: (p: IPTPolicy) => void;
-  onSaveDraft: () => void;
-  onSubmit: () => void;
-  collapsed: boolean;
-  onToggleCollapse: () => void;
-  changedCount: number;
+  onClose: () => void;
 }) {
-  const isReadOnly = plan.status === "Submitted" || plan.status === "Approved" || plan.status === "Live";
-
-  function boolVal(v: boolean | null): string {
-    if (v === null) return "";
-    return v ? "yes" : "no";
-  }
-
-  function setDesk(key: keyof DeskPolicy, value: string) {
-    setDeskPolicy({ ...deskPolicy, [key]: value === "yes" ? true : value === "no" ? false : null });
-  }
-
-  if (collapsed) {
-    return (
-      <Flex direction="column" align="center" style={{ height: "100%", background: "white" }}>
-        {/* Strip header — expand control mirrors the expanded header's collapse button */}
-        <Flex align="center" justify="center" style={{ padding: "16px 0 14px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, alignSelf: "stretch" }}>
-          <Tooltip content="Expand desk assignment criteria" side="right">
-            <IconButton variant="ghost" color="gray" size="1" onClick={onToggleCollapse} aria-expanded={false} aria-label="Expand desk assignment criteria">
-              <DoubleArrowRightIcon width={13} height={13} />
-            </IconButton>
-          </Tooltip>
-        </Flex>
-        {/* Header icon with a badge counting decisions the user has updated */}
-        <Tooltip
-          content={changedCount > 0 ? `Desk assignment criteria — ${changedCount} decision${changedCount === 1 ? "" : "s"} updated` : "Desk assignment criteria"}
-          side="right"
-        >
-          <Box style={{ position: "relative", color: "var(--slate-12)", marginTop: 14 }}>
-            <PolicyDocIcon size={20} />
-            {changedCount > 0 && (
-              <Box
-                aria-label={`${changedCount} decisions updated`}
-                style={{ position: "absolute", top: -7, right: -9, minWidth: 16, height: 16, borderRadius: 9999, background: "var(--blue-9)", color: "white", fontSize: 10, fontWeight: 600, lineHeight: "16px", textAlign: "center", padding: "0 4px", boxShadow: "0 0 0 2px white" }}
-              >
-                {changedCount}
-              </Box>
-            )}
-          </Box>
-        </Tooltip>
-      </Flex>
-    );
-  }
-
   return (
     <Flex direction="column" style={{ height: "100%", minWidth: 280, background: "white" }}>
       {/* Panel header — title + sub-header stay fixed; everything below scrolls */}
       <Flex align="start" justify="between" style={{ padding: "16px 20px 14px 24px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, gap: 8 }}>
         <Box>
           <Heading as="h3" size="3" style={{ color: "var(--slate-12)" }}>Desk assignment criteria</Heading>
-          <Text size="1" color="gray">Make informed decisions based on current state data</Text>
+          <Text size="1" color="gray">Current decisions on this plan — ask the assistant to change them</Text>
         </Box>
-        <Tooltip content="Collapse panel">
-          <IconButton variant="ghost" color="gray" size="1" onClick={onToggleCollapse} aria-expanded aria-label="Collapse desk assignment criteria" style={{ marginTop: 2 }}>
-            <DoubleArrowLeftIcon width={13} height={13} />
+        <Tooltip content="Close">
+          <IconButton variant="ghost" color="gray" size="1" onClick={onClose} aria-label="Close desk assignment criteria" style={{ marginTop: 2 }}>
+            <Cross2Icon width={14} height={14} />
           </IconButton>
         </Tooltip>
       </Flex>
@@ -304,37 +246,14 @@ function PolicyPanel({
                 { key: "assignInboundEmbeds", label: "Assign desks to inbound embeds?" },
                 { key: "outboundSeatedWithPillars", label: "Should outbound embeds be seated with other Pillars?" },
                 { key: "assignPlannedGrowth", label: "Should total planned growth be assigned a desk?" },
+                { key: "specialArrangementInterns", label: "Special arrangement for interns?" },
               ] as { key: keyof DeskPolicy; label: string }[]
             ).map(({ key, label }) => (
-              <Flex key={key} direction="column" gap="2">
+              <Flex key={key} align="center" justify="between" gap="3">
                 <Text size="2">{label}</Text>
-                <RadioGroup.Root value={boolVal(deskPolicy[key])} onValueChange={(v) => setDesk(key, v)} disabled={isReadOnly}>
-                  <Flex gap="4">
-                    <RadioGroup.Item value="yes">Yes</RadioGroup.Item>
-                    <RadioGroup.Item value="no">No</RadioGroup.Item>
-                  </Flex>
-                </RadioGroup.Root>
+                <DecisionBadge value={deskPolicy[key]} />
               </Flex>
             ))}
-
-            <Flex direction="column" gap="2">
-              <Flex align="center" gap="1">
-                <Text size="2">Special arrangement for interns?</Text>
-                <Tooltip content="Interns may be eligible for temporary desk assignments during their tenure">
-                  <InfoCircledIcon color="var(--gray-9)" style={{ cursor: "help" }} />
-                </Tooltip>
-              </Flex>
-              <RadioGroup.Root
-                value={boolVal(deskPolicy.specialArrangementInterns)}
-                onValueChange={(v) => setDesk("specialArrangementInterns", v)}
-                disabled={isReadOnly}
-              >
-                <Flex gap="4">
-                  <RadioGroup.Item value="yes">Yes</RadioGroup.Item>
-                  <RadioGroup.Item value="no">No</RadioGroup.Item>
-                </Flex>
-              </RadioGroup.Root>
-            </Flex>
           </Flex>
         </Flex>
 
@@ -348,46 +267,18 @@ function PolicyPanel({
           </Box>
 
           <Flex direction="column" gap="4">
-            <Flex direction="column" gap="2">
-              <Flex align="center" gap="1">
-                <Text size="2">Minimum requirement to be assigned a desk</Text>
-                <Tooltip content="Evaluated over 130 work days">
-                  <InfoCircledIcon color="var(--gray-9)" style={{ cursor: "help" }} />
-                </Tooltip>
-              </Flex>
-              <Flex align="center" gap="2">
-                <TextField.Root
-                  value={String(iptPolicy.minimumWorkDays)}
-                  onChange={(e) => setIptPolicy({ ...iptPolicy, minimumWorkDays: Number(e.target.value) || 0 })}
-                  disabled={isReadOnly}
-                  style={{ width: 80 }}
-                  type="number"
-                />
-                <Text size="2" color="gray">work days</Text>
-              </Flex>
+            <Flex direction="column" gap="1">
+              <Text size="2" color="gray">Minimum requirement to be assigned a desk</Text>
+              <Text size="2" weight="medium">{iptPolicy.minimumWorkDays} work days</Text>
               <Text size="1" color="gray">
                 Equivalent to {((iptPolicy.minimumWorkDays / 130) * 100).toFixed(0)}% of work days or{" "}
                 {(iptPolicy.minimumWorkDays / 26).toFixed(1)} days/week.
               </Text>
             </Flex>
 
-            <Flex direction="column" gap="2">
-              <Flex align="center" gap="1">
-                <Text size="2">Allowance for non-assigned office statuses</Text>
-                <Tooltip content="Number of days where non-assigned statuses still count toward IPT">
-                  <InfoCircledIcon color="var(--gray-9)" style={{ cursor: "help" }} />
-                </Tooltip>
-              </Flex>
-              <Flex align="center" gap="2">
-                <TextField.Root
-                  value={String(iptPolicy.allowanceNonAssigned)}
-                  onChange={(e) => setIptPolicy({ ...iptPolicy, allowanceNonAssigned: Number(e.target.value) || 0 })}
-                  disabled={isReadOnly}
-                  style={{ width: 80 }}
-                  type="number"
-                />
-                <Text size="2" color="gray">work days</Text>
-              </Flex>
+            <Flex direction="column" gap="1">
+              <Text size="2" color="gray">Allowance for non-assigned office statuses</Text>
+              <Text size="2" weight="medium">{iptPolicy.allowanceNonAssigned} work days</Text>
               <Text size="1" color="gray">
                 Equivalent to {((iptPolicy.allowanceNonAssigned / 130) * 100).toFixed(1)}% of work days or{" "}
                 {(iptPolicy.allowanceNonAssigned / 26).toFixed(2)} days/week.
@@ -395,37 +286,14 @@ function PolicyPanel({
             </Flex>
 
             <Flex direction="column" gap="2">
-              <Flex align="center" gap="1">
-                <Text size="2">Which IPT status is applicable to the allowance?</Text>
-                <Tooltip content="Employees are allowed to use selected statuses for up to the allowance days">
-                  <InfoCircledIcon color="var(--gray-9)" style={{ cursor: "help" }} />
-                </Tooltip>
-              </Flex>
-              <Flex direction="column" gap="2">
-                {(
-                  [
-                    { key: "drive", label: "Drive" },
-                    { key: "fly", label: "Fly" },
-                    { key: "workFromNonMetaBusiness", label: "Work from non-Meta location (business)" },
-                    { key: "unforeseenCircumstances", label: "Unforeseen circumstances" },
-                    { key: "ptoChoiceSick", label: "PTO + Choice + Sick (non-work days)" },
-                    { key: "globalTravelDays", label: "Global travel days" },
-                  ] as { key: keyof IPTPolicy["allowedStatuses"]; label: string }[]
-                ).map(({ key, label }) => (
-                  <Flex key={key} align="center" gap="2">
-                    <Checkbox
-                      checked={iptPolicy.allowedStatuses[key]}
-                      onCheckedChange={(checked) =>
-                        setIptPolicy({
-                          ...iptPolicy,
-                          allowedStatuses: { ...iptPolicy.allowedStatuses, [key]: Boolean(checked) },
-                        })
-                      }
-                      disabled={isReadOnly}
-                    />
-                    <Text size="2">{label}</Text>
-                  </Flex>
+              <Text size="2" color="gray">Statuses counting toward the allowance</Text>
+              <Flex gap="1" wrap="wrap">
+                {IPT_STATUS_LABELS.filter(({ key }) => iptPolicy.allowedStatuses[key]).map(({ label }) => (
+                  <Badge key={label} color="blue" variant="soft" radius="full">{label}</Badge>
                 ))}
+                {IPT_STATUS_LABELS.every(({ key }) => !iptPolicy.allowedStatuses[key]) && (
+                  <Text size="2" color="gray">None selected</Text>
+                )}
               </Flex>
             </Flex>
           </Flex>
@@ -433,18 +301,6 @@ function PolicyPanel({
 
       </Flex>
       </ScrollArea>
-
-      {/* Panel footer — always visible; actions disabled for read-only plans */}
-      <Box style={{ padding: "12px 16px", borderTop: "0.5px solid var(--gray-4)", flexShrink: 0, background: "white" }}>
-        <Flex gap="2">
-          <Button variant="soft" color="gray" size="2" onClick={onSaveDraft} disabled={isReadOnly} style={{ flex: 1, color: isReadOnly ? undefined : "var(--slate-12)" }}>
-            Save changes
-          </Button>
-          <Button size="2" onClick={onSubmit} disabled={isReadOnly} style={{ flex: 1 }}>
-            Submit policy
-          </Button>
-        </Flex>
-      </Box>
     </Flex>
   );
 }
@@ -897,12 +753,89 @@ interface Message {
   content: string;
 }
 
+// Chips double as workflow hints: the first two drive actions (decide the
+// full policy, open the criteria pop-up); the rest are analytical questions.
 const SUGGESTED_PROMPTS = [
+  "Make the decisions for me",
+  "Review the desk assignment criteria",
   "What IPT threshold do you recommend for this location?",
   "How does our desk utilization compare to similar AAs?",
-  "Should interns get a special desk arrangement?",
-  "What's the impact of enabling allowance for fly days?",
 ];
+
+/* ─── Assistant glyph (gradient chat bubble) ─────────── */
+function AssistantGlyph({ size = 20 }: { size?: number }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width={size} height={size} style={{ flexShrink: 0 }} aria-hidden>
+      <defs>
+        <linearGradient id="planPanelIconGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#2657E8" />
+          <stop offset="100%" stopColor="#CF3897" />
+        </linearGradient>
+      </defs>
+      <path fill="url(#planPanelIconGrad)" d="M12.565 2.262c.799.033 1.579.136 2.332.301l-.112.222-2.44 1.232a2.222 2.222 0 0 0 0 3.966l2.44 1.23 1.232 2.441a2.222 2.222 0 0 0 3.966 0l1.23-2.44 1.432-.723c.39.937.605 1.947.605 3.009 0 5.249-5.193 9.25-11.25 9.25-.863 0-1.704-.08-2.512-.231-.014-.003-.02 0-.018 0l-4.756 2.828a1.09 1.09 0 0 1-1.629-1.13l.783-4.309-.002-.004a.066.066 0 0 0-.018-.025C1.952 16.24.75 14 .75 11.5.75 6.251 5.943 2.25 12 2.25l.565.012ZM7.75 10.475a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm4.25 0a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm6-9.912c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.067.067 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069L23.008 5.3a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.012-.02.011-.012.005a.067.067 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.784 3.784 0 0 0-.069.13L18.7 11.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.067.067 0 0 0-.011-.011c.008.006.01.007-.011-.005a3.781 3.781 0 0 0-.13-.069L12.992 6.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.012.02-.011.012-.005a.067.067 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3.992l.056-.095A.784.784 0 0 1 18 .562Z" />
+    </svg>
+  );
+}
+
+/* ─── Assistant: decisions snapshot, auto-shown on entry ── */
+const IPT_STATUS_LABELS: { key: keyof IPTPolicy["allowedStatuses"]; label: string }[] = [
+  { key: "drive", label: "Drive" },
+  { key: "fly", label: "Fly" },
+  { key: "workFromNonMetaBusiness", label: "Non-Meta (business)" },
+  { key: "unforeseenCircumstances", label: "Unforeseen" },
+  { key: "ptoChoiceSick", label: "PTO + Choice + Sick" },
+  { key: "globalTravelDays", label: "Global travel" },
+];
+
+function DecisionBadge({ value }: { value: boolean | null }) {
+  if (value === null) return <Badge color="orange" variant="soft" radius="full">Not set</Badge>;
+  return <Badge color={value ? "green" : "gray"} variant="soft" radius="full">{value ? "Yes" : "No"}</Badge>;
+}
+
+function PolicySummaryCard({ deskPolicy, iptPolicy }: { deskPolicy: DeskPolicy; iptPolicy: IPTPolicy }) {
+  const statuses = IPT_STATUS_LABELS.filter(({ key }) => iptPolicy.allowedStatuses[key]).map(({ label }) => label);
+  const rows: { label: string; value: boolean | null }[] = [
+    { label: "Assign desks to inbound embeds", value: deskPolicy.assignInboundEmbeds },
+    { label: "Outbound embeds seated with Pillars", value: deskPolicy.outboundSeatedWithPillars },
+    { label: "Planned growth assigned desks", value: deskPolicy.assignPlannedGrowth },
+    { label: "Special arrangement for interns", value: deskPolicy.specialArrangementInterns },
+  ];
+  return (
+    <Flex direction="column" align="start">
+      <Box px="3" py="3" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px", width: "100%" }}>
+        <Text as="div" size="2" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+          Here&apos;s where this plan stands — the desk assignment decisions made so far:
+        </Text>
+        <Flex direction="column" gap="1">
+          {rows.map((r) => (
+            <Flex key={r.label} align="center" justify="between" gap="2">
+              <Text size="1" color="gray">{r.label}</Text>
+              <DecisionBadge value={r.value} />
+            </Flex>
+          ))}
+        </Flex>
+        <Separator size="4" my="2" />
+        <Flex direction="column" gap="1">
+          <Flex align="center" justify="between" gap="2">
+            <Text size="1" color="gray">IPT minimum</Text>
+            <Text size="1" weight="medium">{iptPolicy.minimumWorkDays} of 130 days · {((iptPolicy.minimumWorkDays / 130) * 100).toFixed(0)}%</Text>
+          </Flex>
+          <Flex align="center" justify="between" gap="2">
+            <Text size="1" color="gray">Non-assigned allowance</Text>
+            <Text size="1" weight="medium">{iptPolicy.allowanceNonAssigned} days</Text>
+          </Flex>
+          <Flex align="start" justify="between" gap="2">
+            <Text size="1" color="gray" style={{ flexShrink: 0 }}>Counting toward IPT</Text>
+            <Text size="1" weight="medium" style={{ textAlign: "right" }}>{statuses.length ? statuses.join(", ") : "None"}</Text>
+          </Flex>
+        </Flex>
+        <Text as="div" size="1" color="gray" style={{ marginTop: 8, lineHeight: 1.5 }}>
+          The assessment on the right reflects these decisions. Review them anytime from the button at the bottom right, or ask me to optimize the numbers again.
+        </Text>
+      </Box>
+    </Flex>
+  );
+}
 
 /* ─── Simple mock agent replies ─────────────────────── */
 function getAgentReply(input: string, plan: Plan): string {
@@ -961,15 +894,12 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
     }
   );
 
-  // ── Agent panel open/close (mirrors the landing page pattern) ──
-  const [agentOpen, setAgentOpen] = useState(false);
-  const [agentPanelVisible, setAgentPanelVisible] = useState(false);
-  // Policy panel collapses whenever the assistant opens (and re-expands when
-  // it closes); the user can still toggle it manually in between.
-  const [policyCollapsed, setPolicyCollapsed] = useState(false);
+  // ── Assistant panel (left) + desk criteria pop-up (bottom right) ──
+  const [assistantCollapsed, setAssistantCollapsed] = useState(false);
+  const [criteriaOpen, setCriteriaOpen] = useState(false);
 
-  // Draggable divider between the policy section and the content section.
-  const [policyW, setPolicyW] = useState(360);
+  // Draggable divider between the assistant section and the content section.
+  const [assistantW, setAssistantW] = useState(360);
   const [splitDragging, setSplitDragging] = useState(false);
 
   // ── Assessment tabs + roster overrides + full-page roster modal ────────────
@@ -1002,10 +932,10 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   function onSplitDragStart(e: React.PointerEvent<HTMLDivElement>) {
     e.preventDefault();
     const startX = e.clientX;
-    const base = policyW;
+    const base = assistantW;
     setSplitDragging(true);
     const move = (ev: PointerEvent) => {
-      setPolicyW(Math.min(520, Math.max(280, base + (ev.clientX - startX))));
+      setAssistantW(Math.min(520, Math.max(280, base + (ev.clientX - startX))));
     };
     const up = () => {
       setSplitDragging(false);
@@ -1015,56 +945,124 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   }
-  const agentCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [thinking, setThinking] = useState(false);
+  const replyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const threadEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (window.innerWidth >= 1024) {
-      setAgentOpen(true);
-      setPolicyCollapsed(true);
-    }
+    if (window.innerWidth < 1024) setAssistantCollapsed(true);
   }, []);
 
+  // Keep the newest bubble (or the thinking indicator) in view.
   useEffect(() => {
-    if (agentOpen) {
-      // rAF lets the browser paint the initial off-screen frame first; the
-      // timeout is a fallback for hidden/background tabs where rAF never fires.
-      const raf = requestAnimationFrame(() => setAgentPanelVisible(true));
-      const fallback = setTimeout(() => setAgentPanelVisible(true), 80);
-      return () => {
-        cancelAnimationFrame(raf);
-        clearTimeout(fallback);
-      };
-    }
-  }, [agentOpen]);
+    threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, thinking]);
 
-  function openAgent() {
-    if (agentCloseTimer.current) clearTimeout(agentCloseTimer.current);
-    agentCloseTimer.current = null;
-    setAgentOpen(true);
-    setPolicyCollapsed(true);
+  // The assistant leads the workflow: on entry it thinks for a beat, then
+  // makes every criteria decision proactively and reports the outcome.
+  const proactiveRan = useRef(false);
+  useEffect(() => {
+    if (proactiveRan.current || !plan) return;
+    proactiveRan.current = true;
+    startThinking(() => optimizeAllCriteria(), true);
+    return () => {
+      if (replyTimer.current) clearTimeout(replyTimer.current);
+      proactiveRan.current = false;
+      setThinking(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The assistant's core capability: decide every desk assignment criterion
+  // from the location's data. Full-time and part-time staff who meet a 75%
+  // in-office bar come first; remaining capacity is granted in priority
+  // order — planned growth, then interns, then inbound embeds.
+  function optimizeAllCriteria(): string {
+    if (!plan) return "";
+    if (plan.status === "Submitted" || plan.status === "Approved" || plan.status === "Live") {
+      return `This plan is ${plan.status.toLowerCase()}, so its criteria are locked. You can review the decisions from the button at the bottom right, but re-optimizing would need a new plan revision.`;
+    }
+    if (plan.status === "Plan draft") {
+      return "This plan is still a draft — a space planner needs to publish it before the desk assignment policy can be configured. I'll make the criteria decisions as soon as that happens.";
+    }
+    const ea = plan.employeeAssessment;
+    const wa = plan.workspaceAssessment;
+    const capacity = wa.assignedDesks + wa.availableDesks;
+
+    let projected = ea.fullTime + ea.partTime;
+    const assignGrowth = projected + plan.futureHeadcount <= capacity;
+    if (assignGrowth) projected += plan.futureHeadcount;
+    const assignInterns = projected + ea.interns <= capacity;
+    if (assignInterns) projected += ea.interns;
+    const assignInbound = projected < capacity;
+
+    const OPTIMAL_IPT_DAYS = 98; // ≈75% of the 130-work-day period
+
+    const nextDesk: DeskPolicy = {
+      assignInboundEmbeds: assignInbound,
+      outboundSeatedWithPillars: true,
+      assignPlannedGrowth: assignGrowth,
+      specialArrangementInterns: assignInterns,
+    };
+    const surplus = capacity - projected;
+    const projection = `Projected need lands at ${projected} desks against ${capacity} capacity — ${surplus >= 0 ? `a surplus of ${surplus}` : `a deficit of ${Math.abs(surplus)}, so the strictest criteria apply`}.`;
+
+    const unchanged =
+      (Object.keys(nextDesk) as (keyof DeskPolicy)[]).every((k) => deskPolicy[k] === nextDesk[k]) &&
+      iptPolicy.minimumWorkDays === OPTIMAL_IPT_DAYS;
+    if (unchanged) {
+      return `Everything is already set to the optimal configuration for ${plan.workLocation}. ${projection} Moving the numbers further would take more desk capacity or a smaller allocation.`;
+    }
+
+    setDeskPolicy(nextDesk);
+    setIptPolicy({ ...iptPolicy, minimumWorkDays: OPTIMAL_IPT_DAYS });
+
+    return [
+      `I've set all the desk assignment criteria to the optimal configuration for ${plan.workLocation}:`,
+      `• IPT minimum → ${OPTIMAL_IPT_DAYS} of 130 days (75%): full-time employees with the most days in the office get assigned desks first`,
+      `• Outbound embeds seated with their Pillars → Yes: their desks stay with their home org`,
+      `• Planned growth (${plan.futureHeadcount} seats) → ${assignGrowth ? "Yes: capacity covers them" : "No: deferred until capacity opens up"}`,
+      `• Special arrangement for interns (${ea.interns}) → ${assignInterns ? "Yes: spare desks can host them" : "No: they use drop-in and reservable spaces"}`,
+      `• Inbound embeds → ${assignInbound ? "Yes: spare desks remain" : "No: nothing left after core staff"}`,
+      `${projection} The assessment on the right has been updated.`,
+    ].join("\n");
   }
 
-  function closeAgent() {
-    setAgentPanelVisible(false);
-    setPolicyCollapsed(false);
-    agentCloseTimer.current = setTimeout(() => {
-      setAgentOpen(false);
-      agentCloseTimer.current = null;
-    }, 310);
+  // Compute the reply (and perform the action it implies). Runs inside the
+  // thinking delay so actions land together with the assistant's answer.
+  function computeReply(content: string): string {
+    if (!plan) return "";
+    const lower = content.toLowerCase();
+    if (lower.includes("optimiz") || lower.includes("optimal") || lower.includes("decide") || lower.includes("decision")) {
+      return optimizeAllCriteria();
+    }
+    if (lower.includes("criteria") || lower.includes("review")) {
+      setCriteriaOpen(true);
+      return "I've opened the desk assignment criteria at the bottom right so you can review the current decisions. If you'd like a different direction, tell me and I'll re-optimize the numbers.";
+    }
+    return getAgentReply(content, plan);
+  }
+
+  // Simulated latency so replies read as considered rather than instant;
+  // `replace` seeds the thread (used by the proactive entry message).
+  function startThinking(compute: () => string, replace = false) {
+    setThinking(true);
+    replyTimer.current = setTimeout(() => {
+      const reply = compute();
+      setMessages((prev) => [...(replace ? [] : prev), { role: "agent", content: reply }]);
+      setThinking(false);
+    }, 900 + Math.random() * 500);
   }
 
   function sendMessage(text?: string) {
-    if (!plan) return;
+    if (!plan || thinking) return;
     const content = (text ?? input).trim();
     if (!content) return;
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content },
-      { role: "agent", content: getAgentReply(content, plan) },
-    ]);
+    setMessages((prev) => [...prev, { role: "user", content }]);
     setInput("");
+    startThinking(() => computeReply(content));
   }
 
   if (!plan) {
@@ -1074,6 +1072,9 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
       </Flex>
     );
   }
+
+  const changedCount = countPolicyChanges(plan, deskPolicy, iptPolicy);
+  const isReadOnly = plan.status === "Submitted" || plan.status === "Approved" || plan.status === "Live";
 
   return (
     <Box style={{ height: "100vh", display: "flex", flexDirection: "column", position: "relative", background: "#FCFCFD" }}>
@@ -1113,43 +1114,24 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               </Text>
             </Flex>
           </Flex>
+          {/* Plan actions — Submit is the primary action, furthest right */}
           <Flex align="center" gap="2">
             <Button variant="soft" color="gray" size="2" style={{ color: "var(--slate-12)" }}>
               <ResetIcon /> History
             </Button>
-            <Tooltip content={agentOpen ? "Close Campus assistant" : "Open Campus assistant"}>
-              <IconButton
-                variant="solid"
-                size="2"
-                onClick={() => (agentOpen ? closeAgent() : openAgent())}
-                aria-label="Toggle assistant"
-                aria-expanded={agentOpen}
-                className="btn-assistant"
-                style={{ width: 32, height: 32 }}
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = ((e.clientX - rect.left) / rect.width) * 100;
-                  const y = ((e.clientY - rect.top) / rect.height) * 100;
-                  e.currentTarget.style.setProperty("--assistant-gradient", `radial-gradient(circle at ${x.toFixed(1)}% ${y.toFixed(1)}%, #CF3897 0%, #2657E8 140%)`);
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.removeProperty("--assistant-gradient");
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
-                  <path
-                    fill="white"
-                    d="M12.565 2.262c.799.033 1.579.136 2.332.301l-.112.222-2.44 1.232a2.222 2.222 0 0 0 0 3.966l2.44 1.23 1.232 2.441a2.222 2.222 0 0 0 3.966 0l1.23-2.44 1.432-.723c.39.937.605 1.947.605 3.009 0 5.249-5.193 9.25-11.25 9.25-.863 0-1.704-.08-2.512-.231-.014-.003-.02 0-.018 0l-4.756 2.828a1.09 1.09 0 0 1-1.629-1.13l.783-4.309-.002-.004a.066.066 0 0 0-.018-.025C1.952 16.24.75 14 .75 11.5.75 6.251 5.943 2.25 12 2.25l.565.012ZM7.75 10.475a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm4.25 0a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Z"
-                  />
-                  <g className="star-icon">
-                    <path
-                      fill="white"
-                      d="M18 0.563c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.067.067 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069L23.008 5.3a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.012-.02.011-.012.005a.067.067 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.784 3.784 0 0 0-.069.13L18.7 11.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.067.067 0 0 0-.011-.011c.008.006.01.007-.011-.005a3.781 3.781 0 0 0-.13-.069L12.992 6.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.012.02-.011.012-.005a.067.067 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3.992l.056-.095A.784.784 0 0 1 18 .562Z"
-                    />
-                  </g>
-                </svg>
-              </IconButton>
-            </Tooltip>
+            <Button
+              variant="soft"
+              color="gray"
+              size="2"
+              onClick={() => alert("Changes saved!")}
+              disabled={isReadOnly}
+              style={{ color: isReadOnly ? undefined : "var(--slate-12)" }}
+            >
+              Save changes
+            </Button>
+            <Button size="2" className="btn-primary" onClick={() => alert("Policy submitted for planner review!")} disabled={isReadOnly}>
+              Submit policy
+            </Button>
           </Flex>
         </Flex>
       </Box>
@@ -1158,26 +1140,25 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
       <Box style={{ flex: 1, overflow: "hidden", borderRadius: "24px 24px 0 0", position: "relative", zIndex: 1, background: "#F0F0F3" }}>
         <BlobCanvas />
 
-        {/* Single workspace card — policy panel and content share it, split by a
-            draggable divider; right edge retracts to make room for the panel */}
+        {/* Single workspace card — assistant panel and content share it, split
+            by a draggable divider; the assistant leads the workflow */}
         <Box
           style={{
             position: "absolute",
             top: 8,
             left: 8,
             bottom: 8,
-            right: agentPanelVisible ? 376 : 8,
-            transition: "right 300ms ease-in-out",
+            right: 8,
             ...GLASS_CARD_STYLE,
             background: "white",
             display: "flex",
             overflow: "hidden",
           }}
         >
-          {/* Left: policy section */}
+          {/* Left: assistant section */}
           <Box
             style={{
-              width: policyCollapsed ? 48 : policyW,
+              width: assistantCollapsed ? 48 : assistantW,
               flexShrink: 0,
               minWidth: 0,
               display: "flex",
@@ -1186,29 +1167,161 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               transition: splitDragging ? "none" : "width 300ms ease-in-out",
             }}
           >
-            <PolicyPanel
-              plan={plan}
-              deskPolicy={deskPolicy}
-              setDeskPolicy={setDeskPolicy}
-              iptPolicy={iptPolicy}
-              setIptPolicy={setIptPolicy}
-              onSaveDraft={() => alert("Changes saved!")}
-              onSubmit={() => alert("Policy submitted for planner review!")}
-              collapsed={policyCollapsed}
-              onToggleCollapse={() => setPolicyCollapsed((c) => !c)}
-              changedCount={countPolicyChanges(plan, deskPolicy, iptPolicy)}
-            />
+            {assistantCollapsed ? (
+              <Flex direction="column" align="center" style={{ height: "100%", background: "white" }}>
+                {/* Strip header — expand control mirrors the expanded header's collapse button */}
+                <Flex align="center" justify="center" style={{ padding: "16px 0 14px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, alignSelf: "stretch" }}>
+                  <Tooltip content="Expand assistant" side="right">
+                    <IconButton variant="ghost" color="gray" size="1" onClick={() => setAssistantCollapsed(false)} aria-expanded={false} aria-label="Expand assistant">
+                      <DoubleArrowRightIcon width={13} height={13} />
+                    </IconButton>
+                  </Tooltip>
+                </Flex>
+                <Tooltip content="Campus assistant" side="right">
+                  <Box style={{ marginTop: 14 }}><AssistantGlyph size={20} /></Box>
+                </Tooltip>
+              </Flex>
+            ) : (
+              <Flex direction="column" style={{ height: "100%", minWidth: 280, background: "white" }}>
+                {/* Panel header */}
+                <Flex align="center" justify="between" style={{ padding: "14px 16px 12px 20px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, gap: 8 }}>
+                  <Flex align="center" gap="2">
+                    <AssistantGlyph size={20} />
+                    <Flex direction="column">
+                      <Text size="2" weight="bold">Assistant</Text>
+                      <Text size="1" color="gray">Guidance for this plan</Text>
+                    </Flex>
+                  </Flex>
+                  <Tooltip content="Collapse panel">
+                    <IconButton variant="ghost" color="gray" size="1" onClick={() => setAssistantCollapsed(true)} aria-expanded aria-label="Collapse assistant">
+                      <DoubleArrowLeftIcon width={13} height={13} />
+                    </IconButton>
+                  </Tooltip>
+                </Flex>
+
+                {/* Thread — greeting, auto decisions snapshot, then chat */}
+                <ScrollArea style={{ flex: 1, minHeight: 0 }}>
+                  <Flex direction="column" gap="3" p="4">
+                    <Flex direction="column" align="center" gap="2" py="4">
+                      <Text size="5" weight="bold" style={{ fontFamily: "var(--font-heading)", textAlign: "center" }}>
+                        <span
+                          style={{
+                            background: "linear-gradient(135deg, #2657E8, #CF3897)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
+                          }}
+                        >
+                          Hi, I&apos;m your Campus assistant!
+                        </span>
+                      </Text>
+                      <Text size="1" color="gray" align="center">
+                        I can help you make informed decisions for <strong>{plan.allocationArea}</strong> at <strong>{plan.workLocation}</strong> — desk criteria, IPT requirements, or workspace data.
+                      </Text>
+                    </Flex>
+
+                    <PolicySummaryCard deskPolicy={deskPolicy} iptPolicy={iptPolicy} />
+
+                    {messages.map((msg, i) => (
+                      <Flex key={i} direction="column" align={msg.role === "user" ? "end" : "start"} className="chat-bubble">
+                        <Box
+                          px="3"
+                          py="2"
+                          style={{
+                            background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-3)",
+                            color: msg.role === "user" ? "white" : "var(--gray-12)",
+                            borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                            maxWidth: "90%",
+                            fontSize: "var(--font-size-2)",
+                            lineHeight: 1.5,
+                            whiteSpace: "pre-line",
+                          }}
+                        >
+                          {msg.content}
+                        </Box>
+                      </Flex>
+                    ))}
+
+                    {/* Thinking indicator while the assistant composes a reply */}
+                    {thinking && (
+                      <Flex direction="column" align="start" className="chat-bubble" aria-live="polite">
+                        <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
+                          <span className="think-dot" />
+                          <span className="think-dot" />
+                          <span className="think-dot" />
+                        </Flex>
+                      </Flex>
+                    )}
+                    <div ref={threadEndRef} />
+                  </Flex>
+                </ScrollArea>
+
+                {/* Suggested next steps — stay visible until the user joins in,
+                    so the proactive optimization message doesn't hide them */}
+                {!messages.some((m) => m.role === "user") && (
+                  <Box px="4" pb="2">
+                    <Flex direction="column" gap="2">
+                      <Text size="1" color="gray" weight="medium">Suggested next steps</Text>
+                      <Flex direction="column" align="start" gap="1">
+                        {SUGGESTED_PROMPTS.map((p) => (
+                          <button
+                            key={p}
+                            onClick={() => sendMessage(p)}
+                            style={{
+                              background: "var(--gray-2)",
+                              border: "0.5px solid var(--gray-4)",
+                              borderRadius: 9999,
+                              cursor: "pointer",
+                              fontSize: "var(--font-size-1)",
+                              fontFamily: "var(--font-body), system-ui",
+                              color: "var(--blue-11)",
+                              padding: "6px 12px",
+                              textAlign: "left",
+                            }}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </Flex>
+                    </Flex>
+                  </Box>
+                )}
+
+                {/* Composer */}
+                <Box px="4" py="3" style={{ borderTop: "0.5px solid var(--gray-4)", flexShrink: 0 }}>
+                  <Flex gap="2">
+                    <TextArea
+                      placeholder="Ask a question..."
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      style={{ flex: 1, resize: "none", minHeight: 64, borderRadius: "var(--radius-3)" }}
+                    />
+                    <Flex direction="column" justify="end">
+                      <IconButton size="2" className="btn-primary" onClick={() => sendMessage()} disabled={!input.trim() || thinking} aria-label="Send message">
+                        <PaperPlaneIcon />
+                      </IconButton>
+                    </Flex>
+                  </Flex>
+                </Box>
+              </Flex>
+            )}
           </Box>
 
-          {/* Divider — draggable while the policy section is expanded */}
+          {/* Divider — draggable while the assistant section is expanded */}
           <div
             role="separator"
             aria-orientation="vertical"
-            onPointerDown={policyCollapsed ? undefined : onSplitDragStart}
-            style={{ width: 9, flexShrink: 0, position: "relative", cursor: policyCollapsed ? "default" : "col-resize", touchAction: "none" }}
+            onPointerDown={assistantCollapsed ? undefined : onSplitDragStart}
+            style={{ width: 9, flexShrink: 0, position: "relative", cursor: assistantCollapsed ? "default" : "col-resize", touchAction: "none" }}
           >
             <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: "var(--gray-4)" }} />
-            {!policyCollapsed && (
+            {!assistantCollapsed && (
               <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 4, height: 44, borderRadius: 9999, background: "var(--gray-6)" }} />
             )}
           </div>
@@ -1251,7 +1364,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                   entry={entry}
                   iptPolicy={iptPolicy}
                   deskPolicy={deskPolicy}
-                  compact={agentOpen}
+                  compact={!assistantCollapsed}
                   overrides={overrides}
                   onOverride={handleOverride}
                   onExpand={() => setRosterOpen(true)}
@@ -1273,144 +1386,71 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
           onOverride={handleOverride}
         />
 
-        {/* Agent panel */}
-        {agentOpen && (
-          <Box
-            className="agent-panel"
-            data-visible={agentPanelVisible ? "true" : "false"}
+        {/* Desk assignment criteria — pop-up above the floating button */}
+        <Box
+          className="criteria-popup"
+          data-open={criteriaOpen ? "true" : "false"}
+          aria-hidden={!criteriaOpen}
+          style={{
+            position: "absolute",
+            right: 24,
+            bottom: 92,
+            width: 380,
+            maxWidth: "calc(100% - 48px)",
+            height: "min(620px, calc(100% - 128px))",
+            zIndex: 30,
+            display: "flex",
+            flexDirection: "column",
+            background: "white",
+            border: "0.5px solid var(--gray-5)",
+            borderRadius: 16,
+            boxShadow: "0 16px 40px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06)",
+            overflow: "hidden",
+          }}
+        >
+          <PolicyPanel
+            deskPolicy={deskPolicy}
+            iptPolicy={iptPolicy}
+            onClose={() => setCriteriaOpen(false)}
+          />
+        </Box>
+
+        {/* Floating criteria button — badge counts decisions changed this session */}
+        <Tooltip content={criteriaOpen ? "Close desk assignment criteria" : "Desk assignment criteria"} side="left">
+          <button
+            className="criteria-fab"
+            onClick={() => setCriteriaOpen((o) => !o)}
+            aria-expanded={criteriaOpen}
+            aria-label="Desk assignment criteria"
             style={{
               position: "absolute",
-              top: 8,
-              right: 8,
-              bottom: 8,
-              width: 360,
-              zIndex: 10,
+              right: 24,
+              bottom: 24,
+              width: 52,
+              height: 52,
+              borderRadius: 9999,
+              border: "none",
+              background: "#2657E8",
+              color: "white",
+              cursor: "pointer",
               display: "flex",
-              flexDirection: "column",
-              ...GLASS_CARD_STYLE,
-              borderRadius: 20,
-              transform: agentPanelVisible ? "translateX(0)" : "translateX(calc(100% + 8px))",
-              opacity: agentPanelVisible ? 1 : 0,
-              transition: "transform 300ms ease-in-out, opacity 300ms ease-in-out",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 30,
+              boxShadow: "0 6px 20px rgba(62, 99, 221, 0.45)",
             }}
           >
-            <Flex align="center" justify="between" px="4" py="3" style={{ flexShrink: 0 }}>
-              <Flex align="center" gap="2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" style={{ flexShrink: 0 }}>
-                  <defs>
-                    <linearGradient id="planPanelIconGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#2657E8" />
-                      <stop offset="100%" stopColor="#CF3897" />
-                    </linearGradient>
-                  </defs>
-                  <path fill="url(#planPanelIconGrad)" d="M12.565 2.262c.799.033 1.579.136 2.332.301l-.112.222-2.44 1.232a2.222 2.222 0 0 0 0 3.966l2.44 1.23 1.232 2.441a2.222 2.222 0 0 0 3.966 0l1.23-2.44 1.432-.723c.39.937.605 1.947.605 3.009 0 5.249-5.193 9.25-11.25 9.25-.863 0-1.704-.08-2.512-.231-.014-.003-.02 0-.018 0l-4.756 2.828a1.09 1.09 0 0 1-1.629-1.13l.783-4.309-.002-.004a.066.066 0 0 0-.018-.025C1.952 16.24.75 14 .75 11.5.75 6.251 5.943 2.25 12 2.25l.565.012ZM7.75 10.475a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm4.25 0a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm6-9.912c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.067.067 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069L23.008 5.3a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.012-.02.011-.012.005a.067.067 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.784 3.784 0 0 0-.069.13L18.7 11.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.067.067 0 0 0-.011-.011c.008.006.01.007-.011-.005a3.781 3.781 0 0 0-.13-.069L12.992 6.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.012.02-.011.012-.005a.067.067 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3.992l.056-.095A.784.784 0 0 1 18 .562Z" />
-                </svg>
-                <Flex direction="column">
-                  <Text size="2" weight="bold">Assistant</Text>
-                  <Text size="1" color="gray">Guidance for this plan</Text>
-                </Flex>
-              </Flex>
-              <IconButton variant="ghost" color="gray" size="2" onClick={() => closeAgent()} aria-label="Close assistant">
-                <Cross2Icon />
-              </IconButton>
-            </Flex>
-
-            <Box style={{ flex: 1, display: "flex", flexDirection: "column", background: "white", borderRadius: "16px 16px 20px 20px", overflow: "hidden", minHeight: 0, margin: "0 4px 4px" }}>
-              <ScrollArea style={{ flex: 1 }}>
-                <Flex direction="column" gap="3" p="4">
-                  <Flex direction="column" align="center" gap="2" py="6">
-                    <Text size="5" weight="bold" style={{ fontFamily: "var(--font-heading)", textAlign: "center" }}>
-                      <span
-                        style={{
-                          background: "linear-gradient(135deg, #2657E8, #CF3897)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                        }}
-                      >
-                        Hi, I&apos;m your Campus assistant!
-                      </span>
-                    </Text>
-                    <Text size="1" color="gray" align="center">
-                      I can help you make informed decisions for <strong>{plan.allocationArea}</strong> at <strong>{plan.workLocation}</strong> — desk criteria, IPT requirements, or workspace data.
-                    </Text>
-                  </Flex>
-
-                  {messages.map((msg, i) => (
-                    <Flex key={i} direction="column" align={msg.role === "user" ? "end" : "start"}>
-                      <Box
-                        px="3"
-                        py="2"
-                        style={{
-                          background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-3)",
-                          color: msg.role === "user" ? "white" : "var(--gray-12)",
-                          borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                          maxWidth: "90%",
-                          fontSize: "var(--font-size-2)",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        {msg.content}
-                      </Box>
-                    </Flex>
-                  ))}
-                </Flex>
-              </ScrollArea>
-
-              {/* Suggested prompts */}
-              {messages.length === 0 && (
-                <Box px="4" pb="2">
-                  <Flex direction="column" gap="2">
-                    <Text size="1" color="gray" weight="medium">Suggested questions</Text>
-                    <Flex direction="column" align="start" gap="1">
-                      {SUGGESTED_PROMPTS.map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => sendMessage(p)}
-                          style={{
-                            background: "var(--gray-2)",
-                            border: "0.5px solid var(--gray-4)",
-                            borderRadius: 9999,
-                            cursor: "pointer",
-                            fontSize: "var(--font-size-1)",
-                            fontFamily: "var(--font-body), system-ui",
-                            color: "var(--blue-11)",
-                            padding: "6px 12px",
-                            textAlign: "left",
-                          }}
-                        >
-                          {p}
-                        </button>
-                      ))}
-                    </Flex>
-                  </Flex>
-                </Box>
-              )}
-
-              <Box px="4" py="3" style={{ borderTop: "0.5px solid rgba(0,0,0,0.1)", flexShrink: 0, borderRadius: "0 0 20px 20px" }}>
-                <Flex gap="2">
-                  <TextArea
-                    placeholder="Ask a question..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    style={{ flex: 1, resize: "none", minHeight: 64, borderRadius: "var(--radius-3)" }}
-                  />
-                  <Flex direction="column" justify="end">
-                    <IconButton size="2" onClick={() => sendMessage()} disabled={!input.trim()} aria-label="Send message">
-                      <PaperPlaneIcon />
-                    </IconButton>
-                  </Flex>
-                </Flex>
+            {criteriaOpen ? <Cross2Icon width={20} height={20} /> : <PolicyDocIcon size={22} />}
+            {!criteriaOpen && changedCount > 0 && (
+              <Box
+                aria-label={`${changedCount} decisions updated`}
+                style={{ position: "absolute", top: -2, right: -4, minWidth: 18, height: 18, borderRadius: 9999, background: "white", color: "var(--blue-11)", fontSize: 11, fontWeight: 600, lineHeight: "18px", textAlign: "center", padding: "0 5px", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }}
+              >
+                {changedCount}
               </Box>
-            </Box>
-          </Box>
-        )}
+            )}
+          </button>
+        </Tooltip>
       </Box>
     </Box>
   );
