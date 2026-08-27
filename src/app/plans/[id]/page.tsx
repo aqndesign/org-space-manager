@@ -754,6 +754,11 @@ interface Message {
   content: string;
 }
 
+// How long the entry intro (greeting rise, gradient sweep, subtitle, then
+// decisions snapshot — the .intro-* delays in globals.css) plays before the
+// assistant starts thinking about its proactive optimization.
+const INTRO_THINK_DELAY = 2300;
+
 // Chips double as workflow hints: the first two drive actions (decide the
 // full policy, open the criteria pop-up); the rest are analytical questions.
 const SUGGESTED_PROMPTS = [
@@ -957,6 +962,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const replyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const introTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const threadEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -968,14 +974,16 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
     threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, thinking]);
 
-  // The assistant leads the workflow: on entry it thinks for a beat, then
-  // makes every criteria decision proactively and reports the outcome.
+  // The assistant leads the workflow: on entry the intro sequence plays
+  // (greeting, gradient sweep, decisions snapshot), then it thinks for a
+  // beat, makes every criteria decision proactively and reports the outcome.
   const proactiveRan = useRef(false);
   useEffect(() => {
     if (proactiveRan.current || !plan) return;
     proactiveRan.current = true;
-    startThinking(() => optimizeAllCriteria(), true);
+    introTimer.current = setTimeout(() => startThinking(() => optimizeAllCriteria(), true), INTRO_THINK_DELAY);
     return () => {
+      if (introTimer.current) clearTimeout(introTimer.current);
       if (replyTimer.current) clearTimeout(replyTimer.current);
       proactiveRan.current = false;
       setThinking(false);
@@ -1056,7 +1064,13 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
 
   // Simulated latency so replies read as considered rather than instant;
   // `replace` seeds the thread (used by the proactive entry message).
+  // Any reply starting during the intro supersedes the pending proactive
+  // kick-off, so it can't replace that exchange later.
   function startThinking(compute: () => string, replace = false) {
+    if (introTimer.current) {
+      clearTimeout(introTimer.current);
+      introTimer.current = null;
+    }
     setThinking(true);
     replyTimer.current = setTimeout(() => {
       const reply = compute();
@@ -1244,25 +1258,20 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                 {/* Thread — greeting, auto decisions snapshot, then chat */}
                 <ScrollArea style={{ flex: 1, minHeight: 0 }}>
                   <Flex direction="column" gap="3" p="4">
+                    {/* Intro sequence — greeting rises, its gradient sweeps,
+                        then each block below discloses in turn */}
                     <Flex direction="column" align="center" gap="2" py="4">
-                      <Text size="5" weight="bold" style={{ fontFamily: "var(--font-heading)", textAlign: "center" }}>
-                        <span
-                          style={{
-                            background: "linear-gradient(135deg, #2657E8, #CF3897)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
-                          }}
-                        >
-                          Hi, I&apos;m your Campus assistant!
-                        </span>
+                      <Text size="5" weight="bold" className="intro-rise" style={{ fontFamily: "var(--font-heading)", textAlign: "center" }}>
+                        <span className="intro-gradient">Hi, I&apos;m your Campus assistant!</span>
                       </Text>
-                      <Text size="1" color="gray" align="center">
+                      <Text size="1" color="gray" align="center" className="intro-rise intro-rise-subtitle">
                         I can help you make informed decisions for <strong>{plan.allocationArea}</strong> at <strong>{plan.workLocation}</strong> — desk criteria, IPT requirements, or workspace data.
                       </Text>
                     </Flex>
 
-                    <PolicySummaryCard deskPolicy={deskPolicy} iptPolicy={iptPolicy} />
+                    <Box className="intro-rise intro-rise-card">
+                      <PolicySummaryCard deskPolicy={deskPolicy} iptPolicy={iptPolicy} />
+                    </Box>
 
                     {messages.map((msg, i) => (
                       <Flex key={i} direction="column" align={msg.role === "user" ? "end" : "start"} className="chat-bubble">
@@ -1298,10 +1307,11 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                   </Flex>
                 </ScrollArea>
 
-                {/* Suggested next steps — stay visible until the user joins in,
-                    so the proactive optimization message doesn't hide them */}
-                {!messages.some((m) => m.role === "user") && (
-                  <Box px="4" pb="2">
+                {/* Suggested next steps — the intro's last disclosure: they
+                    appear once the assistant's opening message lands and stay
+                    visible until the user joins in */}
+                {messages.length > 0 && !messages.some((m) => m.role === "user") && (
+                  <Box px="4" pb="2" className="chat-bubble">
                     <Flex direction="column" gap="2">
                       <Text size="1" color="gray" weight="medium">Suggested next steps</Text>
                       <Flex direction="column" align="start" gap="1">

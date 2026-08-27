@@ -350,6 +350,39 @@ h4.rt-Heading {
 }
 .role-option:hover { background: var(--gray-2); }
 
+/* ─── Plan details: assistant intro sequence ────────── */
+/* Progressive disclosure on entry: the greeting rises first (0–500ms), its
+   gradient sweeps left→right (500–850ms), then the subtitle (900ms) and the
+   decisions snapshot (1550ms) follow. The proactive thinking indicator is
+   scheduled from the page (INTRO_THINK_DELAY in plans/[id]/page.tsx) and
+   must track these delays. */
+.intro-rise {
+  animation: introRise 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.intro-rise-subtitle { animation-delay: 900ms; }
+.intro-rise-card { animation-delay: 1550ms; }
+@keyframes introRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Gradient text whose gradient travels left→right once the header has
+   risen. The image holds two blue→pink cycles, each exactly the element's
+   width, so the 100%→0% slide moves a full period rightward and lands on
+   the same blue→pink fill the header keeps afterwards. */
+.intro-gradient {
+  background: linear-gradient(90deg, #2657E8, #CF3897, #2657E8, #CF3897);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: introGradientSweep 350ms ease-in-out 500ms both;
+}
+@keyframes introGradientSweep {
+  from { background-position: 100% 0; }
+  to { background-position: 0% 0; }
+}
+
 /* ─── Plan details: assistant chat motion ───────────── */
 .chat-bubble {
   animation: chatBubbleIn 240ms ease-out both;
