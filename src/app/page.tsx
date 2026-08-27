@@ -1292,6 +1292,80 @@ function FloorMapSurface({ blocks, desks, deskMode }: { blocks: TeamBlock[]; des
 const COLLAPSIBLE_FILTERS = ['evaluation', 'status', 'location', 'aa'] as const;
 type CollapsibleFilter = (typeof COLLAPSIBLE_FILTERS)[number];
 
+/* ─── Assistant: what needs attention, surfaced after the intro ── */
+// Intro pacing: the greeting rise + gradient sweep + subtitle (.intro-*
+// delays in globals.css) settle by ~1.4s; the assistant then thinks for a
+// beat and surfaces the attention highlight.
+const ATTENTION_THINK_AT = 1600;
+const ATTENTION_SHOW_AT = 2700;
+
+// Workflow states that are waiting on someone, in badge colors matching
+// StatusBadge. Capacity is deliberately not a group — every mock plan is
+// over capacity, so only the sharpest squeeze is called out below.
+const ATTENTION_GROUPS: { status: PlanStatus; label: string; color: "orange" | "blue" | "gray" }[] = [
+  { status: "Submitted", label: "Awaiting approval", color: "orange" },
+  { status: "Policy draft", label: "Criteria decisions needed", color: "blue" },
+  { status: "Plan draft", label: "Not yet published", color: "gray" },
+];
+
+function AttentionCard({ plans }: { plans: Plan[] }) {
+  const groups = ATTENTION_GROUPS
+    .map((g) => ({ ...g, items: plans.filter((p) => p.status === g.status) }))
+    .filter((g) => g.items.length > 0);
+  // The location feeling the squeeze hardest: largest gap between core staff
+  // (full-time + part-time, the optimizer's baseline) and desk capacity.
+  const worst = plans.reduce<{ plan: Plan; core: number; capacity: number } | null>((acc, p) => {
+    const core = p.employeeAssessment.fullTime + p.employeeAssessment.partTime;
+    const capacity = p.workspaceAssessment.assignedDesks + p.workspaceAssessment.availableDesks;
+    return core - capacity > (acc ? acc.core - acc.capacity : 0) ? { plan: p, core, capacity } : acc;
+  }, null);
+
+  return (
+    <Flex direction="column" align="start" className="chat-bubble">
+      <Box px="3" py="3" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px", width: "100%" }}>
+        {groups.length === 0 ? (
+          <Text as="div" size="2" style={{ lineHeight: 1.5 }}>
+            {/* {" "} — this Next's JSX transform eats a trailing text child's
+                leading space after an expression, so spell it out */}
+            I looked across all {plans.length}{" "}plans — nothing is waiting on anyone right now.
+          </Text>
+        ) : (
+          <>
+            <Text as="div" size="2" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+              I looked across all {plans.length}{" "}plans so you don&apos;t have to — here&apos;s what needs attention:
+            </Text>
+            <Flex direction="column" gap="2">
+              {groups.map((g) => (
+                <Flex key={g.status} direction="column" gap="1">
+                  <Flex align="center" justify="between" gap="2">
+                    <Text size="1" color="gray">{g.label}</Text>
+                    <Badge color={g.color} variant="soft" radius="full">{g.items.length}</Badge>
+                  </Flex>
+                  <Flex wrap="wrap" gap="1">
+                    {g.items.map((p) => (
+                      <Link key={p.id} href={`/plans/${p.id}`} className="attention-chip">
+                        {p.allocationArea} · {p.workLocation}
+                      </Link>
+                    ))}
+                  </Flex>
+                </Flex>
+              ))}
+            </Flex>
+          </>
+        )}
+        {worst && (
+          <>
+            <Separator size="4" my="2" />
+            <Text as="div" size="1" color="gray" style={{ lineHeight: 1.5 }}>
+              Sharpest capacity squeeze: <strong>{worst.plan.allocationArea}</strong> at <strong>{worst.plan.workLocation}</strong> — {worst.core} core staff for {worst.capacity}{" "}desks. Open any plan and I&apos;ll take it from there.
+            </Text>
+          </>
+        )}
+      </Box>
+    </Flex>
+  );
+}
+
 export default function LandingPage() {
   const bannerLottieRef = useRef<LottieRefCurrentProps>(null);
 
@@ -1395,6 +1469,21 @@ export default function LandingPage() {
       agentCloseTimer.current = null;
     }, 310);                                          // 10ms grace past the 300ms transition
   }
+
+  // After the intro settles, the assistant thinks for a beat and then surfaces
+  // the attention highlight. Transitions are monotonic (never back to
+  // "thinking") so a user message can fast-forward past pending timers.
+  const [attentionStage, setAttentionStage] = useState<"hidden" | "thinking" | "shown">("hidden");
+  useEffect(() => {
+    if (!agentOpen || attentionStage === "shown") return;
+    const think = setTimeout(() => setAttentionStage((s) => (s === "shown" ? s : "thinking")), ATTENTION_THINK_AT);
+    const show = setTimeout(() => setAttentionStage("shown"), ATTENTION_SHOW_AT);
+    return () => {
+      clearTimeout(think);
+      clearTimeout(show);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentOpen]);
 
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
@@ -1640,6 +1729,7 @@ export default function LandingPage() {
   function sendAgentMessage() {
     const content = agentInput.trim();
     if (!content) return;
+    setAttentionStage("shown"); // user takes the lead — skip the thinking beat
     setAgentMessages((prev) => [
       ...prev,
       { role: "user" as const, content },
@@ -1787,8 +1877,9 @@ export default function LandingPage() {
       {/* Body */}
       <Box ref={contentAreaRef as React.Ref<HTMLDivElement>} style={{ flex: 1, overflow: "hidden", borderRadius: "24px 24px 0 0", position: "relative", zIndex: 1, background: "#F0F0F3" }}>
         <BlobCanvas />
-          {/* Scrollable content — right edge retracts to make room for the panel */}
-          <Box className="scrollable-content" style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: agentPanelVisible ? 376 : 0, overflowY: "auto", opacity: contentFaded ? 0 : 1, pointerEvents: contentFaded ? "none" : undefined, transition: "opacity 250ms ease-in-out, right 300ms ease-in-out" }}>
+          {/* Scrollable content — left edge retracts to make room for the panel,
+              which sits on the left to match the plan details page */}
+          <Box className="scrollable-content" style={{ position: "absolute", top: 0, left: agentPanelVisible ? 376 : 0, bottom: 0, right: 0, overflowY: "auto", opacity: contentFaded ? 0 : 1, pointerEvents: contentFaded ? "none" : undefined, transition: "opacity 250ms ease-in-out, left 300ms ease-in-out" }}>
         <Box
           px="2"
           pt="2"
@@ -2157,7 +2248,7 @@ export default function LandingPage() {
               style={{
                 position: "absolute",
                 top: 8,
-                right: 8,
+                left: 8,
                 bottom: 8,
                 width: 360,
                 zIndex: 10,
@@ -2167,13 +2258,13 @@ export default function LandingPage() {
                 backdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 WebkitBackdropFilter: "blur(28px) saturate(1.8) brightness(1.04)",
                 borderTop: "0.5px solid rgba(255,255,255,0.88)",
-                borderLeft: "0.5px solid rgba(255,255,255,0.72)",
-                borderRight: "0.5px solid rgba(255,255,255,0.42)",
+                borderLeft: "0.5px solid rgba(255,255,255,0.42)",
+                borderRight: "0.5px solid rgba(255,255,255,0.72)",
                 borderBottom: "0.5px solid rgba(255,255,255,0.32)",
                 borderRadius: 20,
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92)",
                 overflow: "hidden",
-                transform: agentPanelVisible ? "translateX(0)" : "translateX(calc(100% + 8px))",
+                transform: agentPanelVisible ? "translateX(0)" : "translateX(calc(-100% - 8px))",
                 opacity: agentPanelVisible ? 1 : 0,
                 transition: "transform 300ms ease-in-out, opacity 300ms ease-in-out",
               }}
@@ -2208,19 +2299,28 @@ export default function LandingPage() {
             <Box style={{ flex: 1, display: "flex", flexDirection: "column", background: "white", borderRadius: "16px 16px 20px 20px", overflow: "hidden", minHeight: 0, margin: "0 4px 4px" }}>
             <ScrollArea style={{ flex: 1 }}>
               <Flex direction="column" gap="3" p="4">
+                {/* Intro sequence — same staging as the plan details page:
+                    greeting rises, its gradient sweeps, the subtitle follows */}
                 <Flex direction="column" align="center" gap="2" py="6">
-                  <Text size="5" weight="bold" style={{ fontFamily: "var(--font-heading)" }}>
-                    <span style={{
-                      background: "linear-gradient(135deg, #2657E8, #CF3897)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}>
-                      Hi, I&apos;m your Campus assistant!
-                    </span>
+                  <Text size="5" weight="bold" className="intro-rise" style={{ fontFamily: "var(--font-heading)", textAlign: "center" }}>
+                    <span className="intro-gradient">Hi, I&apos;m your Campus assistant!</span>
                   </Text>
-                  <Text size="1" color="gray" align="center">Ask me anything about your space plans, desk utilization, or allocation areas.</Text>
+                  <Text size="1" color="gray" align="center" className="intro-rise intro-rise-subtitle">Ask me anything about your space plans, desk utilization, or allocation areas.</Text>
                 </Flex>
+
+                {/* Progressive disclosure: a thinking beat, then the highlight
+                    of what needs attention across all plans */}
+                {attentionStage === "thinking" && (
+                  <Flex direction="column" align="start" className="chat-bubble" aria-live="polite">
+                    <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
+                      <span className="think-dot" />
+                      <span className="think-dot" />
+                      <span className="think-dot" />
+                    </Flex>
+                  </Flex>
+                )}
+                {attentionStage === "shown" && <AttentionCard plans={plans} />}
+
                 {agentMessages.map((msg, i) => (
                   <Flex key={i} direction="column" align={msg.role === "user" ? "end" : "start"}>
                     <Box
