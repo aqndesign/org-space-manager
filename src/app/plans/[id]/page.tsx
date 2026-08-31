@@ -15,6 +15,7 @@ import {
   Separator,
   Table,
   Text,
+  Tabs,
   TextArea,
   Tooltip,
 } from "@radix-ui/themes";
@@ -916,10 +917,11 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [planStatus, setPlanStatus] = useState<PlanStatus>(plan?.status ?? "Plan draft");
 
-  // Live plans get a second page: the Insights analytics dashboard. On
-  // mobile it is the only page — the assessment views are too data-dense
-  // for small screens, so the header tabs are hidden there.
-  const [pageTab, setPageTab] = useState<"assessment" | "insights">("assessment");
+  // Live plans get a second page: the Insights analytics dashboard. It
+  // leads (and is the default) because the desk policy page is view-only
+  // once a plan is live. On mobile it is the only page — the assessment
+  // views are too data-dense for small screens, so the tabs are hidden.
+  const [pageTab, setPageTab] = useState<"assessment" | "insights">(plan?.status === "Live" ? "insights" : "assessment");
   const isMobile = useIsMobile();
   const isLive = planStatus === "Live";
   const showInsights = isLive && (isMobile || pageTab === "insights");
@@ -1163,17 +1165,20 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               type="single"
               value={pageTab}
               onValueChange={(v) => { if (v) setPageTab(v as "assessment" | "insights"); }}
-              className="preview-toggle-root"
+              className="page-tabs"
               aria-label="Plan page"
             >
-              {(["assessment", "insights"] as const).map((v) => (
+              {([
+                { value: "insights", label: "Insights" },
+                { value: "assessment", label: "Desk policy" },
+              ] as const).map((t) => (
                 <ToggleGroup.Item
-                  key={v}
-                  value={v}
-                  className="preview-toggle-item"
-                  data-state={pageTab === v ? "on" : "off"}
+                  key={t.value}
+                  value={t.value}
+                  className="page-tab"
+                  data-state={pageTab === t.value ? "on" : "off"}
                 >
-                  {v === "assessment" ? "Assessment" : "Insights"}
+                  {t.label}
                 </ToggleGroup.Item>
               ))}
             </ToggleGroup.Root>
@@ -1394,33 +1399,27 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
             </Flex>
             ) : (
             <>
-            {/* Assessment tabs — sticky so they stay reachable while scrolling */}
-            <Box ref={tabsBarRef} style={{ position: "sticky", top: 0, zIndex: 5, background: "white", borderBottom: "0.5px solid var(--gray-4)", padding: "12px 16px" }}>
-              <ToggleGroup.Root
-                type="single"
-                value={assessmentTab}
-                onValueChange={(v) => { if (v) setAssessmentTab(v as AssessmentTab); }}
-                className="preview-toggle-root assessment-tabs"
-                aria-label="Assessment sections"
-              >
-                {ASSESSMENT_TABS.map((t) => {
-                  const active = assessmentTab === t.value;
-                  const item = (
-                    <ToggleGroup.Item
-                      key={t.value}
-                      value={t.value}
-                      className="preview-toggle-item"
-                      data-state={active ? "on" : "off"}
-                      aria-label={t.label}
-                    >
-                      <span style={{ flexShrink: 0, display: "inline-flex" }}>{active ? t.iconActive : t.icon}</span>
-                      {showTabLabels && <span className="tab-label">{t.label}</span>}
-                    </ToggleGroup.Item>
-                  );
-                  // Icon-only tabs get an explanatory tooltip.
-                  return showTabLabels ? item : <Tooltip key={t.value} content={t.label}>{item}</Tooltip>;
-                })}
-              </ToggleGroup.Root>
+            {/* Assessment tabs — sticky so they stay reachable while
+                scrolling. Radix Tabs; its list draws the underline track,
+                so the bar needs no border of its own. */}
+            <Box ref={tabsBarRef} style={{ position: "sticky", top: 0, zIndex: 5, background: "white", padding: "6px 16px 0" }}>
+              <Tabs.Root value={assessmentTab} onValueChange={(v) => setAssessmentTab(v as AssessmentTab)}>
+                <Tabs.List className="assessment-tabs" aria-label="Assessment sections">
+                  {ASSESSMENT_TABS.map((t) => {
+                    const active = assessmentTab === t.value;
+                    const item = (
+                      <Tabs.Trigger key={t.value} value={t.value} aria-label={t.label}>
+                        <Flex align="center" gap="2">
+                          <span style={{ flexShrink: 0, display: "inline-flex" }}>{active ? t.iconActive : t.icon}</span>
+                          {showTabLabels && <span className="tab-label">{t.label}</span>}
+                        </Flex>
+                      </Tabs.Trigger>
+                    );
+                    // Icon-only tabs get an explanatory tooltip.
+                    return showTabLabels ? item : <Tooltip key={t.value} content={t.label}>{item}</Tooltip>;
+                  })}
+                </Tabs.List>
+              </Tabs.Root>
             </Box>
             <Flex direction="column" gap="4" p="4">
               <AssessmentContent plan={viewPlan} deskPolicy={deskPolicy} iptPolicy={iptPolicy} tab={assessmentTab} />

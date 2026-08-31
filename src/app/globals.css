@@ -383,6 +383,36 @@ h4.rt-Heading {
   to { background-position: 0% 0; }
 }
 
+/* ─── Plan details: page tabs (Insights / Desk policy) ─ */
+/* Radix-docs-style nav pills: the active page is a solid dark pill,
+   inactive pages are plain text that gain a soft pill on hover. */
+.page-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.page-tab {
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: var(--font-size-2);
+  font-weight: 500;
+  color: var(--gray-11);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.page-tab:hover {
+  background: var(--gray-3);
+  color: var(--gray-12);
+}
+.page-tab[data-state="on"] {
+  background: var(--slate-12);
+  color: white;
+  font-weight: 700;
+}
+
 /* ─── Assistant composer: brand-gradient glow ───────── */
 /* Same gradient as the intro headline and the assistant glyph. The glow is
    a blurred layer behind the white surface, which lets the composer drop
