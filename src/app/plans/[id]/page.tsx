@@ -35,6 +35,9 @@ import { EmployeeDeskStatus, getEmployeesForPlan, getPlanById, MockEmployee } fr
 import { DeskPolicy, IPTPolicy, Plan, PlanStatus } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BlobCanvas } from "@/components/BlobCanvas";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { PlanInsights } from "@/components/PlanInsights";
+import { useIsMobile } from "@/lib/use-is-mobile";
 
 /* ─── Shared visual tokens (mirrors the landing page) ── */
 const GLASS_CARD_STYLE: React.CSSProperties = {
@@ -794,8 +797,8 @@ const IPT_STATUS_LABELS: { key: keyof IPTPolicy["allowedStatuses"]; label: strin
 ];
 
 function DecisionBadge({ value }: { value: boolean | null }) {
-  if (value === null) return <Badge color="orange" variant="soft" radius="full">Not set</Badge>;
-  return <Badge color={value ? "green" : "gray"} variant="soft" radius="full">{value ? "Yes" : "No"}</Badge>;
+  if (value === null) return <Badge color="orange" variant="soft" radius="full" highContrast>Not set</Badge>;
+  return <Badge color={value ? "green" : "gray"} variant="soft" radius="full" highContrast>{value ? "Yes" : "No"}</Badge>;
 }
 
 function PolicySummaryCard({ deskPolicy, iptPolicy }: { deskPolicy: DeskPolicy; iptPolicy: IPTPolicy }) {
@@ -808,14 +811,16 @@ function PolicySummaryCard({ deskPolicy, iptPolicy }: { deskPolicy: DeskPolicy; 
   ];
   return (
     <Flex direction="column" align="start">
-      <Box px="3" py="3" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px", width: "100%" }}>
+      {/* Light bubble: gray-2 + hairline border keeps definition on the white
+          panel while leaving text and badges enough contrast */}
+      <Box px="3" py="3" style={{ background: "var(--gray-2)", border: "0.5px solid var(--gray-4)", borderRadius: "16px 16px 16px 4px", width: "100%" }}>
         <Text as="div" size="2" style={{ marginBottom: 8, lineHeight: 1.5 }}>
           Here&apos;s where this plan stands — the desk assignment decisions made so far:
         </Text>
         <Flex direction="column" gap="1">
           {rows.map((r) => (
             <Flex key={r.label} align="center" justify="between" gap="2">
-              <Text size="1" color="gray">{r.label}</Text>
+              <Text size="1" color="gray" highContrast>{r.label}</Text>
               <DecisionBadge value={r.value} />
             </Flex>
           ))}
@@ -823,19 +828,19 @@ function PolicySummaryCard({ deskPolicy, iptPolicy }: { deskPolicy: DeskPolicy; 
         <Separator size="4" my="2" />
         <Flex direction="column" gap="1">
           <Flex align="center" justify="between" gap="2">
-            <Text size="1" color="gray">IPT minimum</Text>
+            <Text size="1" color="gray" highContrast>IPT minimum</Text>
             <Text size="1" weight="medium">{iptPolicy.minimumWorkDays} of 130 days · {((iptPolicy.minimumWorkDays / 130) * 100).toFixed(0)}%</Text>
           </Flex>
           <Flex align="center" justify="between" gap="2">
-            <Text size="1" color="gray">Non-assigned allowance</Text>
+            <Text size="1" color="gray" highContrast>Non-assigned allowance</Text>
             <Text size="1" weight="medium">{iptPolicy.allowanceNonAssigned} days</Text>
           </Flex>
           <Flex align="start" justify="between" gap="2">
-            <Text size="1" color="gray" style={{ flexShrink: 0 }}>Counting toward IPT</Text>
+            <Text size="1" color="gray" highContrast style={{ flexShrink: 0 }}>Counting toward IPT</Text>
             <Text size="1" weight="medium" style={{ textAlign: "right" }}>{statuses.length ? statuses.join(", ") : "None"}</Text>
           </Flex>
         </Flex>
-        <Text as="div" size="1" color="gray" style={{ marginTop: 8, lineHeight: 1.5 }}>
+        <Text as="div" size="1" color="gray" highContrast style={{ marginTop: 8, lineHeight: 1.5 }}>
           The assessment on the right reflects these decisions. Review them anytime from the button at the bottom right, or ask me to optimize the numbers again.
         </Text>
       </Box>
@@ -911,6 +916,14 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [planStatus, setPlanStatus] = useState<PlanStatus>(plan?.status ?? "Plan draft");
 
+  // Live plans get a second page: the Insights analytics dashboard. On
+  // mobile it is the only page — the assessment views are too data-dense
+  // for small screens, so the header tabs are hidden there.
+  const [pageTab, setPageTab] = useState<"assessment" | "insights">("assessment");
+  const isMobile = useIsMobile();
+  const isLive = planStatus === "Live";
+  const showInsights = isLive && (isMobile || pageTab === "insights");
+
   // Draggable divider between the assistant section and the content section.
   const [assistantW, setAssistantW] = useState(360);
   const [splitDragging, setSplitDragging] = useState(false);
@@ -929,7 +942,9 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
     const ro = new ResizeObserver(() => setShowTabLabels(el.offsetWidth >= TAB_LABEL_MIN_WIDTH));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+    // Re-observe: the bar unmounts while the Insights page is shown.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showInsights]);
   const [overrides, setOverrides] = useState<Record<string, EmployeeDeskStatus>>({});
   const [rosterOpen, setRosterOpen] = useState(false);
 
@@ -1130,23 +1145,6 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                 <ChevronLeftIcon width={16} height={16} />
               </IconButton>
             </Tooltip>
-            <Box
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: "#2657E8",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                boxShadow: "0 2px 10px rgba(62, 99, 221, 0.4)",
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" color="white">
-                <path fill="currentColor" d="M6.75 13.25a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm12.8.25c.206 0 .375 0 .512.01.141.012.27.038.392.1.188.095.34.248.437.436.061.121.087.251.098.392.011.137.011.306.011.512v4.6c0 .206 0 .375-.01.512-.012.141-.038.27-.1.392a.999.999 0 0 1-.436.437 1.027 1.027 0 0 1-.392.098c-.137.011-.306.011-.512.011h-4.6c-.205 0-.375 0-.512-.01a1.027 1.027 0 0 1-.392-.1.999.999 0 0 1-.437-.436 1.027 1.027 0 0 1-.098-.392c-.011-.137-.011-.306-.011-.512v-4.6c0-.205 0-.375.01-.512.012-.141.038-.27.1-.392a.999.999 0 0 1 .436-.437c.121-.061.251-.087.392-.098.137-.011.306-.011.512-.011h4.6Zm-2.3-10.75a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-7.918.251c.085.001.162.004.23.01.141.011.27.037.392.098.188.096.34.249.437.437.061.121.087.251.098.392.011.137.011.307.011.512v4.6c0 .205 0 .375-.01.512-.012.141-.038.27-.1.392a.999.999 0 0 1-.436.437 1.027 1.027 0 0 1-.392.098c-.137.011-.307.011-.512.011h-4.6c-.205 0-.375 0-.513-.01a1.027 1.027 0 0 1-.391-.1.999.999 0 0 1-.437-.436 1.026 1.026 0 0 1-.098-.392 3.588 3.588 0 0 1-.01-.23L3 9.05v-4.6c0-.205 0-.375.01-.513.012-.14.038-.27.1-.391a1 1 0 0 1 .436-.437c.121-.061.251-.087.392-.098C4.075 3 4.245 3 4.45 3h4.6l.282.001Z"/>
-              </svg>
-            </Box>
             <Flex direction="column" style={{ minWidth: 0 }}>
               <Flex align="center" gap="2">
                 <Heading size={{ initial: "3", sm: "4" }} style={{ whiteSpace: "nowrap" }}>{plan.allocationArea}</Heading>
@@ -1157,6 +1155,29 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               </Text>
             </Flex>
           </Flex>
+          {/* Live plans: switch between the assessment workspace and the
+              Insights analytics dashboard (desktop only — mobile always
+              shows Insights) */}
+          {isLive && !isMobile && (
+            <ToggleGroup.Root
+              type="single"
+              value={pageTab}
+              onValueChange={(v) => { if (v) setPageTab(v as "assessment" | "insights"); }}
+              className="preview-toggle-root"
+              aria-label="Plan page"
+            >
+              {(["assessment", "insights"] as const).map((v) => (
+                <ToggleGroup.Item
+                  key={v}
+                  value={v}
+                  className="preview-toggle-item"
+                  data-state={pageTab === v ? "on" : "off"}
+                >
+                  {v === "assessment" ? "Assessment" : "Insights"}
+                </ToggleGroup.Item>
+              ))}
+            </ToggleGroup.Root>
+          )}
           {/* Plan actions — role-dependent; the primary action sits furthest right */}
           <Flex align="center" gap="2">
             <Button variant="soft" color="gray" size="2" style={{ color: "var(--slate-12)" }}>
@@ -1279,7 +1300,8 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                           px="3"
                           py="2"
                           style={{
-                            background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-3)",
+                            background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-2)",
+                            border: msg.role === "user" ? undefined : "0.5px solid var(--gray-4)",
                             color: msg.role === "user" ? "white" : "var(--gray-12)",
                             borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                             maxWidth: "90%",
@@ -1296,7 +1318,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                     {/* Thinking indicator while the assistant composes a reply */}
                     {thinking && (
                       <Flex direction="column" align="start" className="chat-bubble" aria-live="polite">
-                        <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
+                        <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-2)", border: "0.5px solid var(--gray-4)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
                           <span className="think-dot" />
                           <span className="think-dot" />
                           <span className="think-dot" />
@@ -1307,59 +1329,45 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                   </Flex>
                 </ScrollArea>
 
-                {/* Suggested next steps — the intro's last disclosure: they
-                    appear once the assistant's opening message lands and stay
-                    visible until the user joins in */}
-                {messages.length > 0 && !messages.some((m) => m.role === "user") && (
-                  <Box px="4" pb="2" className="chat-bubble">
-                    <Flex direction="column" gap="2">
-                      <Text size="1" color="gray" weight="medium">Suggested next steps</Text>
-                      <Flex direction="column" align="start" gap="1">
-                        {SUGGESTED_PROMPTS.map((p) => (
-                          <button
-                            key={p}
-                            onClick={() => sendMessage(p)}
-                            style={{
-                              background: "var(--gray-2)",
-                              border: "0.5px solid var(--gray-4)",
-                              borderRadius: 9999,
-                              cursor: "pointer",
-                              fontSize: "var(--font-size-1)",
-                              fontFamily: "var(--font-body), system-ui",
-                              color: "var(--blue-11)",
-                              padding: "6px 12px",
-                              textAlign: "left",
-                            }}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                      </Flex>
-                    </Flex>
+                {/* Suggested next steps — one horizontal row above the
+                    composer; appears once the assistant's opening message
+                    lands and stays available from then on */}
+                {messages.length > 0 && (
+                  <Box px="4" pb="2" className="chat-bubble" style={{ flexShrink: 0 }}>
+                    <div className="prompt-row">
+                      {SUGGESTED_PROMPTS.map((p) => (
+                        <button key={p} className="prompt-pill" onClick={() => sendMessage(p)}>
+                          {p}
+                        </button>
+                      ))}
+                    </div>
                   </Box>
                 )}
 
-                {/* Composer */}
-                <Box px="4" py="3" style={{ borderTop: "0.5px solid var(--gray-4)", flexShrink: 0 }}>
-                  <Flex gap="2">
-                    <TextArea
-                      placeholder="Ask a question..."
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage();
-                        }
-                      }}
-                      style={{ flex: 1, resize: "none", minHeight: 64, borderRadius: "var(--radius-3)" }}
-                    />
-                    <Flex direction="column" justify="end">
-                      <IconButton size="2" className="btn-primary" onClick={() => sendMessage()} disabled={!input.trim() || thinking} aria-label="Send message">
-                        <PaperPlaneIcon />
-                      </IconButton>
+                {/* Composer — brand-gradient glow behind a borderless surface */}
+                <Box px="4" pt="2" pb="4" style={{ flexShrink: 0 }}>
+                  <Box className="composer-glow">
+                    <Flex direction="column" className="composer-surface">
+                      <TextArea
+                        placeholder="Ask a question..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                          }
+                        }}
+                        style={{ resize: "none", minHeight: 52 }}
+                      />
+                      <Flex justify="end" align="center" gap="3" px="2" pb="2">
+                        <VoiceInputButton value={input} onValueChange={setInput} />
+                        <IconButton size="2" radius="full" className="btn-primary btn-send" onClick={() => sendMessage()} disabled={!input.trim() || thinking} aria-label="Send message">
+                          <PaperPlaneIcon />
+                        </IconButton>
+                      </Flex>
                     </Flex>
-                  </Flex>
+                  </Box>
                 </Box>
               </Flex>
             )}
@@ -1380,6 +1388,12 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Right: scrollable content */}
           <Box style={{ flex: 1, minWidth: 0, overflowY: "auto", background: "white" }}>
+            {showInsights ? (
+            <Flex direction="column" gap="4" p="4">
+              <PlanInsights plan={viewPlan} iptPolicy={iptPolicy} />
+            </Flex>
+            ) : (
+            <>
             {/* Assessment tabs — sticky so they stay reachable while scrolling */}
             <Box ref={tabsBarRef} style={{ position: "sticky", top: 0, zIndex: 5, background: "white", borderBottom: "0.5px solid var(--gray-4)", padding: "12px 16px" }}>
               <ToggleGroup.Root
@@ -1423,6 +1437,8 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                 />
               )}
             </Flex>
+            </>
+            )}
           </Box>
         </Box>
 

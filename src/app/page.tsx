@@ -21,6 +21,7 @@ import {
   ScrollArea,
   Select,
   Separator,
+  Strong,
   Text,
   TextArea,
   Tooltip,
@@ -29,6 +30,8 @@ import { ChevronDownIcon, ChevronLeftIcon, CheckCircledIcon, Cross2Icon, MagicWa
 import { addPlan, getPlansByAA, getPlansByLocation, PLANS } from "@/lib/mock-data";
 import { BlobCanvas } from "@/components/BlobCanvas";
 import { NewPlanModal } from "@/components/NewPlanModal";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { useIsMobile } from "@/lib/use-is-mobile";
 import { Plan, PlanStatus, WorkLocation, AllocationArea } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -1292,6 +1295,15 @@ function FloorMapSurface({ blocks, desks, deskMode }: { blocks: TeamBlock[]; des
 const COLLAPSIBLE_FILTERS = ['evaluation', 'status', 'location', 'aa'] as const;
 type CollapsibleFilter = (typeof COLLAPSIBLE_FILTERS)[number];
 
+// Cross-plan suggestion pills for the landing composer; the details page
+// has its own plan-scoped set.
+const LANDING_PROMPTS = [
+  "What needs my attention first?",
+  "Which locations are over capacity?",
+  "How does utilization compare across AAs?",
+  "Which plans are awaiting approval?",
+];
+
 /* ─── Assistant: what needs attention, surfaced after the intro ── */
 // Intro pacing: the greeting rise + gradient sweep + subtitle (.intro-*
 // delays in globals.css) settle by ~1.4s; the assistant then thinks for a
@@ -1322,7 +1334,9 @@ function AttentionCard({ plans }: { plans: Plan[] }) {
 
   return (
     <Flex direction="column" align="start" className="chat-bubble">
-      <Box px="3" py="3" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px", width: "100%" }}>
+      {/* Light bubble: gray-2 + hairline border keeps definition on the white
+          panel while leaving text and badges enough contrast */}
+      <Box px="3" py="3" style={{ background: "var(--gray-2)", border: "0.5px solid var(--gray-4)", borderRadius: "16px 16px 16px 4px", width: "100%" }}>
         {groups.length === 0 ? (
           <Text as="div" size="2" style={{ lineHeight: 1.5 }}>
             {/* {" "} — this Next's JSX transform eats a trailing text child's
@@ -1338,14 +1352,16 @@ function AttentionCard({ plans }: { plans: Plan[] }) {
               {groups.map((g) => (
                 <Flex key={g.status} direction="column" gap="1">
                   <Flex align="center" justify="between" gap="2">
-                    <Text size="1" color="gray">{g.label}</Text>
-                    <Badge color={g.color} variant="soft" radius="full">{g.items.length}</Badge>
+                    <Text size="1" color="gray" highContrast>{g.label}</Text>
+                    <Badge color={g.color} variant="soft" radius="full" highContrast>{g.items.length}</Badge>
                   </Flex>
                   <Flex wrap="wrap" gap="1">
                     {g.items.map((p) => (
-                      <Link key={p.id} href={`/plans/${p.id}`} className="attention-chip">
-                        {p.allocationArea} · {p.workLocation}
-                      </Link>
+                      <Button key={p.id} asChild size="1" variant="surface" radius="full" style={{ fontWeight: "var(--font-weight-regular)" }}>
+                        <Link href={`/plans/${p.id}`}>
+                          {p.allocationArea} · {p.workLocation}
+                        </Link>
+                      </Button>
                     ))}
                   </Flex>
                 </Flex>
@@ -1356,8 +1372,8 @@ function AttentionCard({ plans }: { plans: Plan[] }) {
         {worst && (
           <>
             <Separator size="4" my="2" />
-            <Text as="div" size="1" color="gray" style={{ lineHeight: 1.5 }}>
-              Sharpest capacity squeeze: <strong>{worst.plan.allocationArea}</strong> at <strong>{worst.plan.workLocation}</strong> — {worst.core} core staff for {worst.capacity}{" "}desks. Open any plan and I&apos;ll take it from there.
+            <Text as="div" size="1" color="gray" highContrast style={{ lineHeight: 1.5 }}>
+              Sharpest capacity squeeze: <Strong>{worst.plan.allocationArea}</Strong> at <Strong>{worst.plan.workLocation}</Strong> — {worst.core} core staff for {worst.capacity}{" "}desks. Open any plan and I&apos;ll take it from there.
             </Text>
           </>
         )}
@@ -1376,6 +1392,7 @@ export default function LandingPage() {
 
   const [view, setView] = useState<"location" | "aa">("location");
   const [agentOpen, setAgentOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Open the agent panel by default on desktop only
   useEffect(() => {
@@ -1726,8 +1743,8 @@ export default function LandingPage() {
     (hiddenFilters.has('location') && locationFilter.size > 0) ||
     (hiddenFilters.has('aa') && aaFilter.size > 0);
 
-  function sendAgentMessage() {
-    const content = agentInput.trim();
+  function sendAgentMessage(text?: string) {
+    const content = (text ?? agentInput).trim();
     if (!content) return;
     setAttentionStage("shown"); // user takes the lead — skip the thinking beat
     setAgentMessages((prev) => [
@@ -1765,7 +1782,10 @@ export default function LandingPage() {
     "Enterprise Analytics",
   ];
 
+  // Mobile surfaces only live plans — their Insights page is the one
+  // experience that works at phone density.
   const filteredPlans = plans.filter(p =>
+    (!isMobile || p.status === "Live") &&
     (statusFilter.size === 0 || statusFilter.has(p.status)) &&
     (locationFilter.size === 0 || locationFilter.has(p.workLocation)) &&
     (aaFilter.size === 0 || aaFilter.has(p.allocationArea))
@@ -2312,10 +2332,10 @@ export default function LandingPage() {
                     of what needs attention across all plans */}
                 {attentionStage === "thinking" && (
                   <Flex direction="column" align="start" className="chat-bubble" aria-live="polite">
-                    <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-3)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
-                      <span className="think-dot" />
-                      <span className="think-dot" />
-                      <span className="think-dot" />
+                    <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-2)", border: "0.5px solid var(--gray-4)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
+                      <Box as="span" className="think-dot" />
+                      <Box as="span" className="think-dot" />
+                      <Box as="span" className="think-dot" />
                     </Flex>
                   </Flex>
                 )}
@@ -2327,7 +2347,8 @@ export default function LandingPage() {
                       px="3"
                       py="2"
                       style={{
-                        background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-3)",
+                        background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-2)",
+                        border: msg.role === "user" ? undefined : "0.5px solid var(--gray-4)",
                         color: msg.role === "user" ? "white" : "var(--gray-12)",
                         borderRadius:
                           msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
@@ -2343,26 +2364,44 @@ export default function LandingPage() {
               </Flex>
             </ScrollArea>
 
-            <Box px="4" py="3" style={{ borderTop: "0.5px solid rgba(0,0,0,0.1)", flexShrink: 0, borderRadius: "0 0 20px 20px" }}>
-              <Flex gap="2">
-                <TextArea
-                  placeholder="Ask a question..."
-                  value={agentInput}
-                  onChange={(e) => setAgentInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      sendAgentMessage();
-                    }
-                  }}
-                  style={{ flex: 1, resize: "none", minHeight: 64, borderRadius: "var(--radius-3)" }}
-                />
-                <Flex direction="column" justify="end">
-                  <IconButton size="2" onClick={sendAgentMessage} disabled={!agentInput.trim()}>
-                    <PaperPlaneIcon />
-                  </IconButton>
+            {/* Suggested prompts — one horizontal row above the composer,
+                disclosed together with the attention highlight */}
+            {attentionStage === "shown" && (
+              <Box px="4" pb="2" className="chat-bubble" style={{ flexShrink: 0 }}>
+                <div className="prompt-row">
+                  {LANDING_PROMPTS.map((p) => (
+                    <button key={p} className="prompt-pill" onClick={() => sendAgentMessage(p)}>
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </Box>
+            )}
+
+            {/* Composer — brand-gradient glow behind a borderless surface */}
+            <Box px="4" pt="2" pb="4" style={{ flexShrink: 0, borderRadius: "0 0 20px 20px" }}>
+              <Box className="composer-glow">
+                <Flex direction="column" className="composer-surface">
+                  <TextArea
+                    placeholder="Ask a question..."
+                    value={agentInput}
+                    onChange={(e) => setAgentInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendAgentMessage();
+                      }
+                    }}
+                    style={{ resize: "none", minHeight: 52 }}
+                  />
+                  <Flex justify="end" align="center" gap="3" px="2" pb="2">
+                    <VoiceInputButton value={agentInput} onValueChange={setAgentInput} />
+                    <IconButton size="2" radius="full" className="btn-primary btn-send" onClick={() => sendAgentMessage()} disabled={!agentInput.trim()} aria-label="Send message">
+                      <PaperPlaneIcon />
+                    </IconButton>
+                  </Flex>
                 </Flex>
-              </Flex>
+              </Box>
             </Box>
             </Box>
             </Box>
