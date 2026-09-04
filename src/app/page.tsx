@@ -1887,9 +1887,12 @@ export default function LandingPage() {
               </svg>
             </IconButton>
             </Tooltip>
-            <Button size="2" className="btn-green" style={{ background: "var(--btn-green-bg)", color: "white" }} onClick={() => setNewPlanOpen(true)}>
-              + New plan
-            </Button>
+            {/* Creating plans is desktop-only; mobile is for tracking live plans */}
+            {!isMobile && (
+              <Button size="2" className="btn-green" style={{ background: "var(--btn-green-bg)", color: "white" }} onClick={() => setNewPlanOpen(true)}>
+                + New plan
+              </Button>
+            )}
           </Flex>
         </Flex>
       </Box>

@@ -782,6 +782,26 @@ label {
     display: none !important;
   }
 
+  /* Desk assignment criteria becomes a bottom sheet: full-width, pinned
+     to the bottom edge, sliding up instead of scaling in */
+  .criteria-panel {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    height: min(85%, 640px) !important;
+    border-radius: 16px 16px 0 0 !important;
+    transform-origin: bottom center;
+  }
+  .criteria-panel[data-open="false"] {
+    opacity: 1;
+    transform: translateY(100%);
+  }
+  .criteria-panel[data-open="true"] {
+    transform: translateY(0);
+  }
+
   /* Banner icon container: TR corner 16px right of icon right edge (88px + 16px = 104px from banner left) */
   .banner-icon-container {
     left: -192px !important;

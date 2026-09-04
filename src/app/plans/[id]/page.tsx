@@ -986,9 +986,13 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
     if (window.innerWidth < 1024) setAssistantCollapsed(true);
   }, []);
 
-  // Keep the newest bubble (or the thinking indicator) in view.
+  // Keep the newest bubble (or the thinking indicator) in view. Scroll only
+  // the thread's own viewport — scrollIntoView would also scroll overflow-
+  // hidden ancestors, dragging the page up while the mobile overlay is
+  // off-screen below the fold.
   useEffect(() => {
-    threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const viewport = threadEndRef.current?.closest(".rt-ScrollAreaViewport");
+    viewport?.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
   }, [messages, thinking]);
 
   // The assistant leads the workflow: on entry the intro sequence plays
@@ -1136,6 +1140,106 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   // The plan with the live (possibly dev-advanced) status, for display.
   const viewPlan: Plan = { ...plan, status: planStatus };
 
+  // Assistant thread + composer — shared by the desktop split panel and the
+  // mobile slide-up overlay (only one of the two is ever mounted).
+  const assistantThread = (
+    <>
+      {/* Thread — greeting, auto decisions snapshot, then chat */}
+      <ScrollArea style={{ flex: 1, minHeight: 0 }}>
+        <Flex direction="column" gap="3" p="4">
+          {/* Intro sequence — greeting rises, its gradient sweeps,
+              then each block below discloses in turn */}
+          <Flex direction="column" align="center" gap="2" py="4">
+            <Text size="5" weight="bold" className="intro-rise" style={{ fontFamily: "var(--font-heading)", textAlign: "center" }}>
+              <span className="intro-gradient">Hi, I&apos;m your Campus assistant!</span>
+            </Text>
+            <Text size="1" color="gray" align="center" className="intro-rise intro-rise-subtitle">
+              I can help you make informed decisions for <strong>{plan.allocationArea}</strong> at <strong>{plan.workLocation}</strong> — desk criteria, IPT requirements, or workspace data.
+            </Text>
+          </Flex>
+
+          <Box className="intro-rise intro-rise-card">
+            <PolicySummaryCard deskPolicy={deskPolicy} iptPolicy={iptPolicy} />
+          </Box>
+
+          {messages.map((msg, i) => (
+            <Flex key={i} direction="column" align={msg.role === "user" ? "end" : "start"} className="chat-bubble">
+              <Box
+                px="3"
+                py="2"
+                style={{
+                  background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-2)",
+                  border: msg.role === "user" ? undefined : "0.5px solid var(--gray-4)",
+                  color: msg.role === "user" ? "white" : "var(--gray-12)",
+                  borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                  maxWidth: "90%",
+                  fontSize: "var(--font-size-2)",
+                  lineHeight: 1.5,
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {msg.content}
+              </Box>
+            </Flex>
+          ))}
+
+          {/* Thinking indicator while the assistant composes a reply */}
+          {thinking && (
+            <Flex direction="column" align="start" className="chat-bubble" aria-live="polite">
+              <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-2)", border: "0.5px solid var(--gray-4)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
+                <span className="think-dot" />
+                <span className="think-dot" />
+                <span className="think-dot" />
+              </Flex>
+            </Flex>
+          )}
+          <div ref={threadEndRef} />
+        </Flex>
+      </ScrollArea>
+
+      {/* Suggested next steps — one horizontal row above the composer;
+          appears once the assistant's opening message lands and stays
+          available from then on */}
+      {messages.length > 0 && (
+        <Box px="4" pb="2" className="chat-bubble" style={{ flexShrink: 0 }}>
+          <div className="prompt-row">
+            {SUGGESTED_PROMPTS.map((p) => (
+              <button key={p} className="prompt-pill" onClick={() => sendMessage(p)}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </Box>
+      )}
+
+      {/* Composer — brand-gradient glow behind a borderless surface */}
+      <Box px="4" pt="2" pb="4" style={{ flexShrink: 0 }}>
+        <Box className="composer-glow">
+          <Flex direction="column" className="composer-surface">
+            <TextArea
+              placeholder="Ask a question..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              style={{ resize: "none", minHeight: 52 }}
+            />
+            <Flex justify="end" align="center" gap="3" px="2" pb="2">
+              <VoiceInputButton value={input} onValueChange={setInput} />
+              <IconButton size="2" radius="full" className="btn-primary btn-send" onClick={() => sendMessage()} disabled={!input.trim() || thinking} aria-label="Send message">
+                <PaperPlaneIcon />
+              </IconButton>
+            </Flex>
+          </Flex>
+        </Box>
+      </Box>
+    </>
+  );
+
   return (
     <Box style={{ height: "100vh", display: "flex", flexDirection: "column", position: "relative", background: "#FCFCFD" }}>
       {/* Header */}
@@ -1183,7 +1287,30 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               ))}
             </ToggleGroup.Root>
           )}
-          {/* Plan actions — role-dependent; the primary action sits furthest right */}
+          {/* Mobile is view-only: no plan actions, just the assistant
+              toggle in the top-right corner, like the landing page */}
+          {isMobile ? (
+            <IconButton
+              variant="solid"
+              size="2"
+              className="btn-assistant"
+              style={{ width: 32, height: 32, flexShrink: 0 }}
+              onClick={() => setAssistantCollapsed((c) => !c)}
+              aria-expanded={!assistantCollapsed}
+              aria-label="Toggle assistant"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16">
+                <path
+                  fill="white"
+                  d="M12.565 2.262c.799.033 1.579.136 2.332.301l-.112.222-2.44 1.232a2.222 2.222 0 0 0 0 3.966l2.44 1.23 1.232 2.441a2.222 2.222 0 0 0 3.966 0l1.23-2.44 1.432-.723c.39.937.605 1.947.605 3.009 0 5.249-5.193 9.25-11.25 9.25-.863 0-1.704-.08-2.512-.231-.014-.003-.02 0-.018 0l-4.756 2.828a1.09 1.09 0 0 1-1.629-1.13l.783-4.309-.002-.004a.066.066 0 0 0-.018-.025C1.952 16.24.75 14 .75 11.5.75 6.251 5.943 2.25 12 2.25l.565.012ZM7.75 10.475a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Zm4.25 0a1 1 0 0 0-1 1v.05a1 1 0 1 0 2 0v-.05a1 1 0 0 0-1-1Z"
+                />
+                <path
+                  fill="white"
+                  d="M18 0.563c.259 0 .498.127.644.335l.056.095 1.368 2.712c.035.07.054.105.069.13.011.022.011.02.005.012a.067.067 0 0 0 .011.011c-.008-.006-.01-.007.011.005.026.015.061.034.13.069L23.008 5.3a.784.784 0 0 1 0 1.4l-2.712 1.368c-.07.035-.105.054-.13.069-.022.012-.02.011-.012.005a.067.067 0 0 0-.011.011c.006-.008.006-.01-.005.011a3.784 3.784 0 0 0-.069.13L18.7 11.008a.784.784 0 0 1-1.4 0l-1.368-2.712-.069-.13c-.011-.022-.011-.02-.005-.012a.067.067 0 0 0-.011-.011c.008.006.01.007-.011-.005a3.781 3.781 0 0 0-.13-.069L12.992 6.7a.784.784 0 0 1 0-1.4l2.712-1.368c.07-.035.105-.054.13-.069.022-.012.02-.011.012-.005a.067.067 0 0 0 .011-.011c-.006.008-.007.01.005-.011.015-.026.034-.061.069-.13L17.3.992l.056-.095A.784.784 0 0 1 18 .562Z"
+                />
+              </svg>
+            </IconButton>
+          ) : (
           <Flex align="center" gap="2">
             <Button variant="soft" color="gray" size="2" style={{ color: "var(--slate-12)" }}>
               <ResetIcon /> History
@@ -1215,6 +1342,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               </>
             )}
           </Flex>
+          )}
         </Flex>
       </Box>
 
@@ -1237,7 +1365,10 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
             overflow: "hidden",
           }}
         >
-          {/* Left: assistant section */}
+          {/* Left: assistant section — desktop only; on mobile the assistant
+              is a slide-up overlay toggled from the header */}
+          {!isMobile && (
+          <>
           <Box
             style={{
               width: assistantCollapsed ? 48 : assistantW,
@@ -1281,99 +1412,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                   </Tooltip>
                 </Flex>
 
-                {/* Thread — greeting, auto decisions snapshot, then chat */}
-                <ScrollArea style={{ flex: 1, minHeight: 0 }}>
-                  <Flex direction="column" gap="3" p="4">
-                    {/* Intro sequence — greeting rises, its gradient sweeps,
-                        then each block below discloses in turn */}
-                    <Flex direction="column" align="center" gap="2" py="4">
-                      <Text size="5" weight="bold" className="intro-rise" style={{ fontFamily: "var(--font-heading)", textAlign: "center" }}>
-                        <span className="intro-gradient">Hi, I&apos;m your Campus assistant!</span>
-                      </Text>
-                      <Text size="1" color="gray" align="center" className="intro-rise intro-rise-subtitle">
-                        I can help you make informed decisions for <strong>{plan.allocationArea}</strong> at <strong>{plan.workLocation}</strong> — desk criteria, IPT requirements, or workspace data.
-                      </Text>
-                    </Flex>
-
-                    <Box className="intro-rise intro-rise-card">
-                      <PolicySummaryCard deskPolicy={deskPolicy} iptPolicy={iptPolicy} />
-                    </Box>
-
-                    {messages.map((msg, i) => (
-                      <Flex key={i} direction="column" align={msg.role === "user" ? "end" : "start"} className="chat-bubble">
-                        <Box
-                          px="3"
-                          py="2"
-                          style={{
-                            background: msg.role === "user" ? "var(--blue-9)" : "var(--gray-2)",
-                            border: msg.role === "user" ? undefined : "0.5px solid var(--gray-4)",
-                            color: msg.role === "user" ? "white" : "var(--gray-12)",
-                            borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                            maxWidth: "90%",
-                            fontSize: "var(--font-size-2)",
-                            lineHeight: 1.5,
-                            whiteSpace: "pre-line",
-                          }}
-                        >
-                          {msg.content}
-                        </Box>
-                      </Flex>
-                    ))}
-
-                    {/* Thinking indicator while the assistant composes a reply */}
-                    {thinking && (
-                      <Flex direction="column" align="start" className="chat-bubble" aria-live="polite">
-                        <Flex align="center" gap="1" px="3" py="2" style={{ background: "var(--gray-2)", border: "0.5px solid var(--gray-4)", borderRadius: "16px 16px 16px 4px" }} aria-label="Assistant is thinking">
-                          <span className="think-dot" />
-                          <span className="think-dot" />
-                          <span className="think-dot" />
-                        </Flex>
-                      </Flex>
-                    )}
-                    <div ref={threadEndRef} />
-                  </Flex>
-                </ScrollArea>
-
-                {/* Suggested next steps — one horizontal row above the
-                    composer; appears once the assistant's opening message
-                    lands and stays available from then on */}
-                {messages.length > 0 && (
-                  <Box px="4" pb="2" className="chat-bubble" style={{ flexShrink: 0 }}>
-                    <div className="prompt-row">
-                      {SUGGESTED_PROMPTS.map((p) => (
-                        <button key={p} className="prompt-pill" onClick={() => sendMessage(p)}>
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  </Box>
-                )}
-
-                {/* Composer — brand-gradient glow behind a borderless surface */}
-                <Box px="4" pt="2" pb="4" style={{ flexShrink: 0 }}>
-                  <Box className="composer-glow">
-                    <Flex direction="column" className="composer-surface">
-                      <TextArea
-                        placeholder="Ask a question..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            sendMessage();
-                          }
-                        }}
-                        style={{ resize: "none", minHeight: 52 }}
-                      />
-                      <Flex justify="end" align="center" gap="3" px="2" pb="2">
-                        <VoiceInputButton value={input} onValueChange={setInput} />
-                        <IconButton size="2" radius="full" className="btn-primary btn-send" onClick={() => sendMessage()} disabled={!input.trim() || thinking} aria-label="Send message">
-                          <PaperPlaneIcon />
-                        </IconButton>
-                      </Flex>
-                    </Flex>
-                  </Box>
-                </Box>
+                {assistantThread}
               </Flex>
             )}
           </Box>
@@ -1390,11 +1429,13 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 4, height: 44, borderRadius: 9999, background: "var(--gray-6)" }} />
             )}
           </div>
+          </>
+          )}
 
           {/* Right: scrollable content */}
           <Box style={{ flex: 1, minWidth: 0, overflowY: "auto", background: "white" }}>
             {showInsights ? (
-            <Flex direction="column" gap="4" p="4">
+            <Flex direction="column" gap="4" p={{ initial: "3", sm: "4" }}>
               <PlanInsights plan={viewPlan} iptPolicy={iptPolicy} />
             </Flex>
             ) : (
@@ -1440,6 +1481,41 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
             )}
           </Box>
         </Box>
+
+        {/* Mobile: assistant as a slide-up overlay covering the body,
+            toggled from the header button — mirrors the landing page */}
+        {isMobile && (
+          <Box
+            className="agent-panel"
+            data-visible={assistantCollapsed ? "false" : "true"}
+            aria-hidden={assistantCollapsed}
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 40,
+              display: "flex",
+              flexDirection: "column",
+              background: "white",
+              transform: assistantCollapsed ? "translateY(100%)" : "translateY(0)",
+              opacity: assistantCollapsed ? 0 : 1,
+              transition: "transform 300ms ease-in-out, opacity 300ms ease-in-out",
+            }}
+          >
+            <Flex align="center" justify="between" style={{ padding: "14px 16px 12px 20px", borderBottom: "0.5px solid var(--gray-4)", flexShrink: 0, gap: 8 }}>
+              <Flex align="center" gap="2">
+                <AssistantGlyph size={20} />
+                <Flex direction="column">
+                  <Text size="2" weight="bold">Assistant</Text>
+                  <Text size="1" color="gray">Guidance for this plan</Text>
+                </Flex>
+              </Flex>
+              <IconButton variant="ghost" color="gray" size="1" onClick={() => setAssistantCollapsed(true)} aria-label="Close assistant">
+                <Cross2Icon width={14} height={14} />
+              </IconButton>
+            </Flex>
+            {assistantThread}
+          </Box>
+        )}
 
         {/* Full-page employee modal */}
         <RosterDialog
@@ -1528,9 +1604,10 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
           </button>
         </Tooltip>
 
-        {/* Desk assignment criteria — pop-up above the floating button */}
+        {/* Desk assignment criteria — pop-up above the floating button on
+            desktop, a bottom sheet sliding up from the screen edge on mobile */}
         <Box
-          className="criteria-popup"
+          className="criteria-popup criteria-panel"
           data-open={criteriaOpen ? "true" : "false"}
           aria-hidden={!criteriaOpen}
           style={{
